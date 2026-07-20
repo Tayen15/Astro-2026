@@ -97,8 +97,8 @@ export default function Navbar() {
             className="px-4 text-[10.5px] font-bold tracking-[0.15em] text-slate-650 hover:text-slate-950 transition-all duration-200 cursor-pointer h-full flex items-center relative group"
           >
             {link.label}
-            {/* Red bottom accent indicator line, active on hover */}
-            <span className="absolute bottom-0 inset-x-4 h-[2px] bg-[#ff4655] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ease-in-out" />
+            {/* Cyan bottom accent indicator line, active on hover */}
+            <span className="absolute bottom-0 inset-x-4 h-[2px] bg-[#06B6D4] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ease-in-out" />
           </button>
         ))}
       </div>
@@ -124,7 +124,7 @@ export default function Navbar() {
         {/* CTA (Play Now / Register style) */}
         <button
           onClick={() => scrollTo('#competitions')}
-          className="px-4 py-2 md:px-5 md:py-2 bg-[#ff4655] hover:bg-slate-900 text-white hover:text-white font-black text-[10px] md:text-[11px] tracking-wider uppercase rounded transition-all duration-200 ease-in-out cursor-pointer shadow-[0_0_15px_rgba(255,70,85,0.2)] hover:shadow-[0_0_25px_rgba(255,70,85,0.4)]"
+          className="px-4 py-2 md:px-5 md:py-2 bg-astro-cyan hover:bg-cyan-400 text-slate-950 hover:text-slate-950 font-black text-[10px] md:text-[11px] tracking-wider uppercase rounded transition-all duration-200 ease-in-out cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
         >
           DAFTAR SEKARANG
         </button>
@@ -164,13 +164,13 @@ export default function Navbar() {
                     className="px-4 py-3 text-xs font-bold tracking-[0.15em] text-left text-slate-700 hover:text-slate-950 hover:bg-slate-50 transition-all duration-200 cursor-pointer flex items-center justify-between group"
                   >
                     {link.label}
-                    <span className="w-1.5 h-1.5 bg-[#ff4655] rounded-full scale-0 group-hover:scale-100 transition-transform duration-200 ease-in-out" />
+                    <span className="w-1.5 h-1.5 bg-[#06B6D4] rounded-full scale-0 group-hover:scale-100 transition-transform duration-200 ease-in-out" />
                   </button>
                 ))}
                 <hr className="my-4 border-slate-100" />
                 <button
                   onClick={() => scrollTo('#competitions')}
-                  className="px-4 py-3 bg-[#ff4655] hover:bg-slate-900 text-white hover:text-white font-black text-xs tracking-wider uppercase text-center rounded transition-all duration-200 cursor-pointer"
+                  className="px-4 py-3 bg-astro-cyan hover:bg-cyan-400 text-slate-950 hover:text-slate-950 font-black text-xs tracking-wider uppercase text-center rounded transition-all duration-200 cursor-pointer"
                 >
                   DAFTAR SEKARANG
                 </button>
