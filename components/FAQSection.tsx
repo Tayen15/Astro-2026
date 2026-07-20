@@ -18,7 +18,7 @@ export default function FAQSection({ faqs }: Props) {
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50 -z-10" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-500/2 blur-[150px] rounded-full pointer-events-none" />
-      <div className="absolute top-[20%] -right-[10%] w-[400px] h-[400px] bg-astro-violet/3 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-[20%] -right-[10%] w-[400px] h-[400px] bg-slate-900/5 blur-[120px] rounded-full pointer-events-none" />
       {/* Angular accent lines */}
       <div className="absolute bottom-[30%] left-[5%] w-[100px] h-[2px] bg-gradient-to-r from-slate-200/20 to-transparent skew-x-[-12deg] pointer-events-none" />
 

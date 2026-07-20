@@ -104,7 +104,7 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
         style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
       >
         {/* Top accent */}
-        <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-astro-violet" />
+        <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-slate-900" />
 
         <div className="p-6 md:p-8 space-y-5">
           {isTeam ? (

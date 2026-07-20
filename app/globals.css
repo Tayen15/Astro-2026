@@ -7,7 +7,6 @@
 
   --color-deep-slate: #ffffff;
   --color-astro-cyan: #06B6D4;
-  --color-astro-violet: #8B5CF6;
   --color-surface-dark: #f8fafc;
   --color-surface-mid: #f1f5f9;
 
@@ -87,14 +86,14 @@ body {
 .accent-line {
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, #06B6D4, #8B5CF6);
+  background: linear-gradient(90deg, #06B6D4, #0f172a);
   transform: skewX(-12deg);
 }
 
 .accent-line-wide {
   width: 120px;
   height: 3px;
-  background: linear-gradient(90deg, #06B6D4, #8B5CF6);
+  background: linear-gradient(90deg, #06B6D4, #0f172a);
   transform: skewX(-12deg);
 }
 

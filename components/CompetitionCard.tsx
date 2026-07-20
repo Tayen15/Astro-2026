@@ -9,7 +9,7 @@ import type { Competition, CategoryType } from '@/types/astro';
 const categoryConfig: Record<CategoryType, { color: string; bg: string; border: string; label: string }> = {
   akademik: { color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', label: 'AKADEMIK' },
   olahraga: { color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200', label: 'OLAHRAGA' },
-  esports: { color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-purple-200', label: 'ESPORTS' },
+  esports: { color: 'text-cyan-700', bg: 'bg-cyan-50', border: 'border-cyan-200', label: 'ESPORTS' },
 };
 
 function toIdr(n: number) {
@@ -43,7 +43,7 @@ export default function CompetitionCard({ competition, index }: Props) {
       style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
     >
       {/* Top accent line per category */}
-      <div className={`h-1 w-full ${competition.category === 'akademik' ? 'bg-emerald-500' : competition.category === 'olahraga' ? 'bg-orange-500' : 'bg-purple-500'}`} />
+      <div className={`h-1 w-full ${competition.category === 'akademik' ? 'bg-emerald-500' : competition.category === 'olahraga' ? 'bg-orange-500' : 'bg-cyan-500'}`} />
 
       <div className="p-5 md:p-6 flex flex-col gap-3">
         {/* Top row: badge + slots */}
@@ -93,7 +93,7 @@ export default function CompetitionCard({ competition, index }: Props) {
             whileInView={{ width: `${ratio}%` }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] as const }}
-            className={`h-full rounded-full ${competition.category === 'akademik' ? 'bg-emerald-500' : competition.category === 'olahraga' ? 'bg-orange-500' : 'bg-purple-500'}`}
+            className={`h-full rounded-full ${competition.category === 'akademik' ? 'bg-emerald-500' : competition.category === 'olahraga' ? 'bg-orange-500' : 'bg-cyan-500'}`}
           />
         </div>
 

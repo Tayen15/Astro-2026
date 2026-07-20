@@ -32,9 +32,9 @@ export default function HeroSection({ eventConfig }: Props) {
         {/* Base gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-white" />
         {/* Top glow */}
-        <div className="absolute -top-[30%] left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-gradient-to-b from-astro-violet/5 via-astro-cyan/3 to-transparent blur-[120px] rounded-full" />
+        <div className="absolute -top-[30%] left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-gradient-to-b from-slate-950/10 via-astro-cyan/3 to-transparent blur-[120px] rounded-full" />
         {/* Side accents */}
-        <div className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-astro-violet/3 blur-[140px] rounded-full" />
+        <div className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-slate-950/5 blur-[140px] rounded-full" />
         <div className="absolute bottom-[20%] -left-[5%] w-[400px] h-[400px] bg-astro-cyan/3 blur-[100px] rounded-full" />
         {/* Grid lines */}
         <div className="absolute inset-0 opacity-[0.05]" style={{

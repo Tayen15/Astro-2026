@@ -301,7 +301,7 @@ Terima kasih.`;
                 className="bg-white border border-slate-200"
                 style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
               >
-                <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-astro-violet" />
+                <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-slate-900" />
 
                 <div className="p-6 md:p-8 space-y-6">
                   <div className="flex items-center gap-2">
@@ -410,7 +410,7 @@ Terima kasih.`;
                 className="bg-white border border-slate-200"
                 style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
               >
-                <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-astro-violet" />
+                <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-slate-900" />
 
                 <div className="p-6 md:p-8 space-y-6">
                   <div className="flex items-center gap-2">

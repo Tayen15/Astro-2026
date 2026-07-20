@@ -43,12 +43,12 @@ const categoryConfig: Record<string, {
   },
   esports: {
     label: 'ESPORTS',
-    color: 'text-purple-700',
-    bg: 'bg-purple-50',
-    border: 'border-purple-200',
-    accent: 'bg-purple-500',
-    iconBg: 'bg-purple-50 text-purple-600',
-    iconBorder: 'border-purple-200',
+    color: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    border: 'border-cyan-200',
+    accent: 'bg-cyan-500',
+    iconBg: 'bg-cyan-50 text-cyan-600',
+    iconBorder: 'border-cyan-200',
   },
 };
 
@@ -130,8 +130,8 @@ export default function RegistrationPage({ params }: PageProps) {
           <section className="relative pt-36 pb-14 md:pt-40 md:pb-18 overflow-hidden">
             <div className="absolute inset-0 -z-10">
               <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-white" />
-              <div className="absolute -top-[30%] left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-gradient-to-b from-astro-violet/5 via-astro-cyan/3 to-transparent blur-[120px] rounded-full" />
-              <div className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-astro-violet/3 blur-[140px] rounded-full" />
+              <div className="absolute -top-[30%] left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-gradient-to-b from-slate-950/10 via-astro-cyan/3 to-transparent blur-[120px] rounded-full" />
+              <div className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-slate-950/5 blur-[140px] rounded-full" />
               <div className="absolute inset-0 opacity-[0.04]" style={{
                 backgroundImage: 'linear-gradient(rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px)',
                 backgroundSize: '80px 80px',

@@ -94,7 +94,7 @@ export default function CompetitionModal({ competition, onClose }: Props) {
                   ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
                   : competition.category === 'olahraga'
                   ? 'bg-orange-50 border border-orange-200 text-orange-700'
-                  : 'bg-purple-50 border border-purple-200 text-purple-700'
+                  : 'bg-cyan-50 border border-cyan-200 text-cyan-700'
               }`}>
                 {competition.category === 'akademik' ? 'Akademik' : competition.category === 'olahraga' ? 'Olahraga' : 'Esports'}
               </span>

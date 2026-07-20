@@ -39,7 +39,7 @@ export default function AboutSection() {
     <section id="about" className="relative py-20 md:py-28 bg-white overflow-hidden border-b border-slate-200/65">
       {/* Subtle Background Glows */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-cyan-500/2 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-500/2 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-500/2 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
@@ -125,11 +125,11 @@ export default function AboutSection() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] as const }}
-              className="p-6 md:p-8 bg-slate-50 border border-slate-200/60 rounded-2xl relative overflow-hidden group hover:border-violet-500/35 transition-colors duration-200"
+              className="p-6 md:p-8 bg-slate-50 border border-slate-200/60 rounded-2xl relative overflow-hidden group hover:border-cyan-500/35 transition-colors duration-200"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/5 blur-xl rounded-full" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 blur-xl rounded-full" />
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-violet-500 text-white flex items-center justify-center shadow-md shadow-violet-500/10">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500 text-white flex items-center justify-center shadow-md shadow-cyan-500/10">
                   <Target className="w-4 h-4" />
                 </div>
                 <h3 className="text-sm font-black tracking-[0.15em] text-slate-900 uppercase">MISI KAMI</h3>
@@ -137,7 +137,7 @@ export default function AboutSection() {
               <ul className="space-y-4">
                 {misiList.map((misi, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-50 border border-violet-100 flex items-center justify-center text-[10px] font-bold text-violet-600 mt-0.5">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-55 border border-cyan-100 flex items-center justify-center text-[10px] font-bold text-cyan-600 mt-0.5">
                       {idx + 1}
                     </span>
                     <p className="text-sm text-slate-655 leading-relaxed font-medium">{misi}</p>
