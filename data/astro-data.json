@@ -1,0 +1,330 @@
+{
+  "eventConfig": {
+    "name": "ASTRO 2026",
+    "tagline": "Where Innovation Meets the Stars",
+    "description": "Ajang kompetisi dan kreativitas terbesar tahun ini. Bergabunglah dalam pengalaman kompetisi multi-kategori yang menggabungkan akademik, olahraga, dan esports dalam satu panggung spektakuler. Tunjukkan bakatmu, raih prestasi, dan jadilah bagian dari sejarah ASTRO 2026!",
+    "registrationDeadline": "2026-08-20T23:59:59+07:00",
+    "totalPrizePool": "Rp 250.000.000+",
+    "generalJuknisUrl": "https://example.com/juknis-astro-2026"
+  },
+  "competitions": [
+    {
+      "id": "astro-hackathon",
+      "title": "Astro Hackathon",
+      "category": "akademik",
+      "tagline": "Bangun solusi, ubah dunia dalam 24 jam",
+      "description": "Kompetisi coding selama 24 jam penuh di mana peserta ditantang untuk menciptakan solusi inovatif bagi permasalahan nyata. Bebas menggunakan stack apapun, yang dinilai adalah kreativitas, fungsionalitas, dan dampak dari solusi yang dibuat.",
+      "fee": 50000,
+      "maxSlots": 50,
+      "filledSlots": 38,
+      "scheduleDate": "2026-08-25",
+      "location": "Gedung Serbaguna Lt. 3",
+      "prizes": {
+        "first": "Rp 5.000.000 + Trofi + Sertifikat",
+        "second": "Rp 3.000.000 + Sertifikat",
+        "third": "Rp 1.500.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Peserta maksimal 3 orang per tim",
+        "Waktu pengerjaan 24 jam penuh",
+        "Stack teknologi bebas",
+        "Kode harus di-push ke GitHub/Bitbucket",
+        "Presentasi maksimal 5 menit"
+      ],
+      "rulebookUrl": "https://example.com/rules/hackathon",
+      "registrationUrl": "https://forms.google.com/astro-hackathon",
+      "contactPerson": {
+        "name": "Andi Pratama",
+        "whatsapp": "628123456789"
+      }
+    },
+    {
+      "id": "science-olympiad",
+      "title": "Science Olympiad",
+      "category": "akademik",
+      "tagline": "Uji nalar dan logika ilmiahmu",
+      "description": "Olimpiade Sains yang mencakup bidang Matematika, Fisika, dan Kimia. Soal-soal dirancang untuk menguji kemampuan analitis, pemahaman konsep mendalam, dan pemecahan masalah kompleks secara kreatif.",
+      "fee": 35000,
+      "maxSlots": 80,
+      "filledSlots": 65,
+      "scheduleDate": "2026-08-24",
+      "location": "Lab Sains Lt. 2",
+      "prizes": {
+        "first": "Rp 3.500.000 + Trofi + Sertifikat",
+        "second": "Rp 2.000.000 + Sertifikat",
+        "third": "Rp 1.000.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Peserta individu",
+        "Terdiri dari 3 babak: penyisihan, semifinal, final",
+        "Materi mencakup Matematika, Fisika, dan Kimia",
+        "Durasi setiap babak 90 menit",
+        "Kalkulator ilmiah diperbolehkan"
+      ],
+      "rulebookUrl": "https://example.com/rules/science",
+      "registrationUrl": "https://forms.google.com/astro-science",
+      "contactPerson": {
+        "name": "Siti Rahmawati",
+        "whatsapp": "628123456790"
+      }
+    },
+    {
+      "id": "debate-championship",
+      "title": "Debate Championship",
+      "category": "akademik",
+      "tagline": "Suarakan argumen terbaikmu",
+      "description": "Kompetisi debat bergengsi dengan format British Parliamentary. Lomba ini menguji kemampuan berpikir kritis, berbicara di depan umum, dan membangun argumen yang koheren dan persuasif.",
+      "fee": 40000,
+      "maxSlots": 32,
+      "filledSlots": 24,
+      "scheduleDate": "2026-08-23",
+      "location": "Aula Utama",
+      "prizes": {
+        "first": "Rp 4.000.000 + Trofi + Sertifikat",
+        "second": "Rp 2.500.000 + Sertifikat",
+        "third": "Rp 1.500.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Tim terdiri dari 2 orang",
+        "Menggunakan format British Parliamentary",
+        "Motion diumumkan 30 menit sebelum debat",
+        "Durasi setiap ronde 45 menit",
+        "Pakaian formal rapi"
+      ],
+      "rulebookUrl": "https://example.com/rules/debate",
+      "registrationUrl": "https://forms.google.com/astro-debate",
+      "contactPerson": {
+        "name": "Rizky Fauzi",
+        "whatsapp": "628123456791"
+      }
+    },
+    {
+      "id": "astro-futsal",
+      "title": "Astro Futsal Cup",
+      "category": "olahraga",
+      "tagline": "Raup prestasi di lapangan hijau",
+      "description": "Turnamen futsal antar SMA/SMK sederajat. Pertandingan akan menggunakan sistem gugur dengan wasit bersertifikat. Ajang unjuk kemampuan sepak bola indoor terbaik!",
+      "fee": 150000,
+      "maxSlots": 24,
+      "filledSlots": 20,
+      "scheduleDate": "2026-08-22",
+      "location": "GOR Futsal Indoor",
+      "prizes": {
+        "first": "Rp 7.000.000 + Trofi + Sertifikat",
+        "second": "Rp 4.000.000 + Sertifikat",
+        "third": "Rp 2.000.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Maksimal 10 pemain per tim (5 inti + 5 cadangan)",
+        "Durasi 2 x 15 menit waktu berjalan",
+        "Menggunakan bola futsal standar FIFA",
+        "Pelanggaran akumulasi 6 → tendangan penalti",
+        "Wajib menggunakan sepatu futsal"
+      ],
+      "rulebookUrl": "https://example.com/rules/futsal",
+      "registrationUrl": "https://forms.google.com/astro-futsal",
+      "contactPerson": {
+        "name": "Budi Santoso",
+        "whatsapp": "628123456792"
+      }
+    },
+    {
+      "id": "badminton-championship",
+      "title": "Badminton Championship",
+      "category": "olahraga",
+      "tagline": "Smash your way to victory",
+      "description": "Turnamen badminton ganda campuran dan ganda putra/putri. Menggunakan sistem setengah kompetisi di babak awal dan gugur di babak final. Cocok untuk atlet badminton dari berbagai level.",
+      "fee": 80000,
+      "maxSlots": 32,
+      "filledSlots": 18,
+      "scheduleDate": "2026-08-23",
+      "location": "GOR Bulutangkis Lt. 1",
+      "prizes": {
+        "first": "Rp 5.000.000 + Trofi + Sertifikat",
+        "second": "Rp 3.000.000 + Sertifikat",
+        "third": "Rp 1.500.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Pendaftaran per pasangan (ganda)",
+        "Menggunakan sistem rally point 21",
+        "Best of 3 games",
+        "Shuttlecock disediakan panitia",
+        "Raket boleh membawa sendiri"
+      ],
+      "rulebookUrl": "https://example.com/rules/badminton",
+      "registrationUrl": "https://forms.google.com/astro-badminton",
+      "contactPerson": {
+        "name": "Dewi Lestari",
+        "whatsapp": "628123456793"
+      }
+    },
+    {
+      "id": "basketball-league",
+      "title": "Basketball 3x3 League",
+      "category": "olahraga",
+      "tagline": "Dominasi lapangan dalam format 3x3",
+      "description": "Kompetisi basket 3x3 yang cepat dan intens. Format 3x3 dipilih untuk memaksimalkan aksi cepat dan skor tinggi. Setiap tim akan saling berhadapan dalam sistem round-robin dilanjutkan gugur.",
+      "fee": 120000,
+      "maxSlots": 20,
+      "filledSlots": 14,
+      "scheduleDate": "2026-08-24",
+      "location": "Lapangan Basket Outdoor",
+      "prizes": {
+        "first": "Rp 6.000.000 + Trofi + Sertifikat",
+        "second": "Rp 3.500.000 + Sertifikat",
+        "third": "Rp 2.000.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Maksimal 5 pemain per tim (3 inti + 2 cadangan)",
+        "Durasi 10 menit atau 21 poin",
+        "Shot clock 12 detik",
+        "Poin 1 dan 2 (tidak ada poin 3 di 3x3)",
+        "Wajib menggunakan sepatu basket"
+      ],
+      "rulebookUrl": "https://example.com/rules/basketball",
+      "registrationUrl": "https://forms.google.com/astro-basketball",
+      "contactPerson": {
+        "name": "Ahmad Fatih",
+        "whatsapp": "628123456794"
+      }
+    },
+    {
+      "id": "mlbb-tournament",
+      "title": "Mobile Legends Tournament",
+      "category": "esports",
+      "tagline": "Battle of the strongest squad",
+      "description": "Turnamen Mobile Legends: Bang Bang yang mempertemukan tim-tim terbaik. Pertandingan menggunakan sistem bracket ganda, dengan mode draft pick dan larangan hero. Bersainglah untuk menjadi yang terkuat di Land of Dawn!",
+      "fee": 100000,
+      "maxSlots": 32,
+      "filledSlots": 30,
+      "scheduleDate": "2026-08-22",
+      "location": "Studio Esports Lt. 4",
+      "prizes": {
+        "first": "Rp 8.000.000 + Skin + Trofi",
+        "second": "Rp 4.500.000 + Skin + Sertifikat",
+        "third": "Rp 2.500.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Tim terdiri dari 5 pemain inti + 1 cadangan",
+        "Mode tournament draft pick",
+        "Semua hero diperbolehkan (tidak ada ban awal)",
+        "Akun wajib minimal rank Epic",
+        "Menggunakan perangkat Android/iOS sendiri"
+      ],
+      "rulebookUrl": "https://example.com/rules/mlbb",
+      "registrationUrl": "https://forms.google.com/astro-mlbb",
+      "contactPerson": {
+        "name": "Rafi Ahmad",
+        "whatsapp": "628123456795"
+      }
+    },
+    {
+      "id": "valorant-tournament",
+      "title": "Valorant Championship",
+      "category": "esports",
+      "tagline": "Tactical shooter, strategic victory",
+      "description": "Turnamen Valorant 5v5 dengan format bracket ganda. Setiap pertandingan menggunakan mode Standard dengan Best-of-3 (BO3) di babak penyisihan dan Best-of-5 (BO5) di babak grand final.",
+      "fee": 100000,
+      "maxSlots": 16,
+      "filledSlots": 12,
+      "scheduleDate": "2026-08-23",
+      "location": "Studio Esports Lt. 4",
+      "prizes": {
+        "first": "Rp 10.000.000 + VPs + Trofi",
+        "second": "Rp 5.000.000 + VPs + Sertifikat",
+        "third": "Rp 3.000.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Tim terdiri dari 5 pemain inti + 1 cadangan",
+        "Mode Standard, best-of-3 (BO3)",
+        "Grand final best-of-5 (BO5)",
+        "Map pool: semua map kompetitif",
+        "Wajib menggunakan PC/laptop sendiri"
+      ],
+      "rulebookUrl": "https://example.com/rules/valorant",
+      "registrationUrl": "https://forms.google.com/astro-valorant",
+      "contactPerson": {
+        "name": "Kevin Tan",
+        "whatsapp": "628123456796"
+      }
+    },
+    {
+      "id": "fifa-championship",
+      "title": "FIFA 24 Championship",
+      "category": "esports",
+      "tagline": "It's in the game, it's in you",
+      "description": "Turnamen FIFA 24 1v1 yang mengadu skill taktik dan penguasaan controller. Setiap pertandingan menggunakan klub standar FIFA. Siapa yang layak menyandang gelar juara ASTRO FIFA Champion?",
+      "fee": 50000,
+      "maxSlots": 32,
+      "filledSlots": 27,
+      "scheduleDate": "2026-08-24",
+      "location": "Studio Esports Lt. 4",
+      "prizes": {
+        "first": "Rp 4.000.000 + Trofi + Sertifikat",
+        "second": "Rp 2.500.000 + Sertifikat",
+        "third": "Rp 1.500.000 + Sertifikat"
+      },
+      "rulesSummary": [
+        "Peserta individu (1v1)",
+        "Menggunakan klub standar FIFA (5 star max)",
+        "Durasi 6 menit per pertandingan",
+        "Extra time & penalty di babak gugur",
+        "Controller boleh membawa sendiri"
+      ],
+      "rulebookUrl": "https://example.com/rules/fifa",
+      "registrationUrl": "https://forms.google.com/astro-fifa",
+      "contactPerson": {
+        "name": "Doni Saputra",
+        "whatsapp": "628123456797"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "date": "1 - 20 Agustus 2026",
+      "title": "Pendaftaran Dibuka",
+      "desc": "Pendaftaran untuk semua kategori lomba dibuka secara online melalui website resmi ASTRO 2026. Peserta dapat memilih lomba yang diikuti."
+    },
+    {
+      "date": "15 Agustus 2026",
+      "title": "Technical Meeting",
+      "desc": "Technical Meeting (TM) online melalui Zoom untuk seluruh peserta. Penjelasan aturan main, jadwal, dan sesi tanya jawab dengan panitia."
+    },
+    {
+      "date": "22 - 24 Agustus 2026",
+      "title": "Hari Pelaksanaan",
+      "desc": "Rangkaian lomba dilaksanakan sesuai jadwal. Setiap cabang lomba diadakan di venue yang telah ditentukan dengan pengawasan juri profesional."
+    },
+    {
+      "date": "24 Agustus 2026",
+      "title": "Malam Puncak & Pengumuman",
+      "desc": "Pengumuman pemenang dan penyerahan hadiah secara langsung. Dimeriahkan oleh bintang tamu spesial dan berbagai penampilan menarik."
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Siapa saja yang bisa mendaftar ASTRO 2026?",
+      "a": "ASTRO 2026 terbuka untuk siswa SMA/SMK/sederajat di seluruh Indonesia. Beberapa lomba juga membuka kategori umum — silakan cek halaman detail lomba masing-masing untuk informasi lebih lanjut."
+    },
+    {
+      "q": "Bagaimana cara mendaftar?",
+      "a": "Pendaftaran dilakukan secara online melalui website ini. Pilih lomba yang ingin diikuti, klik tombol \"Daftar\", lalu isi formulir Google Form yang tersedia. Pembayaran biaya pendaftaran dapat dilakukan melalui transfer bank atau dompet digital."
+    },
+    {
+      "q": "Apakah biaya pendaftaran bisa dikembalikan?",
+      "a": "Biaya pendaftaran yang sudah dibayarkan tidak dapat dikembalikan kecuali lomba dibatalkan oleh panitia. Harap pastikan data yang dimasukkan sudah benar sebelum melakukan pembayaran."
+    },
+    {
+      "q": "Apakah ada akomodasi untuk peserta dari luar kota?",
+      "a": "Panitia menyediakan informasi rekomendasi penginapan di sekitar venue dengan harga khusus. Namun, biaya akomodasi dan transportasi ditanggung oleh peserta masing-masing."
+    },
+    {
+      "q": "Berapa jumlah anggota tim untuk lomba kategori tim?",
+      "a": "Jumlah anggota tim berbeda untuk setiap lomba. Informasi lengkap dapat dilihat di halaman detail lomba masing-masing pada bagian rules/peraturan."
+    },
+    {
+      "q": "Kapan batas akhir pendaftaran?",
+      "a": "Pendaftaran ditutup pada 20 Agustus 2026 pukul 23.59 WIB. Kami sangat menyarankan untuk mendaftar lebih awal karena kuota terbatas untuk setiap lomba."
+    }
+  ]
+}

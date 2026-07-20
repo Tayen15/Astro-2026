@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* ─── Tailwind v4 Theme ─── */
+@theme inline {
+  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --color-deep-slate: #ffffff;
+  --color-astro-cyan: #06B6D4;
+  --color-astro-violet: #8B5CF6;
+  --color-surface-dark: #f8fafc;
+  --color-surface-mid: #f1f5f9;
+
+  --shadow-glow-cyan: 0 0 20px rgba(6, 182, 212, 0.05);
+  --shadow-glow-cyan-lg: 0 0 40px rgba(6, 182, 212, 0.1);
+  --shadow-glow-cyan-btn: 0 0 20px rgba(6, 182, 212, 0.3);
+
+  --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ─── Base ─── */
+html { scroll-behavior: smooth; }
+
+body {
+  background: #ffffff;
+  color: #334155;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f8fafc; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ─── Selection ─── */
+::selection {
+  background-color: rgba(6, 182, 212, 0.2);
+  color: #0f172a;
+}
+
+/* ─── Angular Diagonal Divider ─── */
+.diagonal-divider-down {
+  position: relative;
+}
+.diagonal-divider-down::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -2%;
+  right: -2%;
+  height: 80px;
+  background: inherit;
+  transform: rotate(-1.5deg);
+  transform-origin: bottom right;
+}
+
+.diagonal-divider-up {
+  position: relative;
+}
+.diagonal-divider-up::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -2%;
+  right: -2%;
+  height: 80px;
+  background: inherit;
+  transform: rotate(1.5deg);
+  transform-origin: top left;
+}
+
+/* ─── Accent Line (angular decoration) ─── */
+.accent-line {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #06B6D4, #8B5CF6);
+  transform: skewX(-12deg);
+}
+
+.accent-line-wide {
+  width: 120px;
+  height: 3px;
+  background: linear-gradient(90deg, #06B6D4, #8B5CF6);
+  transform: skewX(-12deg);
+}
+
+/* ─── Massive Typography ─── */
+.text-massive {
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.text-display {
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
