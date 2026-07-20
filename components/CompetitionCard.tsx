@@ -2,6 +2,8 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import { Users, DollarSign, CalendarDays, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { Competition, CategoryType } from '@/types/astro';
 
 const categoryConfig: Record<CategoryType, { color: string; bg: string; border: string; label: string }> = {
@@ -21,12 +23,11 @@ function formatDate(d: string) {
 interface Props {
   competition: Competition;
   index: number;
-  onDetail: (c: Competition) => void;
-  onRegister: (c: Competition) => void;
 }
 
-export default function CompetitionCard({ competition, index, onDetail, onRegister }: Props) {
+export default function CompetitionCard({ competition, index }: Props) {
   const reduce = useReducedMotion();
+  const router = useRouter();
   const cat = categoryConfig[competition.category];
   const ratio = Math.min((competition.filledSlots / competition.maxSlots) * 100, 100);
   const left = competition.maxSlots - competition.filledSlots;
@@ -98,15 +99,15 @@ export default function CompetitionCard({ competition, index, onDetail, onRegist
 
         {/* Actions */}
         <div className="flex items-center gap-2 mt-1">
-          <button
-            onClick={() => onDetail(competition)}
-            className="flex-1 py-2.5 text-[10px] font-bold tracking-[0.1em] uppercase text-slate-655 border border-slate-200 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200 ease-in-out cursor-pointer"
+          <Link
+            href={`/lomba/${competition.id}`}
+            className="flex-1 py-2.5 text-[10px] font-bold tracking-[0.1em] uppercase text-slate-655 border border-slate-200 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200 ease-in-out cursor-pointer text-center block"
             style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
           >
             Detail
-          </button>
+          </Link>
           <button
-            onClick={() => onRegister(competition)}
+            onClick={() => router.push(`/daftar/${competition.id}`)}
             className="flex-1 py-2.5 text-[10px] font-black tracking-[0.1em] uppercase text-slate-950 bg-astro-cyan hover:bg-cyan-400 text-center transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
             style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
           >

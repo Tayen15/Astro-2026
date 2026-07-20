@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Menu, X, ChevronDown, Globe, Search } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 
 const NAV_LINKS = [
   { label: 'BERANDA', href: '#home' },
@@ -15,6 +16,8 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
@@ -28,8 +31,15 @@ export default function Navbar() {
   }, [isMobileOpen]);
 
   const scrollTo = (href: string) => {
-    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setIsMobileOpen(false);
+    if (pathname === '/') {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      router.push('/' + href);
+    }
   };
 
   return (

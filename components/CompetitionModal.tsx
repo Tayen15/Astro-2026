@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { useRouter } from 'next/navigation';
 import {
   X,
   Trophy,
@@ -21,11 +22,11 @@ type Tab = 'overview' | 'prizes' | 'rules';
 interface Props {
   competition: Competition | null;
   onClose: () => void;
-  onRegister: (c: Competition) => void;
 }
 
-export default function CompetitionModal({ competition, onClose, onRegister }: Props) {
+export default function CompetitionModal({ competition, onClose }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const router = useRouter();
   const reduce = useReducedMotion();
 
   useEffect(() => {
@@ -227,7 +228,10 @@ export default function CompetitionModal({ competition, onClose, onRegister }: P
             {/* Bottom CTA */}
             <div className="px-6 md:px-8 pb-6 md:pb-8">
               <button
-                onClick={() => onRegister(competition)}
+                onClick={() => {
+                  onClose();
+                  router.push(`/daftar/${competition.id}`);
+                }}
                 className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-base transition-all duration-200 ease-in-out shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] active:scale-95 cursor-pointer"
               >
                 Daftar {competition.title}

@@ -5,8 +5,6 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { Search } from 'lucide-react';
 import type { Competition, CategoryType } from '@/types/astro';
 import CompetitionCard from './CompetitionCard';
-import CompetitionModal from './CompetitionModal';
-import RegistrationModal from './RegistrationModal';
 
 interface Props {
   competitions: Competition[];
@@ -22,8 +20,6 @@ const CATEGORIES: { label: string; value: CategoryType | 'all' }[] = [
 export default function CompetitionSection({ competitions }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
-  const [selected, setSelected] = useState<Competition | null>(null);
-  const [registering, setRegistering] = useState<Competition | null>(null);
   const reduce = useReducedMotion();
 
   const filtered = useMemo(() => {
@@ -113,7 +109,7 @@ export default function CompetitionSection({ competitions }: Props) {
               transition={{ duration: 0.2 }}
             >
               {filtered.map((c, i) => (
-                <CompetitionCard key={c.id} competition={c} index={i} onDetail={setSelected} onRegister={setRegistering} />
+                <CompetitionCard key={c.id} competition={c} index={i} />
               ))}
             </motion.div>
           ) : (
@@ -130,16 +126,6 @@ export default function CompetitionSection({ competitions }: Props) {
           )}
         </AnimatePresence>
       </div>
-
-      <CompetitionModal
-        competition={selected}
-        onClose={() => setSelected(null)}
-        onRegister={(c) => {
-          setSelected(null);
-          setRegistering(c);
-        }}
-      />
-      <RegistrationModal competition={registering} onClose={() => setRegistering(null)} />
     </section>
   );
 }

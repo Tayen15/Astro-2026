@@ -119,15 +119,6 @@ export default function HeroSection({ eventConfig }: Props) {
           <polygon points="0,96 1440,0 1440,96" fill="var(--color-surface-dark)" />
         </svg>
       </div>
-
-      {/* Scroll hint */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
-        animate={reduce ? {} : { y: [0, 6, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <ChevronDown className="w-5 h-5 text-slate-450" />
-      </motion.div>
     </section>
   );
 }
