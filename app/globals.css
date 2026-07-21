@@ -4,6 +4,7 @@
 @theme inline {
   --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-masterpiece: var(--font-masterpiece);
 
   --color-deep-slate: #ffffff;
   --color-astro-cyan: #06B6D4;
@@ -99,11 +100,12 @@ body {
 
 /* ─── Massive Typography ─── */
 .text-massive {
-  font-size: clamp(3rem, 10vw, 8rem);
+  font-size: clamp(4rem, 15vw, 12rem);
   font-weight: 900;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
+  line-height: 0.85;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  font-family: var(--font-masterpiece), var(--font-space-grotesk), sans-serif;
 }
 
 .text-display {

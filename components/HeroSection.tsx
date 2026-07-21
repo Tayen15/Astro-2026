@@ -1,7 +1,6 @@
 'use client';
 
 import { motion, useReducedMotion } from 'motion/react';
-import { ChevronDown } from 'lucide-react';
 import type { EventConfig } from '@/types/astro';
 import CountdownTimer from './CountdownTimer';
 
@@ -25,27 +24,103 @@ export default function HeroSection({ eventConfig }: Props) {
   return (
     <section
       id="home"
-      className="relative min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden"
+      className="relative min-h-[100dvh] flex flex-col items-center justify-start overflow-hidden pt-[18vh] md:pt-[15vh]"
     >
-      {/* Background layers */}
-      <div className="absolute inset-0 -z-10">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-white" />
-        {/* Top glow */}
-        <div className="absolute -top-[30%] left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-gradient-to-b from-slate-950/10 via-astro-cyan/3 to-transparent blur-[120px] rounded-full" />
-        {/* Side accents */}
-        <div className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-slate-950/5 blur-[140px] rounded-full" />
-        <div className="absolute bottom-[20%] -left-[5%] w-[400px] h-[400px] bg-astro-cyan/3 blur-[100px] rounded-full" />
-        {/* Grid lines */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: 'linear-gradient(rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px)',
-          backgroundSize: '80px 80px',
-        }} />
-        {/* Angular accent lines - VALORANT style */}
-        <div className="absolute top-[15%] left-0 w-[200px] h-[2px] bg-gradient-to-r from-slate-200/40 to-transparent skew-x-[-12deg]" />
-        <div className="absolute top-[25%] right-0 w-[150px] h-[2px] bg-gradient-to-l from-slate-200/30 to-transparent skew-x-[12deg]" />
-        <div className="absolute bottom-[30%] left-[5%] w-[100px] h-[1px] bg-gradient-to-r from-slate-200/20 to-transparent skew-x-[-12deg]" />
-      </div>
+      {/* ─── SKY BACKGROUND ─── */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100" />
+
+      {/* ─── CLOUD IMAGES ─── */}
+      {/* Big cloud top-left */}
+      <motion.img
+        src="/assets/cloud.png"
+        alt=""
+        animate={{ x: [0, 20, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[8%] -left-10 w-72 h-auto opacity-65 pointer-events-none select-none z-0"
+      />
+
+      {/* Big cloud top-right */}
+      <motion.img
+        src="/assets/cloud.png"
+        alt=""
+        animate={{ x: [0, -20, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[15%] -right-16 w-80 h-auto opacity-55 pointer-events-none select-none z-0"
+      />
+
+      {/* Small cloud middle-left */}
+      <motion.img
+        src="/assets/cloud.png"
+        alt=""
+        animate={{ x: [0, 15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[45%] -left-8 w-48 h-auto opacity-45 pointer-events-none select-none z-0"
+      />
+
+      {/* Small cloud right */}
+      <motion.img
+        src="/assets/cloud.png"
+        alt=""
+        animate={{ x: [0, -12, 0] }}
+        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[55%] -right-6 w-40 h-auto opacity-40 pointer-events-none select-none z-0"
+      />
+
+      {/* ─── CHROME BLOB SHAPE (static, large, edge-placed) ─── */}
+      {/* Chrome blob - top right corner */}
+      <img
+        src="/assets/chrome-blob-shape.png"
+        alt=""
+        className="absolute -top-20 -right-20 w-80 h-80 md:w-[28rem] md:h-[28rem] object-contain pointer-events-none select-none z-0"
+      />
+      {/* Chrome blob - bottom left corner */}
+      <img
+        src="/assets/chrome-blob-shape.png"
+        alt=""
+        className="absolute -bottom-24 -left-24 w-96 h-96 md:w-[32rem] md:h-[32rem] object-contain pointer-events-none select-none z-0"
+      />
+      {/* Chrome blob - top left corner */}
+      <img
+        src="/assets/chrome-blob-shape.png"
+        alt=""
+        className="absolute -top-16 -left-16 w-72 h-72 md:w-[22rem] md:h-[22rem] object-contain pointer-events-none select-none z-0"
+      />
+      {/* Chrome blob - bottom right corner */}
+      <img
+        src="/assets/chrome-blob-shape.png"
+        alt=""
+        className="absolute -bottom-20 -right-20 w-80 h-80 md:w-[24rem] md:h-[24rem] object-contain pointer-events-none select-none z-0"
+      />
+
+      {/* ─── FLOATING BLOB ROUND IMAGES ─── */}
+      <motion.img
+        src="/assets/blob-round.png"
+        alt=""
+        animate={{ y: [0, -20, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[10%] right-[8%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
+      />
+      <motion.img
+        src="/assets/blob-round.png"
+        alt=""
+        animate={{ y: [0, -14, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[22%] left-[4%] w-24 h-24 md:w-36 md:h-36 object-contain pointer-events-none select-none z-0"
+      />
+      <motion.img
+        src="/assets/blob-round.png"
+        alt=""
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[38%] left-[16%] w-16 h-16 md:w-24 md:h-24 object-contain pointer-events-none select-none z-0"
+      />
+      <motion.img
+        src="/assets/blob-round.png"
+        alt=""
+        animate={{ y: [0, -18, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[15%] right-[4%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
+      />
 
       <motion.div
         className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center"
@@ -53,72 +128,74 @@ export default function HeroSection({ eventConfig }: Props) {
         initial="hidden"
         animate="visible"
       >
-        {/* Eyebrow - small label above title */}
-        <motion.div variants={fadeUp} className="mb-4 md:mb-6">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 border border-cyan-200 bg-cyan-50 text-cyan-700 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-glow-pulse" />
-            Pendaftaran Dibuka
-          </span>
+
+        {/* ─── MAIN TITLE ─── */}
+        <motion.div variants={fadeUp} className="mb-6 md:mb-0 md:-mt-6">
+          <h1 className="text-massive mb-0">
+            <span
+              className="block bg-gradient-to-b from-slate-300 via-slate-400 to-slate-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(0,0,0,0.15)]"
+              style={{
+                textShadow: '0 2px 0 #cbd5e1, 0 4px 0 #94a3b8, 0 6px 0 #64748b, 0 8px 20px rgba(0,0,0,0.3)',
+              }}
+            >
+              ASTRO
+            </span>
+            <span
+              className="block bg-gradient-to-b from-slate-200 via-slate-500 to-slate-800 bg-clip-text text-transparent"
+              style={{
+                textShadow: '0 2px 0 #e2e8f0, 0 4px 0 #94a3b8, 0 6px 0 #475569, 0 8px 0 #1e293b, 0 12px 30px rgba(0,0,0,0.35)',
+              }}
+            >
+              2026
+            </span>
+          </h1>
+
+          {/* Tagline - Split Creative */}
+          <p className="mt-6 font-masterpiece leading-snug drop-shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+            <span className="text-3xl sm:text-4xl md:text-5xl text-white/95 block">
+              Where Innovation
+            </span>
+            <span className="text-4xl sm:text-5xl md:text-6xl bg-gradient-to-r from-yellow-200 via-orange-200 to-pink-200 bg-clip-text text-transparent block -mt-1">
+              Meets the Stars
+            </span>
+          </p>
         </motion.div>
-
-        {/* MASSIVE Title - VALORANT style */}
-        <motion.h1 variants={fadeUp} className="text-massive text-white mb-4 md:mb-6">
-          <span className="block bg-gradient-to-r from-slate-950 via-slate-800 to-cyan-600 bg-clip-text text-transparent">
-            ASTRO
-          </span>
-          <span className="block text-astro-cyan" style={{ WebkitTextStroke: '2px rgba(6,182,212,0.4)' }}>
-            2026
-          </span>
-        </motion.h1>
-
-        {/* Tagline */}
-        <motion.p
-          variants={fadeUp}
-          className="text-base sm:text-lg md:text-xl text-slate-600 font-light mb-2 tracking-wide"
-        >
-          {eventConfig.tagline}
-        </motion.p>
 
         {/* Accent line */}
         <motion.div variants={fadeUp} className="flex justify-center mb-8 md:mb-10">
-          <div className="accent-line-wide" />
+          <div className="w-24 h-[3px] bg-white/40 rounded-full" />
         </motion.div>
 
-        {/* Countdown */}
+        {/* Countdown - Glass Dashboard */}
         <motion.div variants={fadeUp} className="mb-8 md:mb-10">
-          <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-slate-600 mb-3 font-bold">
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-white/80 mb-4 font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.05)]">
             Pendaftaran Ditutup Dalam
           </p>
           <CountdownTimer deadline={eventConfig.registrationDeadline} />
         </motion.div>
 
-        {/* CTA */}
+        {/* CTA - Solid Parallelogram Buttons */}
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             onClick={() => document.querySelector('#competitions')?.scrollIntoView({ behavior: 'smooth' })}
-            className="group relative px-8 py-3.5 bg-astro-cyan hover:bg-cyan-400 text-slate-950 font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
-            style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
+            className="group px-8 py-4 bg-sky-600 border-2 border-sky-300 text-white font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out shadow-[0_8px_30px_rgba(2,132,199,0.4)] hover:bg-sky-500 hover:shadow-[0_12px_40px_rgba(2,132,199,0.5)] hover:-translate-y-0.5 active:scale-95 cursor-pointer skew-x-[-8deg] rounded-none"
           >
-            <span className="relative z-10">Lihat Lomba & Daftar</span>
+            <span className="block skew-x-[8deg]">Lihat Lomba & Daftar</span>
           </button>
           <a
             href={eventConfig.generalJuknisUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-8 py-3.5 border border-slate-300 hover:border-astro-cyan text-slate-700 hover:text-cyan-655 hover:bg-slate-50/50 font-bold text-sm tracking-wider uppercase transition-all duration-200 ease-in-out cursor-pointer"
-            style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
+            className="group px-8 py-4 bg-slate-700 border-2 border-slate-400 text-white font-bold text-sm tracking-wider uppercase transition-all duration-200 ease-in-out shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:bg-slate-600 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] hover:-translate-y-0.5 cursor-pointer skew-x-[-8deg] rounded-none"
           >
-            Unduh Juknis
+            <span className="block skew-x-[8deg]">Unduh Juknis</span>
           </a>
         </motion.div>
       </motion.div>
 
-      {/* Diagonal bottom cut - VALORANT style */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 z-20 pointer-events-none">
-        <svg viewBox="0 0 1440 96" preserveAspectRatio="none" className="w-full h-full" aria-hidden="true">
-          <polygon points="0,96 1440,0 1440,96" fill="var(--color-surface-dark)" />
-        </svg>
-      </div>
+      {/* Bottom gradient fade to white */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 z-20 pointer-events-none bg-gradient-to-b from-transparent to-white" />
+
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +12,12 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const masterpiece = localFont({
+  src: "../public/fonts/Masterpiece.ttf",
+  variable: "--font-masterpiece",
   display: "swap",
 });
 
@@ -61,7 +68,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} ${masterpiece.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-slate-700">
         {children}
