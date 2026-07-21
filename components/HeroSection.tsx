@@ -71,25 +71,25 @@ export default function HeroSection({ eventConfig }: Props) {
       <img
         src="/assets/chrome-blob-shape.png"
         alt=""
-        className="absolute -top-20 -right-20 w-80 h-80 md:w-[28rem] md:h-[28rem] object-contain pointer-events-none select-none z-0"
+        className="absolute -top-12 -right-12 w-56 h-56 md:w-[28rem] md:h-[28rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - bottom left corner */}
       <img
         src="/assets/chrome-blob-shape.png"
         alt=""
-        className="absolute -bottom-24 -left-24 w-96 h-96 md:w-[32rem] md:h-[32rem] object-contain pointer-events-none select-none z-0"
+        className="absolute -bottom-16 -left-16 w-64 h-64 md:w-[32rem] md:h-[32rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - top left corner */}
       <img
         src="/assets/chrome-blob-shape.png"
         alt=""
-        className="absolute -top-16 -left-16 w-72 h-72 md:w-[22rem] md:h-[22rem] object-contain pointer-events-none select-none z-0"
+        className="absolute -top-10 -left-10 w-48 h-48 md:w-[22rem] md:h-[22rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - bottom right corner */}
       <img
         src="/assets/chrome-blob-shape.png"
         alt=""
-        className="absolute -bottom-20 -right-20 w-80 h-80 md:w-[24rem] md:h-[24rem] object-contain pointer-events-none select-none z-0"
+        className="absolute -bottom-12 -right-12 w-56 h-56 md:w-[24rem] md:h-[24rem] object-contain pointer-events-none select-none z-0"
       />
 
       {/* ─── FLOATING BLOB ROUND IMAGES ─── */}
