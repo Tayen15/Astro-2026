@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Menu, X, ChevronDown, Globe, Search } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 const NAV_LINKS = [
@@ -45,101 +45,73 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 h-14 md:h-16 flex items-center justify-between border-b ${
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 h-16 md:h-[72px] flex items-center justify-between ${
           isScrolled
-            ? 'bg-white border-slate-200/80 shadow-sm shadow-slate-100/50'
-            : 'bg-white/95 backdrop-blur-md border-slate-200/60'
+            ? 'bg-white/60 backdrop-blur-xl shadow-lg shadow-black/5 mx-4 md:mx-8 mt-3 rounded-xl border border-white/30'
+            : 'bg-transparent mx-0 mt-0 rounded-none border-transparent'
         }`}
       >
-      {/* Left: Brand block with slanted/trapezoidal container */}
-      <div className="flex items-center h-full">
-        <div
-          className="flex items-center bg-slate-50 h-full pl-4 md:pl-8 pr-12 text-slate-900 relative transition-colors duration-200"
-          style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 20px) 100%, 0 100%)' }}
-        >
-          {/* Brand 1 (Riot Games style) */}
+        {/* Left: Logo */}
+        <div className="flex items-center h-full pl-4 md:pl-6">
           <button
             onClick={() => scrollTo('#home')}
-            className="flex items-center gap-1.5 text-slate-700 hover:text-cyan-600 transition-colors duration-200 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group"
           >
-            <Sparkles className="w-4 h-4 text-astro-cyan transition-transform duration-300 group-hover:rotate-12" />
-            <span className="text-[10px] md:text-[11px] font-black tracking-[0.2em] uppercase">ASTRO</span>
-            <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-700 transition-colors" />
-          </button>
-
-          {/* Vertical Divider */}
-          <div className="w-[1px] h-5 bg-slate-200 mx-3" />
-
-          {/* Brand 2 (Valorant style) */}
-          <button
-            onClick={() => scrollTo('#home')}
-            className="flex items-center gap-2 cursor-pointer group"
-          >
-            {/* Custom geometric star logo representing ASTRO event in Valorant style */}
-            <svg
-              className="w-[18px] h-[18px] text-astro-cyan fill-current transition-transform duration-300 group-hover:scale-110"
-              viewBox="0 0 100 100"
-            >
-              <path d="M50 5 L85 85 L50 65 L15 85 Z" />
-            </svg>
-            <span className="text-[11px] md:text-xs font-black tracking-widest text-slate-900 uppercase group-hover:text-cyan-600 transition-colors duration-200">
-              ASTRO 26
+            <img
+              src="/assets/logo-astro.png"
+              alt="ASTRO Logo"
+              className="h-9 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+            <span className={`text-sm md:text-base font-black tracking-widest uppercase transition-colors duration-300 ${
+              isScrolled ? 'text-slate-800' : 'text-white'
+            }`}>
+              ASTRO 2026
             </span>
           </button>
         </div>
-      </div>
 
-      {/* Middle: Desktop Navigation links */}
-      <div className="hidden md:flex items-center h-full">
-        {NAV_LINKS.map((link) => (
+        {/* Middle: Desktop Navigation links */}
+        <div className="hidden md:flex items-center h-full gap-1">
+          {NAV_LINKS.map((link) => (
+            <button
+              key={link.href}
+              onClick={() => scrollTo(link.href)}
+              className={`px-4 text-[11px] font-bold tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer h-10 flex items-center relative group rounded-lg ${
+                isScrolled
+                  ? 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              {link.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Right: CTA + Mobile */}
+        <div className="flex items-center gap-2 pr-4 md:pr-6 h-full">
           <button
-            key={link.href}
-            onClick={() => scrollTo(link.href)}
-            className="px-4 text-[10.5px] font-bold tracking-[0.15em] text-slate-650 hover:text-slate-950 transition-all duration-200 cursor-pointer h-full flex items-center relative group"
+            onClick={() => scrollTo('#competitions')}
+            className={`px-5 py-2 text-[11px] font-black tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer ${
+              isScrolled
+                ? 'bg-sky-600 hover:bg-sky-500 text-white shadow-md hover:shadow-lg'
+                : 'bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30'
+            }`}
           >
-            {link.label}
-            {/* Cyan bottom accent indicator line, active on hover */}
-            <span className="absolute bottom-0 inset-x-4 h-[2px] bg-[#06B6D4] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ease-in-out" />
+            Daftar
           </button>
-        ))}
-      </div>
 
-      {/* Right: Actions (Search, Globe, CTA, Mobile) */}
-      <div className="flex items-center gap-2 md:gap-3 pr-4 md:pr-8 h-full">
-        {/* Search */}
-        <button
-          className="p-2 text-slate-500 hover:text-slate-850 transition-colors duration-200 cursor-pointer hidden sm:block"
-          aria-label="Cari"
-        >
-          <Search className="w-[18px] h-[18px]" />
-        </button>
-
-        {/* Language selector */}
-        <button
-          className="p-2 text-slate-500 hover:text-slate-850 transition-colors duration-200 cursor-pointer hidden sm:block"
-          aria-label="Pilih Bahasa"
-        >
-          <Globe className="w-[18px] h-[18px]" />
-        </button>
-
-        {/* CTA (Play Now / Register style) */}
-        <button
-          onClick={() => scrollTo('#competitions')}
-          className="px-4 py-2 md:px-5 md:py-2 bg-astro-cyan hover:bg-cyan-400 text-slate-950 hover:text-slate-950 font-black text-[10px] md:text-[11px] tracking-wider uppercase rounded transition-all duration-200 ease-in-out cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
-        >
-          DAFTAR SEKARANG
-        </button>
-
-        {/* Mobile menu trigger */}
-        <button
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="md:hidden p-2 text-slate-600 hover:text-slate-900 cursor-pointer"
-          aria-label="Menu"
-        >
-          {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
-    </header>
+          {/* Mobile menu trigger */}
+          <button
+            onClick={() => setIsMobileOpen(!isMobileOpen)}
+            className={`md:hidden p-2 rounded-lg transition-colors duration-200 cursor-pointer ${
+              isScrolled ? 'text-slate-600 hover:text-slate-900' : 'text-white/80 hover:text-white'
+            }`}
+            aria-label="Menu"
+          >
+            {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </header>
 
       {/* Mobile Drawer */}
       <AnimatePresence>
@@ -150,19 +122,24 @@ export default function Navbar() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] md:hidden"
           >
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="absolute top-0 right-0 h-full w-64 bg-white border-l border-slate-200 flex flex-col"
+              className="absolute top-0 right-0 h-full w-72 bg-white/90 backdrop-blur-xl border-l border-white/30 flex flex-col rounded-l-2xl"
             >
               {/* Close Button Header */}
-              <div className="flex items-center justify-end p-4 border-b border-slate-100">
+              <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                <img
+                  src="/assets/logo-astro.png"
+                  alt="ASTRO Logo"
+                  className="h-8 w-auto object-contain"
+                />
                 <button
                   onClick={() => setIsMobileOpen(false)}
-                  className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors duration-200 cursor-pointer"
+                  className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors duration-200 cursor-pointer"
                   aria-label="Tutup Menu"
                 >
                   <X className="w-5 h-5" />
@@ -174,18 +151,18 @@ export default function Navbar() {
                   <button
                     key={link.href}
                     onClick={() => scrollTo(link.href)}
-                    className="px-4 py-3 text-xs font-bold tracking-[0.15em] text-left text-slate-700 hover:text-slate-950 hover:bg-slate-50 transition-all duration-200 cursor-pointer flex items-center justify-between group"
+                    className="px-5 py-3.5 text-sm font-bold tracking-[0.15em] text-left text-slate-700 hover:text-slate-950 hover:bg-slate-50 rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-between group"
                   >
                     {link.label}
-                    <span className="w-1.5 h-1.5 bg-[#06B6D4] rounded-full scale-0 group-hover:scale-100 transition-transform duration-200 ease-in-out" />
+                    <span className="w-1.5 h-1.5 bg-sky-500 rounded-sm scale-0 group-hover:scale-100 transition-transform duration-200" />
                   </button>
                 ))}
-                <hr className="my-4 border-slate-100" />
+                <hr className="my-4 border-slate-200" />
                 <button
                   onClick={() => scrollTo('#competitions')}
-                  className="px-4 py-3 bg-astro-cyan hover:bg-cyan-400 text-slate-950 hover:text-slate-950 font-black text-xs tracking-wider uppercase text-center rounded transition-all duration-200 cursor-pointer"
+                  className="px-5 py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer shadow-md"
                 >
-                  DAFTAR SEKARANG
+                  Daftar Sekarang
                 </button>
               </div>
             </motion.div>
