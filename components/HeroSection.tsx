@@ -1,7 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
 import type { EventConfig } from '@/types/astro';
+
+const MotionImage = motion.create(Image);
 import CountdownTimer from './CountdownTimer';
 
 interface Props {
@@ -31,36 +34,44 @@ export default function HeroSection({ eventConfig }: Props) {
 
       {/* ─── CLOUD IMAGES ─── */}
       {/* Big cloud top-left */}
-      <motion.img
+      <MotionImage
         src="/assets/cloud.png"
         alt=""
+        width={288}
+        height={200}
         animate={{ x: [0, 20, 0] }}
         transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-[8%] -left-10 w-72 h-auto opacity-65 pointer-events-none select-none z-0"
       />
 
       {/* Big cloud top-right */}
-      <motion.img
+      <MotionImage
         src="/assets/cloud.png"
         alt=""
+        width={320}
+        height={220}
         animate={{ x: [0, -20, 0] }}
         transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-[15%] -right-16 w-80 h-auto opacity-55 pointer-events-none select-none z-0"
       />
 
       {/* Small cloud middle-left */}
-      <motion.img
+      <MotionImage
         src="/assets/cloud.png"
         alt=""
+        width={192}
+        height={140}
         animate={{ x: [0, 15, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-[45%] -left-8 w-48 h-auto opacity-45 pointer-events-none select-none z-0"
       />
 
       {/* Small cloud right */}
-      <motion.img
+      <MotionImage
         src="/assets/cloud.png"
         alt=""
+        width={160}
+        height={120}
         animate={{ x: [0, -12, 0] }}
         transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-[55%] -right-6 w-40 h-auto opacity-40 pointer-events-none select-none z-0"
@@ -68,55 +79,71 @@ export default function HeroSection({ eventConfig }: Props) {
 
       {/* ─── CHROME BLOB SHAPE (static, large, edge-placed) ─── */}
       {/* Chrome blob - top right corner */}
-      <img
+      <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
+        width={224}
+        height={224}
         className="absolute -top-12 -right-12 w-56 h-56 md:w-[28rem] md:h-[28rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - bottom left corner */}
-      <img
+      <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
+        width={256}
+        height={256}
         className="absolute -bottom-16 -left-16 w-64 h-64 md:w-[32rem] md:h-[32rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - top left corner */}
-      <img
+      <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
+        width={192}
+        height={192}
         className="absolute -top-10 -left-10 w-48 h-48 md:w-[22rem] md:h-[22rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - bottom right corner */}
-      <img
+      <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
+        width={224}
+        height={224}
         className="absolute -bottom-12 -right-12 w-56 h-56 md:w-[24rem] md:h-[24rem] object-contain pointer-events-none select-none z-0"
       />
 
       {/* ─── FLOATING BLOB ROUND IMAGES ─── */}
-      <motion.img
+      <MotionImage
         src="/assets/blob-round.png"
         alt=""
+        width={112}
+        height={112}
         animate={{ y: [0, -20, 0] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-[10%] right-[8%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
       />
-      <motion.img
+      <MotionImage
         src="/assets/blob-round.png"
         alt=""
+        width={96}
+        height={96}
         animate={{ y: [0, -14, 0] }}
         transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute bottom-[22%] left-[4%] w-24 h-24 md:w-36 md:h-36 object-contain pointer-events-none select-none z-0"
       />
-      <motion.img
+      <MotionImage
         src="/assets/blob-round.png"
         alt=""
+        width={64}
+        height={64}
         animate={{ y: [0, -12, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-[38%] left-[16%] w-16 h-16 md:w-24 md:h-24 object-contain pointer-events-none select-none z-0"
       />
-      <motion.img
+      <MotionImage
         src="/assets/blob-round.png"
         alt=""
+        width={112}
+        height={112}
         animate={{ y: [0, -18, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute bottom-[15%] right-[4%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"

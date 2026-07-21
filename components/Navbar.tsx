@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -57,9 +58,11 @@ export default function Navbar() {
             onClick={() => scrollTo('#home')}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <img
+            <Image
               src="/assets/logo-astro.png"
               alt="ASTRO Logo"
+              width={44}
+              height={44}
               className="h-9 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
             <span className={`text-sm md:text-base font-black tracking-widest uppercase transition-colors duration-300 ${
@@ -132,9 +135,11 @@ export default function Navbar() {
             >
               {/* Close Button Header */}
               <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                <img
+                <Image
                   src="/assets/logo-astro.png"
                   alt="ASTRO Logo"
+                  width={32}
+                  height={32}
                   className="h-8 w-auto object-contain"
                 />
                 <button

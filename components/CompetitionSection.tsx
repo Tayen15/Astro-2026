@@ -33,8 +33,8 @@ export default function CompetitionSection({ competitions }: Props) {
 
   return (
     <section id="competitions" className="relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50 -z-10" />
+      {/* Background — white, connects About's white bottom */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white to-white -z-10" />
       <div className="absolute top-[40%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-astro-cyan/2 blur-[150px] rounded-full -z-10" />
 
       {/* Diagonal transition */}
@@ -55,7 +55,7 @@ export default function CompetitionSection({ competitions }: Props) {
         >
           <div>
             <div className="accent-line mb-3" />
-            <h2 className="text-display text-slate-900">
+            <h2 className="font-masterpiece text-5xl md:text-6xl lg:text-7xl text-slate-900 leading-tight">
               Pilih<br />
               <span className="text-astro-cyan">Lombamu</span>
             </h2>

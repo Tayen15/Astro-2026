@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Fragment } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { CalendarDays } from 'lucide-react';
@@ -22,9 +23,9 @@ export default function TimelineSection({ timeline }: Props) {
   const reduce = useReducedMotion();
 
   return (
-    <section id="timeline" className="relative py-20 md:py-28 overflow-hidden bg-slate-50/50">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-slate-50 to-white -z-10" />
+    <section id="timeline" className="relative py-20 md:py-28 overflow-x-hidden">
+      {/* Background — starts white (connects Competition), gently introduces sky toward bottom */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-sky-50 to-sky-100 -z-10" />
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/3 blur-[150px] rounded-full pointer-events-none" />
       <div className="absolute top-[15%] left-0 w-[200px] h-[2px] bg-gradient-to-r from-slate-200/40 to-transparent skew-x-[-12deg] pointer-events-none" />
       <div className="absolute bottom-[20%] right-0 w-[150px] h-[2px] bg-gradient-to-l from-slate-200/30 to-transparent skew-x-[12deg] pointer-events-none" />
@@ -41,7 +42,7 @@ export default function TimelineSection({ timeline }: Props) {
           <div className="flex justify-center mb-3">
             <div className="accent-line" />
           </div>
-          <h2 className="text-display text-slate-900 mb-3">
+          <h2 className="font-masterpiece text-5xl md:text-6xl lg:text-7xl text-slate-900 mb-3 leading-tight">
             Timeline <span className="text-astro-cyan">Event</span>
           </h2>
           <p className="text-sm md:text-base text-slate-600 font-light leading-relaxed">
@@ -159,6 +160,54 @@ export default function TimelineSection({ timeline }: Props) {
           </div>
         </div>
       </div>
+
+      {/* ─── DECORATIVE BLOBS (behind content) ─── */}
+      <Image
+        src="/assets/blob-round.png"
+        alt=""
+        width={112}
+        height={112}
+        className="absolute top-[8%] right-[12%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
+      />
+      <Image
+        src="/assets/blob-round.png"
+        alt=""
+        width={96}
+        height={96}
+        className="absolute top-[35%] left-[2%] w-24 h-24 md:w-36 md:h-36 object-contain pointer-events-none select-none z-0"
+      />
+      <Image
+        src="/assets/blob-round.png"
+        alt=""
+        width={64}
+        height={64}
+        className="absolute top-[55%] right-[3%] w-16 h-16 md:w-24 md:h-24 object-contain pointer-events-none select-none z-0"
+      />
+      <Image
+        src="/assets/blob-round.png"
+        alt=""
+        width={80}
+        height={80}
+        className="absolute bottom-[10%] left-[10%] w-20 h-20 md:w-32 md:h-32 object-contain pointer-events-none select-none z-0"
+      />
+
+      {/* Train image — slide down from top, behind content */}
+      <motion.div
+        initial={reduce ? false : { y: -350, opacity: 0 }}
+        whileInView={{ y: 200, opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute right-[-8%] top-[0%] w-[80%] max-w-[950px] pointer-events-none select-none z-0"
+      >
+        <Image
+          src="/assets/train-subway.png"
+          alt="Train Subway ASTRO 2026"
+          width={3606}
+          height={870}
+          className="w-full h-auto"
+          priority
+        />
+      </motion.div>
 
       {/* Diagonal bottom transition */}
       <div className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none">

@@ -6,6 +6,7 @@ import StatsBar from '@/components/StatsBar';
 import AboutSection from '@/components/AboutSection';
 import CompetitionSection from '@/components/CompetitionSection';
 import TimelineSection from '@/components/TimelineSection';
+import Image from 'next/image';
 import FAQSection from '@/components/FAQSection';
 import Footer from '@/components/Footer';
 
