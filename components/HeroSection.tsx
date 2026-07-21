@@ -24,7 +24,7 @@ export default function HeroSection({ eventConfig }: Props) {
   return (
     <section
       id="home"
-      className="relative min-h-[100dvh] flex flex-col items-center justify-start overflow-hidden pt-[18vh] md:pt-[15vh]"
+      className="relative min-h-[100svh] flex flex-col items-center justify-start overflow-hidden pt-[18svh] md:pt-[15svh]"
     >
       {/* ─── SKY BACKGROUND ─── */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100" />
