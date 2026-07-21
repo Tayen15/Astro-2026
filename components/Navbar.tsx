@@ -43,13 +43,14 @@ export default function Navbar() {
   };
 
   return (
-    <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 h-14 md:h-16 flex items-center justify-between border-b ${
-        isScrolled
-          ? 'bg-white border-slate-200/80 shadow-sm shadow-slate-100/50'
-          : 'bg-white/95 backdrop-blur-md border-slate-200/60'
-      }`}
-    >
+    <>
+      <header
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 h-14 md:h-16 flex items-center justify-between border-b ${
+          isScrolled
+            ? 'bg-white border-slate-200/80 shadow-sm shadow-slate-100/50'
+            : 'bg-white/95 backdrop-blur-md border-slate-200/60'
+        }`}
+      >
       {/* Left: Brand block with slanted/trapezoidal container */}
       <div className="flex items-center h-full">
         <div
@@ -138,6 +139,7 @@ export default function Navbar() {
           {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
+    </header>
 
       {/* Mobile Drawer */}
       <AnimatePresence>
@@ -146,7 +148,7 @@ export default function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 md:hidden"
+            className="fixed inset-0 z-[60] md:hidden"
           >
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
             <motion.div
@@ -154,9 +156,20 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="absolute top-0 right-0 h-full w-64 bg-white border-l border-slate-200"
+              className="absolute top-0 right-0 h-full w-64 bg-white border-l border-slate-200 flex flex-col"
             >
-              <div className="flex flex-col gap-1 p-6 pt-20">
+              {/* Close Button Header */}
+              <div className="flex items-center justify-end p-4 border-b border-slate-100">
+                <button
+                  onClick={() => setIsMobileOpen(false)}
+                  className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors duration-200 cursor-pointer"
+                  aria-label="Tutup Menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-1 p-6 overflow-y-auto flex-grow">
                 {NAV_LINKS.map((link) => (
                   <button
                     key={link.href}
@@ -179,6 +192,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

@@ -298,10 +298,13 @@ Terima kasih.`;
 
               {/* ─── QRIS ─── */}
               <div
-                className="bg-white border border-slate-200"
+                className="bg-white border border-slate-200 relative"
                 style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
               >
-                <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-slate-900" />
+                <div
+                  className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan"
+                  style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+                />
 
                 <div className="p-6 md:p-8 space-y-6">
                   <div className="flex items-center gap-2">
@@ -407,10 +410,13 @@ Terima kasih.`;
 
               {/* ─── BANK TRANSFER ─── */}
               <div
-                className="bg-white border border-slate-200"
+                className="bg-white border border-slate-200 relative"
                 style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
               >
-                <div className="h-1 w-full bg-gradient-to-r from-astro-cyan to-slate-900" />
+                <div
+                  className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan"
+                  style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+                />
 
                 <div className="p-6 md:p-8 space-y-6">
                   <div className="flex items-center gap-2">

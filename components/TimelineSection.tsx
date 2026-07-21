@@ -69,7 +69,7 @@ export default function TimelineSection({ timeline }: Props) {
 
           {/* ── Mobile Layout ── */}
           <div className="md:hidden">
-            <div className="grid grid-cols-[52px_1fr] gap-x-3">
+            <div className="grid grid-cols-[52px_1fr] gap-x-3 gap-y-12">
               {timeline.map((item, idx) => (
                 <Fragment key={`mobile-${idx}`}>
                   {/* Diamond node */}
@@ -174,12 +174,15 @@ export default function TimelineSection({ timeline }: Props) {
 function CardContent({ item, align }: { item: TimelineItem; align: 'left' | 'right' }) {
   return (
     <div
-      className={`bg-white border border-slate-200 hover:border-cyan-500/40 transition-all duration-200 w-full max-w-md ${
+      className={`bg-white border border-slate-200 hover:border-cyan-500/40 transition-all duration-200 w-full max-w-md relative ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
       style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
     >
-      <div className="h-1 w-full bg-gradient-to-r from-cyan-500 to-slate-900" />
+      <div
+        className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-cyan-500"
+        style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+      />
 
       <div className="p-5 md:p-6">
         {/* Date badge */}

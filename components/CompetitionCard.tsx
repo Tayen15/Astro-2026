@@ -42,8 +42,15 @@ export default function CompetitionCard({ competition, index }: Props) {
       className="group bg-white border border-slate-200/80 hover:border-astro-cyan/40 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out"
       style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
     >
-      {/* Top accent line per category */}
-      <div className={`h-1 w-full ${competition.category === 'akademik' ? 'bg-emerald-500' : competition.category === 'olahraga' ? 'bg-orange-500' : 'bg-cyan-500'}`} />
+      {/* Top angular corner accent per category — torn-corner notch */}
+      <div className="relative">
+        <div
+          className={`absolute -top-[1px] -left-[1px] w-8 h-8 ${
+            competition.category === 'akademik' ? 'bg-emerald-500' : competition.category === 'olahraga' ? 'bg-orange-500' : 'bg-cyan-500'
+          }`}
+          style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+        />
+      </div>
 
       <div className="p-5 md:p-6 flex flex-col gap-3">
         {/* Top row: badge + slots */}

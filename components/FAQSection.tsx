@@ -59,9 +59,12 @@ export default function FAQSection({ faqs }: Props) {
                 }`}
                 style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
               >
-                {/* Top accent line when open */}
+                {/* Top accent corner when open */}
                 {isOpen && (
-                  <div className="h-1 w-full bg-astro-cyan" />
+                  <div
+                    className="absolute -top-[1px] -left-[1px] w-6 h-6 bg-astro-cyan"
+                    style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+                  />
                 )}
 
                 <button
