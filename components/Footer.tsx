@@ -1,7 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
-import { Sparkles, Heart, Camera, PlayCircle, MessageCircle } from 'lucide-react';
+import { Heart, Camera, PlayCircle, MessageCircle } from 'lucide-react';
 
 export default function Footer() {
   const reduce = useReducedMotion();
@@ -18,19 +19,26 @@ export default function Footer() {
         <div className="grid md:grid-cols-3 gap-8 md:gap-12">
           {/* Brand */}
           <motion.div
-            className="md:col-span-1"
+            className="md:col-span-1 relative"
             initial={reduce ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
-              <span className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-slate-950 via-slate-800 to-cyan-600 bg-clip-text text-transparent">
+
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <Image
+                src="/assets/logo-astro.png"
+                alt="ASTRO Logo"
+                width={48}
+                height={48}
+                className="w-10 h-10 md:w-12 md:h-12 object-contain"
+              />
+              <span className="font-masterpiece text-xl md:text-2xl font-black tracking-tight bg-gradient-to-r from-slate-950 via-slate-800 to-cyan-600 bg-clip-text text-transparent">
                 ASTRO 2026
               </span>
             </div>
-            <p className="text-sm text-slate-600 leading-relaxed max-w-xs">
+            <p className="text-sm text-slate-600 leading-relaxed max-w-xs relative z-10">
               Ajang kompetisi dan kreativitas terbesar yang menggabungkan akademik, olahraga, dan esports dalam satu panggung spektakuler.
             </p>
           </motion.div>
