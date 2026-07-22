@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
+import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
   Copy,
@@ -74,6 +75,7 @@ function generateQrisPayload(reference: string, amount: number) {
 const SIMULATION_DURATION = 18; // seconds before auto-detect paid
 
 export default function PaymentStep({ competition, formData, isTeam, registrationId, paymentReference, onBack }: Props) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'detecting' | 'paid'>('pending');
   const [elapsed, setElapsed] = useState(0);
@@ -183,9 +185,7 @@ Terima kasih.`;
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}
               >
-                Pembayaran sebesar{' '}
-                <strong className="text-slate-900">{formatCurrency(competition.fee)}</strong>{' '}
-                telah kami terima. Slot kamu di <strong>{competition.title}</strong> sudah terbooking.
+                Pendaftaran dan pembayaran kamu telah diterima.
               </motion.p>
               <motion.div
                 className="flex justify-center"
@@ -197,69 +197,20 @@ Terima kasih.`;
               </motion.div>
             </div>
 
-            {/* Reference */}
-            <motion.div
-              className="bg-slate-50 border border-slate-200 p-4"
-              style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    Referensi Pembayaran
-                  </span>
-                  <p className="text-sm font-mono font-bold text-slate-900 mt-0.5">{reference}</p>
-                </div>
-                <button
-                  onClick={() => navigator.clipboard.writeText(reference)}
-                  className="p-2 border border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700 transition-all duration-200 cursor-pointer bg-white"
-                  style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                  aria-label="Salin referensi"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Important note */}
-            <motion.div
-              className="border border-amber-200 bg-amber-50/40 p-5 text-xs text-amber-800 leading-relaxed"
-              style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <span className="font-black uppercase tracking-wider">Penting:</span>{' '}
-              Simpan referensi pembayaran di atas. Jika ada kendala, hubungi Contact Person melalui WhatsApp.
-            </motion.div>
-
-            {/* Actions */}
+            {/* Go to status page */}
             <motion.div
               className="space-y-3"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.6 }}
             >
-              <a
-                href={getWhatsAppLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
+              <button
+                onClick={() => router.push('/cek-pendaftaran')}
+                className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-astro-cyan hover:bg-cyan-400 text-slate-950 font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
                 style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
               >
-                <MessageCircle className="w-5 h-5" />
-                Konfirmasi Pembayaran (WhatsApp)
-              </a>
-
-              <button
-                onClick={onBack}
-                className="flex items-center justify-center gap-2 w-full px-8 py-3.5 border border-slate-300 hover:border-astro-cyan text-slate-700 hover:text-astro-cyan font-bold text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer bg-white"
-                style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Kembali ke Form Pendaftaran
+                <CheckCircle2 className="w-5 h-5" />
+                Lihat Status Pendaftaran
               </button>
             </motion.div>
           </motion.div>

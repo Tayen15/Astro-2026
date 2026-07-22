@@ -10,8 +10,10 @@ import { Loader2, UserPlus, ArrowLeft } from 'lucide-react';
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -19,24 +21,61 @@ export default function SignupPage() {
     setLoading(true);
     setMessage('');
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { role: 'participant' },
-      },
-    });
+    // Use the API route to create user via server
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+      });
 
-    if (error) {
-      setMessage(error.message);
+      const json = await res.json();
+
+      if (!res.ok) {
+        setMessage(json.error || 'Gagal mendaftar');
+        setLoading(false);
+        return;
+      }
+
+      setSuccess(true);
+      setMessage('Pendaftaran berhasil! Silakan login.');
       setLoading(false);
-      return;
-    }
 
-    setMessage('Pendaftaran berhasil! Silakan cek email untuk verifikasi.');
-    setLoading(false);
+      // Auto redirect to login after 2s
+      setTimeout(() => router.push('/login'), 2000);
+    } catch {
+      setMessage('Terjadi kesalahan. Silakan coba lagi.');
+      setLoading(false);
+    }
   };
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-white/80 backdrop-blur-xl border border-white/40 p-8 md:p-10 text-center"
+            style={{ clipPath: 'polygon(24px 0, 100% 0, calc(100% - 24px) 100%, 0 100%)' }}
+          >
+            <div className="w-16 h-16 bg-emerald-100 border border-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="w-8 h-8 text-emerald-600" />
+            </div>
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Pendaftaran Berhasil!</h2>
+            <p className="text-sm text-slate-600 mb-6">Silakan login dengan akun baru Anda.</p>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-astro-cyan text-slate-950 font-black text-xs tracking-wider uppercase hover:bg-cyan-400 transition-all"
+              style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+            >
+              Login Sekarang
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100">
@@ -65,7 +104,7 @@ export default function SignupPage() {
             </p>
 
             {message && (
-              <div className="bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-medium p-3 mb-5 text-center"
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-medium p-3 mb-5 text-center"
                 style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
               >
                 {message}
@@ -73,6 +112,17 @@ export default function SignupPage() {
             )}
 
             <form onSubmit={handleSignup} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-[0.15em]">Nama Lengkap</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-white border border-slate-200 text-sm focus:outline-none focus:border-astro-cyan"
+                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                />
+              </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-[0.15em]">Email</label>
                 <input

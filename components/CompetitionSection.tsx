@@ -24,11 +24,18 @@ export default function CompetitionSection({ competitions }: Props) {
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    return competitions.filter((c) => {
-      const matchCat = selectedCategory === 'all' || c.category === selectedCategory;
-      const matchQ = !q || c.title.toLowerCase().includes(q) || c.tagline.toLowerCase().includes(q);
-      return matchCat && matchQ;
-    });
+    const categoryOrder = ['akademik', 'olahraga', 'esports'];
+    return competitions
+      .filter((c) => {
+        const matchCat = selectedCategory === 'all' || c.category === selectedCategory;
+        const matchQ = !q || c.title.toLowerCase().includes(q) || c.tagline.toLowerCase().includes(q);
+        return matchCat && matchQ;
+      })
+      .sort((a, b) => {
+        const catDiff = categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
+        if (catDiff !== 0) return catDiff;
+        return a.title.localeCompare(b.title);
+      });
   }, [competitions, selectedCategory, searchQuery]);
 
   return (

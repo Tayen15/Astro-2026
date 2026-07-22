@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Loader2, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Plus, Loader2, Pencil, Trash2, Check, X, ChevronUp, ChevronDown } from 'lucide-react';
+import DeleteModal from '@/components/DeleteModal';
 
 interface FAQItem {
   id: number;
@@ -18,6 +19,8 @@ export default function FAQPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ question: '', answer: '' });
   const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchFaqs = async () => {
     const res = await fetch('/api/faqs');
@@ -45,10 +48,18 @@ export default function FAQPage() {
     fetchFaqs();
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Hapus FAQ ini?')) return;
-    await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
-    fetchFaqs();
+  const handleDelete = (id: number) => {
+    setDeleteModal({
+      title: 'Hapus FAQ',
+      message: 'Yakin ingin menghapus FAQ ini? Tindakan ini tidak bisa dibatalkan.',
+      onConfirm: async () => {
+        setDeleteLoading(true);
+        await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
+        setDeleteModal(null);
+        setDeleteLoading(false);
+        fetchFaqs();
+      },
+    });
   };
 
   const handleAdd = async () => {
@@ -65,12 +76,38 @@ export default function FAQPage() {
     fetchFaqs();
   };
 
+  const handleMove = async (id: number, direction: 'up' | 'down') => {
+    const idx = faqs.findIndex((f) => f.id === id);
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === faqs.length - 1) return;
+
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    const currentOrder = faqs[idx].sortOrder;
+    const swapOrder = faqs[swapIdx].sortOrder;
+
+    // Swap sort orders
+    await Promise.all([
+      fetch(`/api/faqs/${faqs[idx].id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...faqs[idx], sortOrder: swapOrder }),
+      }),
+      fetch(`/api/faqs/${faqs[swapIdx].id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...faqs[swapIdx], sortOrder: currentOrder }),
+      }),
+    ]);
+
+    fetchFaqs();
+  };
+
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-7xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">FAQ</h1>
@@ -137,7 +174,7 @@ export default function FAQPage() {
         style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
       >
         <div className="divide-y divide-slate-100">
-          {faqs.map((faq) => (
+          {faqs.map((faq, idx) => (
             <div key={faq.id} className="p-5">
               {editingId === faq.id ? (
                 <div className="space-y-3">
@@ -165,9 +202,26 @@ export default function FAQPage() {
                 </div>
               ) : (
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-slate-900 mb-1">{faq.question}</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{faq.answer}</p>
+                  <div className="flex items-start gap-3 flex-1">
+                    {/* Move buttons */}
+                    <div className="flex flex-col gap-0.5 pt-0.5">
+                      <button onClick={() => handleMove(faq.id, 'up')}
+                        disabled={idx === 0}
+                        className="p-0.5 text-slate-400 hover:text-slate-700 disabled:text-slate-200 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleMove(faq.id, 'down')}
+                        disabled={idx === faqs.length - 1}
+                        className="p-0.5 text-slate-400 hover:text-slate-700 disabled:text-slate-200 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-slate-900 mb-1">{faq.question}</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">{faq.answer}</p>
+                    </div>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
                     <button onClick={() => handleEdit(faq)} className="p-2 text-slate-400 hover:text-astro-cyan transition-colors cursor-pointer" title="Edit">
@@ -183,6 +237,16 @@ export default function FAQPage() {
           ))}
         </div>
       </div>
+
+      {/* Delete Modal */}
+      <DeleteModal
+        open={!!deleteModal}
+        title={deleteModal?.title || ''}
+        message={deleteModal?.message || ''}
+        onConfirm={deleteModal?.onConfirm || (() => {})}
+        onCancel={() => setDeleteModal(null)}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

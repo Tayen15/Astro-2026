@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogIn } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/src/db/supabase/client';
 
 const NAV_LINKS = [
   { label: 'BERANDA', href: '#home' },
@@ -17,6 +18,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -24,6 +26,14 @@ export default function Navbar() {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    // Check login state
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+    });
   }, []);
 
   useEffect(() => {
@@ -40,6 +50,14 @@ export default function Navbar() {
       }
     } else {
       router.push('/' + href);
+    }
+  };
+
+  const handleDaftar = () => {
+    if (isLoggedIn) {
+      scrollTo('#competitions');
+    } else {
+      router.push('/login');
     }
   };
 
@@ -93,7 +111,42 @@ export default function Navbar() {
         {/* Right: CTA + Mobile */}
         <div className="flex items-center gap-2 pr-4 md:pr-6 h-full">
           <button
-            onClick={() => scrollTo('#competitions')}
+            onClick={() => router.push('/cek-pendaftaran')}
+            className={`px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer hidden md:block ${
+              isScrolled
+                ? 'text-slate-500 hover:text-slate-700'
+                : 'text-white/70 hover:text-white'
+            }`}
+          >
+            Cek Status
+          </button>
+
+          {isLoggedIn ? (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className={`px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer hidden md:block ${
+                isScrolled
+                  ? 'text-slate-500 hover:text-slate-700'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push('/login')}
+              className={`hidden md:flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer ${
+                isScrolled
+                  ? 'text-slate-500 hover:text-slate-700'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <LogIn className="w-3 h-3" /> Masuk
+            </button>
+          )}
+
+          <button
+            onClick={handleDaftar}
             className={`px-5 py-2 text-[11px] font-black tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer ${
               isScrolled
                 ? 'bg-sky-600 hover:bg-sky-500 text-white shadow-md hover:shadow-lg'
@@ -164,8 +217,29 @@ export default function Navbar() {
                 ))}
                 <hr className="my-4 border-slate-200" />
                 <button
-                  onClick={() => scrollTo('#competitions')}
-                  className="px-5 py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer shadow-md"
+                  onClick={() => router.push('/cek-pendaftaran')}
+                  className="px-5 py-3.5 text-sm font-bold tracking-[0.15em] text-left text-slate-700 hover:text-slate-950 hover:bg-slate-50 rounded-xl transition-all duration-200 cursor-pointer"
+                >
+                  Cek Status Pendaftaran
+                </button>
+                {isLoggedIn ? (
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="px-5 py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer shadow-md"
+                  >
+                    Dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push('/login')}
+                    className="px-5 py-3.5 border border-slate-200 text-slate-700 font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer hover:bg-slate-50"
+                  >
+                    <LogIn className="w-4 h-4 inline mr-1" /> Masuk
+                  </button>
+                )}
+                <button
+                  onClick={handleDaftar}
+                  className="px-5 py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer shadow-md mt-2"
                 >
                   Daftar Sekarang
                 </button>

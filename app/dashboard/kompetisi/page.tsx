@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import {
   Loader2, Pencil, X, Check, Search, Plus, Trophy,
-  Coins, Users, MapPin, Calendar, Phone, User,
+  Coins, Users, MapPin, Calendar, Phone, User, Tag,
+  Trash2, EyeOff, Eye,
 } from 'lucide-react';
+import DeleteModal from '@/components/DeleteModal';
 
 interface Competition {
   id: string;
@@ -24,6 +26,14 @@ interface Competition {
   rulebookUrl: string | null;
   contactName: string | null;
   contactWhatsapp: string | null;
+  isActive: string | null;
+}
+
+interface Category {
+  id: string;
+  label: string;
+  color: string;
+  sortOrder: number;
 }
 
 const emptyForm = {
@@ -44,16 +54,11 @@ const emptyForm = {
   rulebookUrl: '',
   contactName: '',
   contactWhatsapp: '',
-};
-
-const catColors: Record<string, string> = {
-  akademik: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-  olahraga: 'text-orange-700 bg-orange-50 border-orange-200',
-  esports: 'text-cyan-700 bg-cyan-50 border-cyan-200',
+  isActive: '1',
 };
 
 /* ─── Form Fields Sub-component ─── */
-function FormFields({ form, setForm, isAdd }: { form: any; setForm: (f: any) => void; isAdd?: boolean }) {
+function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: (f: any) => void; isAdd?: boolean; categories: Category[] }) {
   const update = (field: string, value: any) => setForm({ ...form, [field]: value });
   const inp = (field: string) =>
     `w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan`;
@@ -78,15 +83,17 @@ function FormFields({ form, setForm, isAdd }: { form: any; setForm: (f: any) => 
         />
       </div>
       <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kategori</label>
-        <select value={form.category} onChange={(e) => update('category', e.target.value)}
-          className={`${inp('category')} cursor-pointer`}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        >
-          <option value="akademik">Akademik</option>
-          <option value="olahraga">Olahraga</option>
-          <option value="esports">Esports</option>
-        </select>
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Tag className="w-3 h-3" /> Kategori</label>
+        <div className="flex gap-2 mt-1">
+          <select value={form.category} onChange={(e) => update('category', e.target.value)}
+            className={`${inp('category')} cursor-pointer flex-1`}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+          >
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <div className="sm:col-span-2">
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tagline</label>
@@ -174,23 +181,41 @@ function FormFields({ form, setForm, isAdd }: { form: any; setForm: (f: any) => 
 
 export default function KompetisiPage() {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'az' | 'za'>('newest');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState<any>({ ...emptyForm });
   const [saving, setSaving] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Category manager state
+  const [showCatManager, setShowCatManager] = useState(false);
+  const [catForm, setCatForm] = useState({ id: '', label: '', color: 'text-cyan-700 bg-cyan-50 border-cyan-200' });
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [catSaving, setCatSaving] = useState(false);
+
+  // Delete modal
+  const [deleteModal, setDeleteModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
   const fetchData = async () => {
-    const res = await fetch('/api/competitions');
-    const json = await res.json();
-    setCompetitions(json.data || []);
+    const [compRes, catRes] = await Promise.all([
+      fetch('/api/competitions'),
+      fetch('/api/categories'),
+    ]);
+    const compJson = await compRes.json();
+    const catJson = await catRes.json();
+    setCompetitions(compJson.data || []);
+    setCategories(catJson.data || []);
     setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, []);
 
+  /* ─── Competition CRUD ─── */
   const handleEdit = (comp: Competition) => {
     setShowAdd(false);
     setEditingId(comp.id);
@@ -219,25 +244,21 @@ export default function KompetisiPage() {
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
-      const body = {
-        ...editForm,
-        fee: parseInt(editForm.fee) || 0,
-        maxSlots: parseInt(editForm.maxSlots) || 0,
-        filledSlots: parseInt(editForm.filledSlots) || 0,
-        rulesSummary: editForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
-        scheduleDate: editForm.scheduleDate ? new Date(editForm.scheduleDate).toISOString() : null,
-      };
-
       await fetch(`/api/competitions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          ...editForm,
+          fee: parseInt(editForm.fee) || 0,
+          maxSlots: parseInt(editForm.maxSlots) || 0,
+          filledSlots: parseInt(editForm.filledSlots) || 0,
+          rulesSummary: editForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
+          scheduleDate: editForm.scheduleDate ? new Date(editForm.scheduleDate).toISOString() : null,
+        }),
       });
       setEditingId(null);
       fetchData();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
     setSaving(false);
   };
 
@@ -245,34 +266,128 @@ export default function KompetisiPage() {
     if (!addForm.title || !addForm.id) return;
     setSaving(true);
     try {
-      const body = {
-        ...addForm,
-        fee: parseInt(addForm.fee) || 0,
-        maxSlots: parseInt(addForm.maxSlots) || 0,
-        filledSlots: parseInt(addForm.filledSlots) || 0,
-        rulesSummary: addForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
-        scheduleDate: addForm.scheduleDate ? new Date(addForm.scheduleDate).toISOString() : null,
-      };
-
       await fetch('/api/competitions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          ...addForm,
+          fee: parseInt(addForm.fee) || 0,
+          maxSlots: parseInt(addForm.maxSlots) || 0,
+          filledSlots: parseInt(addForm.filledSlots) || 0,
+          rulesSummary: addForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
+          scheduleDate: addForm.scheduleDate ? new Date(addForm.scheduleDate).toISOString() : null,
+        }),
       });
       setAddForm({ ...emptyForm });
       setShowAdd(false);
       fetchData();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
     setSaving(false);
   };
 
-  const filtered = competitions.filter(
-    (c) =>
-      c.title.toLowerCase().includes(search.toLowerCase()) ||
-      c.category.toLowerCase().includes(search.toLowerCase()),
-  );
+  /* ─── Toggle Active ─── */
+  const handleToggleActive = async (comp: Competition) => {
+    try {
+      await fetch(`/api/competitions/${comp.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: comp.title,
+          category: comp.category,
+          tagline: comp.tagline,
+          description: comp.description,
+          fee: comp.fee,
+          maxSlots: comp.maxSlots,
+          filledSlots: comp.filledSlots,
+          scheduleDate: comp.scheduleDate,
+          location: comp.location,
+          prizesFirst: comp.prizesFirst,
+          prizesSecond: comp.prizesSecond,
+          prizesThird: comp.prizesThird,
+          rulesSummary: comp.rulesSummary,
+          rulebookUrl: comp.rulebookUrl,
+          contactName: comp.contactName,
+          contactWhatsapp: comp.contactWhatsapp,
+          isActive: comp.isActive !== '1',
+        }),
+      });
+      fetchData();
+    } catch (err) { console.error(err); }
+  };
+
+  /* ─── Delete Competition ─── */
+  const handleDeleteComp = (id: string) => {
+    setDeleteModal({
+      title: 'Hapus Lomba',
+      message: 'Yakin ingin menghapus lomba ini? Tindakan ini tidak bisa dibatalkan.',
+      onConfirm: async () => {
+        setDeleteLoading(true);
+        try {
+          const res = await fetch(`/api/competitions/${id}`, { method: 'DELETE' });
+          const json = await res.json();
+          if (!res.ok) { alert(json.error); setDeleteLoading(false); return; }
+          fetchData();
+        } catch (err) { console.error(err); }
+      },
+    });
+  };
+
+  /* ─── Category CRUD ─── */
+  const handleCatSave = async () => {
+    if (!catForm.label) return;
+    setCatSaving(true);
+    try {
+      if (editingCatId) {
+        await fetch(`/api/categories/${editingCatId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(catForm),
+        });
+        setEditingCatId(null);
+      } else {
+        await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(catForm),
+        });
+      }
+      setCatForm({ id: '', label: '', color: 'text-cyan-700 bg-cyan-50 border-cyan-200' });
+      fetchData();
+    } catch (err) { console.error(err); }
+    setCatSaving(false);
+  };
+
+  const handleCatEdit = (cat: Category) => {
+    setCatForm({ id: cat.id, label: cat.label, color: cat.color });
+    setEditingCatId(cat.id);
+  };
+
+  const handleCatDelete = (id: string) => {
+    setDeleteModal({
+      title: 'Hapus Kategori',
+      message: 'Yakin ingin menghapus kategori ini? Hanya bisa dihapus jika tidak ada lomba yang menggunakannya.',
+      onConfirm: async () => {
+        setDeleteModal(null);
+        const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+        const json = await res.json();
+        if (!res.ok) { alert(json.error); return; }
+        fetchData();
+      },
+    });
+  };
+
+  const categoryOptions = [
+    { value: '', label: 'Semua Kategori' },
+    ...categories.map((c) => ({ value: c.id, label: c.label })),
+  ];
+
+  const filtered = [...competitions]
+    .filter((c) => !search || c.title.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === 'az') return a.title.localeCompare(b.title);
+      if (sortBy === 'za') return b.title.localeCompare(a.title);
+      return 0; // newest — keep DB order
+    });
 
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
@@ -280,19 +395,103 @@ export default function KompetisiPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Kompetisi</h1>
           <p className="text-sm text-slate-500 font-light mt-1">{competitions.length} lomba terdaftar</p>
         </div>
-        <button
-          onClick={() => { setShowAdd(!showAdd); setEditingId(null); }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase transition-all hover:bg-cyan-400 cursor-pointer"
-          style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-        >
-          <Plus className="w-3.5 h-3.5" /> Tambah Lomba
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => { setShowCatManager(!showCatManager); setShowAdd(false); setEditingId(null); }}
+            className="flex items-center gap-2 px-5 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs tracking-wider uppercase transition-all hover:bg-slate-50 cursor-pointer"
+            style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+          >
+            <Tag className="w-3.5 h-3.5" /> Kelola Kategori
+          </button>
+          <button onClick={() => { setShowAdd(!showAdd); setEditingId(null); }}
+            className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase transition-all hover:bg-cyan-400 cursor-pointer"
+            style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+          >
+            <Plus className="w-3.5 h-3.5" /> Tambah Lomba
+          </button>
+        </div>
       </div>
+
+      {/* Category Manager */}
+      {showCatManager && (
+        <div className="bg-white border border-slate-200 relative p-5 space-y-4"
+          style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
+        >
+          <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan"
+            style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+          />
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Kelola Kategori</h2>
+            <button onClick={() => setShowCatManager(false)}
+              className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+          </div>
+
+          {/* Add/Edit form */}
+          <div className="flex gap-3 items-end">
+            <div className="flex-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Label</label>
+              <input value={catForm.label} onChange={(e) => setCatForm({ ...catForm, label: e.target.value, id: editingCatId ? catForm.id : e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                placeholder="Nama kategori"
+                className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
+                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+              />
+            </div>
+            {!editingCatId && (
+              <div className="flex-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ID</label>
+                <input value={catForm.id} onChange={(e) => setCatForm({ ...catForm, id: e.target.value })}
+                  placeholder="slug-kategori"
+                  className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
+                  style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                />
+              </div>
+            )}
+            <select value={catForm.color} onChange={(e) => setCatForm({ ...catForm, color: e.target.value })}
+              className="flex-1 px-3 py-2 border border-slate-200 text-xs mt-5 focus:outline-none focus:border-astro-cyan cursor-pointer"
+              style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+            >
+              <option value="text-emerald-700 bg-emerald-50 border-emerald-200">Hijau (Akademik)</option>
+              <option value="text-orange-700 bg-orange-50 border-orange-200">Oranye (Olahraga)</option>
+              <option value="text-cyan-700 bg-cyan-50 border-cyan-200">Cyan (Esports)</option>
+              <option value="text-purple-700 bg-purple-50 border-purple-200">Ungu</option>
+              <option value="text-pink-700 bg-pink-50 border-pink-200">Pink</option>
+              <option value="text-sky-700 bg-sky-50 border-sky-200">Sky</option>
+              <option value="text-amber-700 bg-amber-50 border-amber-200">Amber</option>
+            </select>
+            <button onClick={handleCatSave} disabled={catSaving}
+              className="px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+            >
+              {catSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : editingCatId ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            </button>
+            {editingCatId && (
+              <button onClick={() => { setEditingCatId(null); setCatForm({ id: '', label: '', color: 'text-cyan-700 bg-cyan-50 border-cyan-200' }); }}
+                className="px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
+                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+              >Batal</button>
+            )}
+          </div>
+
+          {/* Categories list */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <div key={cat.id}
+                className={`flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border ${cat.color}`}
+                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+              >
+                <span>{cat.label}</span>
+                <button onClick={() => handleCatEdit(cat)} className="hover:opacity-60 cursor-pointer"><Pencil className="w-3 h-3" /></button>
+                <button onClick={() => handleCatDelete(cat.id)} className="hover:opacity-60 cursor-pointer"><X className="w-3 h-3" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Add Form */}
       {showAdd && (
@@ -303,7 +502,7 @@ export default function KompetisiPage() {
             style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
           />
           <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Tambah Lomba Baru</h2>
-          <FormFields form={addForm} setForm={setAddForm} isAdd />
+          <FormFields form={addForm} setForm={setAddForm} isAdd categories={categories} />
           <div className="flex gap-2 pt-2">
             <button onClick={handleAdd} disabled={saving}
               className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
@@ -321,82 +520,137 @@ export default function KompetisiPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cari lomba..."
-          className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-medium focus:outline-none focus:border-astro-cyan"
-          style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-        />
+      {/* Search + Sort */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari lomba..."
+            className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-medium focus:outline-none focus:border-astro-cyan"
+            style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+          />
+        </div>
+
+        <div className="flex gap-1">
+          {[
+            { key: 'newest', label: 'Terbaru' },
+            { key: 'az', label: 'A-Z' },
+            { key: 'za', label: 'Z-A' },
+          ].map((opt) => (
+            <button key={opt.key}
+              onClick={() => setSortBy(opt.key as 'newest' | 'az' | 'za')}
+              className={`px-3 py-2 text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
+                sortBy === opt.key
+                  ? 'bg-astro-cyan text-slate-950'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+              style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* List */}
       <div className="grid grid-cols-1 gap-4">
-        {filtered.map((comp) => (
-          <div key={comp.id}
-            className="bg-white border border-slate-200 relative"
-            style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-          >
-            <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan"
-              style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
-            />
-            <div className="p-5">
-              {editingId === comp.id ? (
-                <div className="space-y-4">
-                  <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Edit Lomba</h2>
-                  <FormFields form={editForm} setForm={setEditForm} />
-                  <div className="flex gap-2 pt-2">
-                    <button onClick={() => handleSave(comp.id)} disabled={saving}
-                      className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
-                      style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                    >
-                      {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
-                    </button>
-                    <button onClick={handleCancelEdit}
-                      className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-                      style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                    >
-                      <X className="w-3 h-3" /> Batal
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{comp.title}</h3>
-                      <span
-                        className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${catColors[comp.category] || 'bg-slate-50 text-slate-600 border-slate-200'}`}
-                        style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+        {filtered.map((comp) => {
+          const cat = categories.find((c) => c.id === comp.category);
+          const catColor = cat?.color || 'bg-slate-50 text-slate-600 border-slate-200';
+
+          return (
+            <div key={comp.id}
+              className="bg-white border border-slate-200 relative"
+              style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
+            >
+              <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan"
+                style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+              />
+              <div className="p-5">
+                {editingId === comp.id ? (
+                  <div className="space-y-4">
+                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Edit Lomba</h2>
+                    <FormFields form={editForm} setForm={setEditForm} categories={categories} />
+                    <div className="flex gap-2 pt-2">
+                      <button onClick={() => handleSave(comp.id)} disabled={saving}
+                        className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
+                        style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
                       >
-                        {comp.category}
-                      </span>
-                    </div>
-                    {comp.tagline && (
-                      <p className="text-sm text-slate-500 font-light mb-2">{comp.tagline}</p>
-                    )}
-                    <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-slate-600">
-                      <span className="flex items-center gap-1"><Coins className="w-3 h-3" /> Rp {comp.fee.toLocaleString('id-ID')}</span>
-                      <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {comp.filledSlots}/{comp.maxSlots} terisi</span>
-                      {comp.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {comp.location}</span>}
-                      {comp.scheduleDate && (
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(comp.scheduleDate).toLocaleDateString('id-ID')}</span>
-                      )}
+                        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
+                      </button>
+                      <button onClick={handleCancelEdit}
+                        className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
+                        style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                      >
+                        <X className="w-3 h-3" /> Batal
+                      </button>
                     </div>
                   </div>
-                  <button onClick={() => handleEdit(comp)}
-                    className="p-2 text-slate-400 hover:text-astro-cyan transition-colors cursor-pointer flex-shrink-0"
-                    title="Edit"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{comp.title}</h3>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${catColor}`}
+                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                        >
+                          {cat?.label || comp.category}
+                        </span>
+                      </div>
+                      {comp.tagline && (
+                        <p className="text-sm text-slate-500 font-light mb-2">{comp.tagline}</p>
+                      )}
+                      <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-slate-600">
+                        <span className="flex items-center gap-1"><Coins className="w-3 h-3" /> Rp {comp.fee.toLocaleString('id-ID')}</span>
+                        <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {comp.filledSlots}/{comp.maxSlots} terisi</span>
+                        {comp.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {comp.location}</span>}
+                        {comp.scheduleDate && (
+                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(comp.scheduleDate).toLocaleDateString('id-ID')}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      {comp.isActive !== '1' && (
+                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border bg-red-50 text-red-600 border-red-200 self-center mr-1"
+                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                        >
+                          Nonaktif
+                        </span>
+                      )}
+                      <button onClick={() => handleToggleActive(comp)}
+                        className={`p-2 transition-colors cursor-pointer ${comp.isActive === '1' ? 'text-slate-400 hover:text-amber-600' : 'text-amber-500 hover:text-green-600'}`}
+                        title={comp.isActive === '1' ? 'Nonaktifkan' : 'Aktifkan'}
+                      >
+                        {comp.isActive === '1' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <button onClick={() => handleEdit(comp)}
+                        className="p-2 text-slate-400 hover:text-astro-cyan transition-colors cursor-pointer" title="Edit"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDeleteComp(comp.id)}
+                        className="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer" title="Hapus"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Delete Modal */}
+      <DeleteModal
+        open={!!deleteModal}
+        title={deleteModal?.title || ''}
+        message={deleteModal?.message || ''}
+        onConfirm={deleteModal?.onConfirm || (() => {})}
+        onCancel={() => setDeleteModal(null)}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

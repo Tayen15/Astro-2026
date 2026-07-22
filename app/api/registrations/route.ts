@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { registrations, competitions } from '@/src/db/schema';
-import { eq, desc, sql, ilike } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
+import { createServerClient } from '@supabase/ssr';
+
+function getSupabaseClient(request: NextRequest) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll(); },
+        setAll() {},
+      },
+    },
+  );
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +23,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const statusFilter = searchParams.get('status') || '';
     const lombaFilter = searchParams.get('lomba') || '';
+    const userId = searchParams.get('userId') || '';
 
     const conditions = [];
     if (search) {
@@ -21,6 +36,9 @@ export async function GET(request: NextRequest) {
     }
     if (lombaFilter) {
       conditions.push(eq(registrations.competitionId, lombaFilter));
+    }
+    if (userId) {
+      conditions.push(eq(registrations.userId, userId));
     }
 
     const where = conditions.length > 0 ? sql`${conditions.reduce((a, b) => sql`${a} AND ${b}`)}` : undefined;
@@ -55,6 +73,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Get user from session
+    let userId: string | null = null;
+    try {
+      const supabase = getSupabaseClient(request);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) userId = user.id;
+    } catch {}
+
     // Generate reference
     const ref = `INV/ASTRO-2026/${Date.now().toString().slice(-8)}`;
 
@@ -76,6 +102,7 @@ export async function POST(request: NextRequest) {
         paymentMethod: body.paymentMethod || null,
         paymentAmount: body.paymentAmount || 0,
         paymentReference: ref,
+        userId: userId,
       })
       .returning();
 

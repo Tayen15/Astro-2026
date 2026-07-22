@@ -37,7 +37,19 @@ export default function LoginPage() {
       return;
     }
 
-    router.replace('/dashboard');
+    // Check role from users table
+    let isAdmin = false;
+    try {
+      const meRes = await fetch('/api/auth/me');
+      const meJson = await meRes.json();
+      isAdmin = meJson.data?.role === 'admin';
+    } catch {}
+
+    if (isAdmin) {
+      router.replace('/dashboard');
+    } else {
+      router.replace('/');
+    }
   };
 
   return (

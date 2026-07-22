@@ -9,11 +9,26 @@ import {
   serial,
 } from 'drizzle-orm/pg-core';
 
+/* ─── Categories ─── */
+export const categories = pgTable('categories', {
+  id: text('id').primaryKey(), // 'akademik' | 'olahraga' | 'esports' | custom
+  label: text('label').notNull(), // 'Akademik' | 'Olahraga' | 'Esports'
+  color: text('color').notNull().default('text-cyan-700 bg-cyan-50 border-cyan-200'),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  competitions: many(competitions),
+}));
+
 /* ─── Competitions ─── */
 export const competitions = pgTable('competitions', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
-  category: text('category').notNull(), // 'akademik' | 'olahraga' | 'esports'
+  category: text('category')
+    .notNull()
+    .references(() => categories.id),
   tagline: text('tagline'),
   description: text('description'),
   fee: integer('fee').notNull().default(0),
@@ -28,6 +43,7 @@ export const competitions = pgTable('competitions', {
   rulebookUrl: text('rulebook_url'),
   contactName: text('contact_name'),
   contactWhatsapp: text('contact_whatsapp'),
+  isActive: text('is_active').notNull().default('1'), // '1' = active, '0' = inactive
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
