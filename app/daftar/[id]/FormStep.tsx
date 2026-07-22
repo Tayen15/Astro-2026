@@ -19,7 +19,7 @@ interface Props {
     members: string;
   };
   setFormData: (data: any) => void;
-  onContinue: () => void;
+  onContinue: (registrationId: string, reference: string) => void;
 }
 
 export default function FormStep({ competition, isTeam, formData, setFormData, onContinue }: Props) {
@@ -57,15 +57,41 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
     return Object.keys(newErrors).length === 0;
   }, [formData, isTeam]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          competitionId: competition.id,
+          type: isTeam ? 'team' : 'individual',
+          fullName: formData.fullName || null,
+          identityNumber: formData.identityNumber || null,
+          teamName: formData.teamName || null,
+          leaderName: formData.leaderName || null,
+          leaderIdentity: formData.leaderIdentity || null,
+          members: formData.members || null,
+          institution: formData.institution,
+          email: formData.email,
+          whatsapp: formData.whatsapp,
+          paymentAmount: competition.fee,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Gagal mendaftar');
+
+      const result = await res.json();
       setLoading(false);
-      onContinue();
-    }, 1500);
+      onContinue(result.data.id, result.data.paymentReference);
+    } catch (err) {
+      setLoading(false);
+      alert('Gagal mengirim pendaftaran. Silakan coba lagi.');
+    }
   };
 
   const updateField = (field: string, value: string) => {

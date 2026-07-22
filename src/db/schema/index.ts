@@ -1,0 +1,95 @@
+import { relations } from 'drizzle-orm';
+import {
+  pgTable,
+  text,
+  integer,
+  timestamp,
+  uuid,
+  jsonb,
+  serial,
+} from 'drizzle-orm/pg-core';
+
+/* ─── Competitions ─── */
+export const competitions = pgTable('competitions', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  category: text('category').notNull(), // 'akademik' | 'olahraga' | 'esports'
+  tagline: text('tagline'),
+  description: text('description'),
+  fee: integer('fee').notNull().default(0),
+  maxSlots: integer('max_slots').notNull().default(0),
+  filledSlots: integer('filled_slots').notNull().default(0),
+  scheduleDate: timestamp('schedule_date'),
+  location: text('location'),
+  prizesFirst: text('prizes_first'),
+  prizesSecond: text('prizes_second'),
+  prizesThird: text('prizes_third'),
+  rulesSummary: jsonb('rules_summary').$type<string[]>(),
+  rulebookUrl: text('rulebook_url'),
+  contactName: text('contact_name'),
+  contactWhatsapp: text('contact_whatsapp'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const competitionsRelations = relations(competitions, ({ many }) => ({
+  registrations: many(registrations),
+}));
+
+/* ─── Registrations ─── */
+export const registrations = pgTable('registrations', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  competitionId: text('competition_id')
+    .notNull()
+    .references(() => competitions.id),
+  type: text('type').notNull(), // 'team' | 'individual'
+  // Individual fields
+  fullName: text('full_name'),
+  identityNumber: text('identity_number'),
+  // Team fields
+  teamName: text('team_name'),
+  leaderName: text('leader_name'),
+  leaderIdentity: text('leader_identity'),
+  members: text('members'),
+  // Common fields
+  institution: text('institution').notNull(),
+  email: text('email').notNull(),
+  whatsapp: text('whatsapp').notNull(),
+  // Payment
+  paymentStatus: text('payment_status').notNull().default('pending'), // 'pending' | 'detecting' | 'paid' | 'failed'
+  paymentMethod: text('payment_method'), // 'qris' | 'transfer'
+  paymentAmount: integer('payment_amount').notNull(),
+  paymentReference: text('payment_reference'),
+  // User link
+  userId: uuid('user_id'),
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const registrationsRelations = relations(registrations, ({ one }) => ({
+  competition: one(competitions, {
+    fields: [registrations.competitionId],
+    references: [competitions.id],
+  }),
+}));
+
+/* ─── Users ─── */
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  name: text('name'),
+  role: text('role').notNull().default('participant'), // 'admin' | 'participant'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const usersRelations = relations(users, ({ many }) => ({
+  registrations: many(registrations),
+}));
+
+/* ─── FAQs ─── */
+export const faqs = pgTable('faqs', {
+  id: serial('id').primaryKey(),
+  question: text('question').notNull(),
+  answer: text('answer').notNull(),
+  sortOrder: integer('sort_order').default(0),
+});

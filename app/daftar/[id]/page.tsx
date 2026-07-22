@@ -64,6 +64,8 @@ export default function RegistrationPage({ params }: PageProps) {
   const router = useRouter();
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
+  const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     teamName: '',
@@ -109,7 +111,9 @@ export default function RegistrationPage({ params }: PageProps) {
   const cat = categoryConfig[competition.category] || categoryConfig.akademik;
   const isTeam = competition.id !== 'science-olympiad' && competition.id !== 'fifa-championship';
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = (regId: string, ref: string) => {
+    setRegistrationId(regId);
+    setPaymentReference(ref);
     setStep(2);
   };
 
@@ -325,6 +329,8 @@ export default function RegistrationPage({ params }: PageProps) {
                       competition={competition}
                       formData={formData}
                       isTeam={isTeam}
+                      registrationId={registrationId || ''}
+                      paymentReference={paymentReference || ''}
                       onBack={() => setStep(1)}
                     />
                   </motion.div>

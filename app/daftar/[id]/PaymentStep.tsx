@@ -32,6 +32,8 @@ interface Props {
     members: string;
   };
   isTeam: boolean;
+  registrationId: string;
+  paymentReference: string;
   onBack: () => void;
 }
 
@@ -71,11 +73,11 @@ function generateQrisPayload(reference: string, amount: number) {
 
 const SIMULATION_DURATION = 18; // seconds before auto-detect paid
 
-export default function PaymentStep({ competition, formData, isTeam, onBack }: Props) {
+export default function PaymentStep({ competition, formData, isTeam, registrationId, paymentReference, onBack }: Props) {
   const [copied, setCopied] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'detecting' | 'paid'>('pending');
   const [elapsed, setElapsed] = useState(0);
-  const [reference] = useState(() => `INV/ASTRO-2026/${String(Date.now()).slice(-8)}`);
+  const reference = paymentReference;
 
   // ─── Simulation: timer → detecting → paid ───
   useEffect(() => {
