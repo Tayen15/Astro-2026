@@ -6,6 +6,8 @@ import { motion, useReducedMotion } from 'motion/react';
 import { CalendarDays } from 'lucide-react';
 import type { TimelineItem } from '@/types/astro';
 
+const MotionImage = motion.create(Image);
+
 interface Props {
   timeline: TimelineItem[];
 }
@@ -45,7 +47,7 @@ export default function TimelineSection({ timeline }: Props) {
           <h2 className="font-masterpiece text-5xl md:text-6xl lg:text-7xl text-slate-900 mb-3 leading-tight">
             Timeline <span className="text-astro-cyan">Event</span>
           </h2>
-          <p className="text-sm md:text-base text-slate-600 font-light leading-relaxed">
+          <p className="text-sm md:text-base text-slate-600 font-black leading-relaxed">
             Catat tanggal penting ASTRO 2026 agar tidak terlewat!
           </p>
         </motion.div>
@@ -161,34 +163,60 @@ export default function TimelineSection({ timeline }: Props) {
         </div>
       </div>
 
-      {/* ─── DECORATIVE BLOBS (behind content) ─── */}
-      <Image
-        src="/assets/blob-round.png"
+      {/* ─── AWAN DECORATIVE ─── */}
+      <MotionImage
+        src="/assets/awan1.png"
         alt=""
-        width={112}
-        height={112}
-        className="absolute top-[8%] right-[12%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
+        width={180}
+        height={180}
+        animate={{ x: [0, 20, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[5%] left-[2%] w-24 h-24 md:w-[180px] md:h-[180px] object-contain pointer-events-none select-none z-0"
       />
-      <Image
-        src="/assets/blob-round.png"
+      <MotionImage
+        src="/assets/awan2.png"
         alt=""
-        width={96}
-        height={96}
-        className="absolute top-[35%] left-[2%] w-24 h-24 md:w-36 md:h-36 object-contain pointer-events-none select-none z-0"
+        width={220}
+        height={220}
+        animate={{ x: [0, -15, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[10%] right-[3%] w-28 h-28 md:w-[220px] md:h-[220px] object-contain pointer-events-none select-none z-0"
       />
-      <Image
-        src="/assets/blob-round.png"
+      <MotionImage
+        src="/assets/awan1.png"
         alt=""
-        width={64}
-        height={64}
-        className="absolute top-[55%] right-[3%] w-16 h-16 md:w-24 md:h-24 object-contain pointer-events-none select-none z-0"
+        width={140}
+        height={140}
+        animate={{ x: [0, 18, 0] }}
+        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[45%] left-[1%] w-20 h-20 md:w-[140px] md:h-[140px] object-contain pointer-events-none select-none z-0"
       />
-      <Image
-        src="/assets/blob-round.png"
+      <MotionImage
+        src="/assets/awan2.png"
         alt=""
-        width={80}
-        height={80}
-        className="absolute bottom-[10%] left-[10%] w-20 h-20 md:w-32 md:h-32 object-contain pointer-events-none select-none z-0"
+        width={160}
+        height={160}
+        animate={{ x: [0, -12, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[55%] right-[2%] w-22 h-22 md:w-[160px] md:h-[160px] object-contain pointer-events-none select-none z-0"
+      />
+      <MotionImage
+        src="/assets/awan1.png"
+        alt=""
+        width={200}
+        height={200}
+        animate={{ x: [0, 15, 0] }}
+        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[15%] left-[4%] w-26 h-26 md:w-[200px] md:h-[200px] object-contain pointer-events-none select-none z-0"
+      />
+      <MotionImage
+        src="/assets/awan2.png"
+        alt=""
+        width={180}
+        height={180}
+        animate={{ x: [0, -18, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[5%] right-[4%] w-24 h-24 md:w-[180px] md:h-[180px] object-contain pointer-events-none select-none z-0"
       />
 
       {/* Train image — slide down from top, behind content */}
