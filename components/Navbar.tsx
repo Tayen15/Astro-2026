@@ -65,7 +65,7 @@ export default function Navbar() {
               height={44}
               className="h-9 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
-            <span className={`text-sm md:text-base font-black tracking-widest uppercase transition-colors duration-300 ${
+            <span className={`text-sm md:text-base font-masterpiece tracking-wide transition-colors duration-300 ${
               isScrolled ? 'text-slate-800' : 'text-white'
             }`}>
               ASTRO 2026
