@@ -19,7 +19,7 @@ export default function FAQSection({ faqs }: Props) {
   return (
     <section id="faq" className="relative overflow-hidden">
       {/* Background — starts at sky-100 (connects Timeline's bottom) → deeper sky */}
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-100 via-sky-200 to-sky-300 -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-100 via-sky-200 to-slate-50 -z-10" />
       {/* Grass image — full-width carpet */}
       <div className="absolute bottom-0 left-0 right-0 w-full h-[300px] md:h-[400px] pointer-events-none select-none z-10">
         <Image
@@ -89,6 +89,9 @@ export default function FAQSection({ faqs }: Props) {
         transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute bottom-[15%] right-[2%] w-24 h-auto md:w-32 object-contain pointer-events-none select-none z-0 opacity-60"
       />
+
+      {/* White gradient overlay on top of grass → smooth fade to footer */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 md:h-56 bg-gradient-to-t from-slate-50 via-slate-50/60 to-transparent pointer-events-none select-none z-20" />
 
       {/* Extra spacing so grass reaches footer */}
       <div className="h-[300px] md:h-[400px]" />

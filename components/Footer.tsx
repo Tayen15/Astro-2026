@@ -13,9 +13,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative border-t border-slate-200 bg-slate-50">
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
-
+    <footer className="relative bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid md:grid-cols-3 gap-8 md:gap-12">
           {/* Brand */}
