@@ -41,10 +41,10 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     ...(role === 'admin' ? [
       { href: '/dashboard/registrations', label: 'Pendaftaran', icon: ClipboardList },
+      { href: '/dashboard/users', label: 'User', icon: Users },
       { href: '/dashboard/kompetisi', label: 'Kompetisi', icon: Trophy },
       { href: '/dashboard/faq', label: 'FAQ', icon: HelpCircle },
       { href: '/dashboard/export', label: 'Export Data', icon: Download },
-      { href: '/dashboard/users', label: 'User', icon: Users },
     ] : []),
     { href: '/dashboard/profile', label: 'Profil', icon: User },
   ];

@@ -109,3 +109,15 @@ export const faqs = pgTable('faqs', {
   answer: text('answer').notNull(),
   sortOrder: integer('sort_order').default(0),
 });
+
+/* ─── OTP Codes ─── */
+export const otpCodes = pgTable('otp_codes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  email: text('email').notNull(),
+  code: text('code').notNull(),
+  name: text('name'),
+  password: text('password'),
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
