@@ -6,6 +6,7 @@ import {
   Coins, Users, MapPin, Calendar, Phone, User, Tag,
   Trash2, EyeOff, Eye,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 
 interface Competition {
@@ -27,6 +28,10 @@ interface Competition {
   contactName: string | null;
   contactWhatsapp: string | null;
   isActive: string | null;
+  type: string | null;
+  maxTeamMembers: number | null;
+  minTeamMembers: number | null;
+  membersRequired: string | null;
 }
 
 interface Category {
@@ -40,6 +45,10 @@ const emptyForm = {
   id: '',
   title: '',
   category: 'akademik',
+  type: 'individual',
+  maxTeamMembers: 5,
+  minTeamMembers: 3,
+  membersRequired: 'required',
   tagline: '',
   description: '',
   fee: 0,
@@ -55,11 +64,29 @@ const emptyForm = {
   contactName: '',
   contactWhatsapp: '',
   isActive: '1',
+  feeDisplay: '',
 };
 
 /* ─── Form Fields Sub-component ─── */
+function formatRupiah(val: string) {
+  const num = val.replace(/\D/g, '');
+  if (!num) return '';
+  return new Intl.NumberFormat('id-ID').format(Number(num));
+}
+
+function parseRupiah(val: string) {
+  return Number(val.replace(/\D/g, '')) || 0;
+}
+
 function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: (f: any) => void; isAdd?: boolean; categories: Category[] }) {
-  const update = (field: string, value: any) => setForm({ ...form, [field]: value });
+  const update = (field: string, value: any) => {
+    const updated = { ...form, [field]: value };
+    // Auto-generate slug from title when adding
+    if (isAdd && field === 'title') {
+      updated.id = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
+    setForm(updated);
+  };
   const inp = (field: string) =>
     `w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan`;
 
@@ -68,9 +95,8 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
       {isAdd && (
         <div>
           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ID (slug)</label>
-          <input value={form.id} onChange={(e) => update('id', e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-            placeholder="contoh: lomba-baru"
-            className={inp('id')}
+          <input value={form.id} readOnly
+            className={`${inp('id')} bg-slate-50 text-slate-400 cursor-not-allowed`}
             style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
           />
         </div>
@@ -95,6 +121,45 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
           </select>
         </div>
       </div>
+      <div>
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> Tipe</label>
+        <div className="flex gap-2 mt-1">
+          <button type="button" onClick={() => update('type', 'individual')}
+            className={`flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
+              form.type === 'individual' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+          >
+            Individu
+          </button>
+          <button type="button" onClick={() => update('type', 'team')}
+            className={`flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
+              form.type === 'team' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+          >
+            Tim
+          </button>
+        </div>
+      </div>
+      {form.type === 'team' && (
+        <div>
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> Maksimal Anggota per Tim</label>
+          <input type="number" min={1} value={form.maxTeamMembers} onChange={(e) => update('maxTeamMembers', parseInt(e.target.value) || 1)}
+            className={inp('maxTeamMembers')}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+          />
+        </div>
+      )}
+      {form.type === 'team' && (
+        <div>
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> Minimal Anggota per Tim (wajib diisi)</label>
+          <input type="number" min={1} max={form.maxTeamMembers} value={form.minTeamMembers} onChange={(e) => update('minTeamMembers', parseInt(e.target.value) || 1)}
+            className={inp('minTeamMembers')}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+          />
+        </div>
+      )}
       <div className="sm:col-span-2">
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tagline</label>
         <input value={form.tagline} onChange={(e) => update('tagline', e.target.value)}
@@ -110,14 +175,17 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
         />
       </div>
       <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Coins className="w-3 h-3" /> Biaya (Rp)</label>
-        <input type="number" value={form.fee} onChange={(e) => update('fee', e.target.value)}
-          className={inp('fee')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Coins className="w-3 h-3" /> Biaya</label>
+        <div className="relative mt-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">Rp</span>
+          <input type="text" inputMode="numeric" value={form.feeDisplay || formatRupiah(String(form.fee))} onChange={(e) => { update('feeDisplay', formatRupiah(e.target.value)); update('fee', parseRupiah(e.target.value)); }}
+            className={`${inp('fee')} pl-10`}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+          />
+        </div>
       </div>
       <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> Kuota</label>
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> {form.type === 'team' ? 'Kuota Tim' : 'Kuota Peserta'}</label>
         <input type="number" value={form.maxSlots} onChange={(e) => update('maxSlots', e.target.value)}
           className={inp('maxSlots')}
           style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
@@ -170,9 +238,10 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
       </div>
       <div>
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Phone className="w-3 h-3" /> Kontak (WhatsApp)</label>
-        <input value={form.contactWhatsapp} onChange={(e) => update('contactWhatsapp', e.target.value)}
+        <input type="tel" inputMode="numeric" value={form.contactWhatsapp} onChange={(e) => update('contactWhatsapp', e.target.value.replace(/\D/g, ''))}
           className={inp('contactWhatsapp')}
           style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+          placeholder="62812XXXXXXXX"
         />
       </div>
     </div>
@@ -222,6 +291,10 @@ export default function KompetisiPage() {
     setEditForm({
       title: comp.title,
       category: comp.category,
+      type: comp.type || 'individual',
+      maxTeamMembers: comp.maxTeamMembers || 5,
+      minTeamMembers: comp.minTeamMembers || 1,
+      membersRequired: comp.membersRequired || 'optional',
       tagline: comp.tagline || '',
       description: comp.description || '',
       fee: comp.fee,
@@ -236,6 +309,7 @@ export default function KompetisiPage() {
       rulebookUrl: comp.rulebookUrl || '',
       contactName: comp.contactName || '',
       contactWhatsapp: comp.contactWhatsapp || '',
+      feeDisplay: formatRupiah(String(comp.fee)),
     });
   };
 
@@ -244,12 +318,13 @@ export default function KompetisiPage() {
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
+      const { feeDisplay, ...submitData } = editForm;
       await fetch(`/api/competitions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...editForm,
-          fee: parseInt(editForm.fee) || 0,
+          ...submitData,
+          fee: parseRupiah(String(editForm.fee)) || 0,
           maxSlots: parseInt(editForm.maxSlots) || 0,
           filledSlots: parseInt(editForm.filledSlots) || 0,
           rulesSummary: editForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
@@ -257,8 +332,9 @@ export default function KompetisiPage() {
         }),
       });
       setEditingId(null);
+      toast.success('Lomba berhasil diperbarui');
       fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); toast.error('Gagal menyimpan lomba'); }
     setSaving(false);
   };
 
@@ -266,12 +342,13 @@ export default function KompetisiPage() {
     if (!addForm.title || !addForm.id) return;
     setSaving(true);
     try {
+      const { feeDisplay, ...submitData } = addForm;
       await fetch('/api/competitions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...addForm,
-          fee: parseInt(addForm.fee) || 0,
+          ...submitData,
+          fee: parseRupiah(String(addForm.fee)) || 0,
           maxSlots: parseInt(addForm.maxSlots) || 0,
           filledSlots: parseInt(addForm.filledSlots) || 0,
           rulesSummary: addForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
@@ -280,8 +357,9 @@ export default function KompetisiPage() {
       });
       setAddForm({ ...emptyForm });
       setShowAdd(false);
+      toast.success('Lomba berhasil ditambahkan');
       fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); toast.error('Gagal menambahkan lomba'); }
     setSaving(false);
   };
 
@@ -311,8 +389,9 @@ export default function KompetisiPage() {
           isActive: comp.isActive !== '1',
         }),
       });
+      toast.success(comp.isActive === '1' ? 'Lomba dinonaktifkan' : 'Lomba diaktifkan');
       fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); toast.error('Gagal mengubah status'); }
   };
 
   /* ─── Delete Competition ─── */
@@ -325,9 +404,10 @@ export default function KompetisiPage() {
         try {
           const res = await fetch(`/api/competitions/${id}`, { method: 'DELETE' });
           const json = await res.json();
-          if (!res.ok) { alert(json.error); setDeleteLoading(false); return; }
+          if (!res.ok) { toast.error(json.error); setDeleteLoading(false); return; }
+          toast.success('Lomba berhasil dihapus');
           fetchData();
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error(err); toast.error('Gagal menghapus lomba'); }
       },
     });
   };

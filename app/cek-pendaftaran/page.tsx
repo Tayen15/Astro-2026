@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle, LogIn, Search, X, Building2, Phone, Mail, User, Users, CalendarDays, DollarSign, FileText } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle, LogIn, Search, X, Building2, Phone, Mail, User, Users, CalendarDays, DollarSign, FileText, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/db/supabase/client';
@@ -30,6 +30,7 @@ interface RegDetail {
   createdAt: string;
   updatedAt: string;
   competitionName: string;
+  competitionId: string;
   competitionCategory: string;
   competitionFee: number;
 }
@@ -50,6 +51,7 @@ export default function CekPendaftaranPage() {
   const [selectedReg, setSelectedReg] = useState<RegDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState('');
+
   const router = useRouter();
   const reduce = useReducedMotion();
 
@@ -68,9 +70,30 @@ export default function CekPendaftaranPage() {
       setUserEmail(user.email);
 
       try {
-        const res = await fetch(`/api/registrations?userId=${encodeURIComponent(user.id)}&search=${encodeURIComponent(user.email)}`);
-        const json = await res.json();
-        setRegistrations(json.data || []);
+        // Fetch by both userId and email to cover all cases
+        const [byEmailRes, byUserRes] = await Promise.all([
+          fetch(`/api/registrations?search=${encodeURIComponent(user.email)}`),
+          user.id ? fetch(`/api/registrations?userId=${encodeURIComponent(user.id)}`) : Promise.resolve(null),
+        ]);
+
+        const byEmail = await byEmailRes.json();
+        let combined = byEmail.data || [];
+
+        if (byUserRes) {
+          const byUser = await byUserRes.json();
+          if (byUser.data) {
+            // Merge and deduplicate by id
+            const ids = new Set(combined.map((r: any) => r.id));
+            for (const reg of byUser.data) {
+              if (!ids.has(reg.id)) {
+                combined.push(reg);
+                ids.add(reg.id);
+              }
+            }
+          }
+        }
+
+        setRegistrations(combined);
       } catch {
         setError('Terjadi kesalahan. Silakan coba lagi.');
       }
@@ -87,14 +110,15 @@ export default function CekPendaftaranPage() {
       const res = await fetch(`/api/registrations/${id}`);
       const json = await res.json();
       if (!json.data) throw new Error('Data tidak ditemukan');
-      // Fetch competition name separately
       const regItem = registrations?.find((r: any) => r.id === id);
-      setSelectedReg({
+      const detail = {
         ...json.data,
         competitionName: regItem?.competitionName || '',
+        competitionId: regItem?.competitionId || '',
         competitionCategory: '',
         competitionFee: 0,
-      });
+      };
+      setSelectedReg(detail);
     } catch {
       setDetailError('Gagal memuat detail pendaftaran.');
     }
@@ -260,12 +284,22 @@ export default function CekPendaftaranPage() {
                           <Icon className="w-3 h-3" />
                           {cfg.label}
                         </span>
-                        <button
-                          onClick={() => fetchDetail(reg.id)}
-                          className="flex items-center gap-1 text-[10px] font-bold text-astro-cyan hover:text-cyan-600 uppercase tracking-wider transition-colors cursor-pointer"
-                        >
-                          <FileText className="w-3 h-3" /> Detail
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {reg.paymentStatus === 'pending' && (
+                            <button
+                              onClick={() => router.push(`/daftar/${reg.competitionId}?regId=${reg.id}`)}
+                              className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-500 uppercase tracking-wider transition-colors cursor-pointer"
+                            >
+                              <CreditCard className="w-3 h-3" /> Bayar
+                            </button>
+                          )}
+                          <button
+                            onClick={() => fetchDetail(reg.id)}
+                            className="flex items-center gap-1 text-[10px] font-bold text-astro-cyan hover:text-cyan-600 uppercase tracking-wider transition-colors cursor-pointer"
+                          >
+                            <FileText className="w-3 h-3" /> Detail
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -452,6 +486,19 @@ export default function CekPendaftaranPage() {
                         </span>
                       </div>
                     </div>
+
+                    {/* CTA for pending */}
+                    {selectedReg.paymentStatus === 'pending' && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => { setSelectedReg(null); router.push(`/daftar/${selectedReg.competitionId}?regId=${selectedReg.id}`); }}
+                          className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs tracking-wider uppercase transition-all cursor-pointer"
+                          style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+                        >
+                          <CreditCard className="w-4 h-4" /> Lanjutkan Pembayaran
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

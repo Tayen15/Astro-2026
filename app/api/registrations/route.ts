@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
     const data = await db
       .select({
         id: registrations.id,
+        competitionId: registrations.competitionId,
         type: registrations.type,
         fullName: registrations.fullName,
         teamName: registrations.teamName,

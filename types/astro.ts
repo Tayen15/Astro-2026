@@ -18,6 +18,9 @@ export interface Competition {
   };
   rulesSummary: string[];
   rulebookUrl: string;
+  type?: string;
+  maxTeamMembers?: number;
+  minTeamMembers?: number;
   registrationUrl: string;
   contactPerson: {
     name: string;

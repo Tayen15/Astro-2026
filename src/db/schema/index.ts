@@ -44,6 +44,10 @@ export const competitions = pgTable('competitions', {
   contactName: text('contact_name'),
   contactWhatsapp: text('contact_whatsapp'),
   isActive: text('is_active').notNull().default('1'), // '1' = active, '0' = inactive
+  type: text('type').default('individual'), // 'individual' | 'team'
+  maxTeamMembers: integer('max_team_members').default(1),
+  minTeamMembers: integer('min_team_members').default(1),
+  membersRequired: text('members_required').default('optional'), // 'optional' | 'required'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

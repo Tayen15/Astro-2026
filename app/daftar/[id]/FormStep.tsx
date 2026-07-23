@@ -20,9 +20,13 @@ interface Props {
   };
   setFormData: (data: any) => void;
   onContinue: (registrationId: string, reference: string) => void;
+  existingRegId?: string | null;
+  existingRef?: string | null;
+  maxTeamMembers?: number;
+  minTeamMembers?: number;
 }
 
-export default function FormStep({ competition, isTeam, formData, setFormData, onContinue }: Props) {
+export default function FormStep({ competition, isTeam, formData, setFormData, onContinue, existingRegId, existingRef, maxTeamMembers = 5, minTeamMembers = 1 }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +37,8 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
       if (!formData.teamName.trim()) newErrors.teamName = 'Nama tim wajib diisi';
       if (!formData.leaderName.trim()) newErrors.leaderName = 'Nama ketua wajib diisi';
       if (!formData.leaderIdentity.trim()) newErrors.leaderIdentity = 'Nomor identitas ketua wajib diisi';
-      if (!formData.members.trim()) newErrors.members = 'Nama-nama anggota wajib diisi';
+      const memberCount = formData.members ? formData.members.split('\n').filter(Boolean).length : 0;
+      if (memberCount < minTeamMembers) newErrors.members = `Minimal ${minTeamMembers} anggota wajib diisi`;
     } else {
       if (!formData.fullName.trim()) newErrors.fullName = 'Nama lengkap wajib diisi';
       if (!formData.identityNumber.trim()) newErrors.identityNumber = 'Nomor identitas wajib diisi';
@@ -64,30 +69,46 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
     setLoading(true);
 
     try {
-      const res = await fetch('/api/registrations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          competitionId: competition.id,
-          type: isTeam ? 'team' : 'individual',
-          fullName: formData.fullName || null,
-          identityNumber: formData.identityNumber || null,
-          teamName: formData.teamName || null,
-          leaderName: formData.leaderName || null,
-          leaderIdentity: formData.leaderIdentity || null,
-          members: formData.members || null,
-          institution: formData.institution,
-          email: formData.email,
-          whatsapp: formData.whatsapp,
-          paymentAmount: competition.fee,
-        }),
-      });
+      const body = {
+        type: isTeam ? 'team' : 'individual',
+        fullName: formData.fullName || null,
+        identityNumber: formData.identityNumber || null,
+        teamName: formData.teamName || null,
+        leaderName: formData.leaderName || null,
+        leaderIdentity: formData.leaderIdentity || null,
+        members: formData.members || null,
+        institution: formData.institution,
+        email: formData.email,
+        whatsapp: formData.whatsapp,
+        paymentAmount: competition.fee,
+      };
 
-      if (!res.ok) throw new Error('Gagal mendaftar');
+      if (existingRegId) {
+        // Update existing registration
+        const res = await fetch(`/api/registrations/${existingRegId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
 
-      const result = await res.json();
-      setLoading(false);
-      onContinue(result.data.id, result.data.paymentReference);
+        if (!res.ok) throw new Error('Gagal memperbarui pendaftaran');
+
+        setLoading(false);
+        onContinue(existingRegId, existingRef || '');
+      } else {
+        // Create new registration
+        const res = await fetch('/api/registrations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ competitionId: competition.id, ...body }),
+        });
+
+        if (!res.ok) throw new Error('Gagal mendaftar');
+
+        const result = await res.json();
+        setLoading(false);
+        onContinue(result.data.id, result.data.paymentReference);
+      }
     } catch (err) {
       setLoading(false);
       alert('Gagal mengirim pendaftaran. Silakan coba lagi.');
@@ -191,7 +212,7 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
                 <input
                   type="text"
                   value={formData.leaderIdentity}
-                  onChange={(e) => updateField('leaderIdentity', e.target.value)}
+                  onChange={(e) => updateField('leaderIdentity', e.target.value.replace(/\D/g, ''))}
                   className={inputClass('leaderIdentity')}
                   style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
                   placeholder="Nomor identitas ketua"
@@ -225,7 +246,7 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
                 <input
                   type="text"
                   value={formData.identityNumber}
-                  onChange={(e) => updateField('identityNumber', e.target.value)}
+                  onChange={(e) => updateField('identityNumber', e.target.value.replace(/\D/g, ''))}
                   className={inputClass('identityNumber')}
                   style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
                   placeholder="Nomor identitas pendaftar"
@@ -275,10 +296,10 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
             <input
               type="tel"
               value={formData.whatsapp}
-              onChange={(e) => updateField('whatsapp', e.target.value)}
+              onChange={(e) => updateField('whatsapp', e.target.value.replace(/\D/g, ''))}
               className={inputClass('whatsapp')}
               style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-              placeholder="Contoh: 62812XXXXXXXX atau 0812XXXXXXXX"
+              placeholder="62812XXXXXXXX"
             />
             {errors.whatsapp && (
               <span className="text-[11px] text-red-500 font-medium">{errors.whatsapp}</span>
@@ -287,16 +308,29 @@ export default function FormStep({ competition, isTeam, formData, setFormData, o
 
           {/* Anggota Tim (team only) */}
           {isTeam && (
-            <div className="space-y-1.5">
-              <label className={labelClass}>Nama Anggota Tim (Tuliskan nama semua anggota lainnya)</label>
-              <textarea
-                value={formData.members}
-                onChange={(e) => updateField('members', e.target.value)}
-                className={inputClass('members')}
-                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                placeholder="Contoh: Anggota 1: John Doe, Anggota 2: Jane Smith, dst."
-                rows={3}
-              />
+            <div className="space-y-3">
+              <label className={labelClass}>
+                Anggota Tim (Min. {minTeamMembers})
+              </label>
+              {Array.from({ length: maxTeamMembers }, (_, i) => {
+                const membersArr = formData.members ? formData.members.split('\n').filter(Boolean) : [];
+                return (
+                  <div key={i}>
+                    <input
+                      type="text"
+                      value={membersArr[i] || ''}
+                      onChange={(e) => {
+                        const arr = membersArr;
+                        arr[i] = e.target.value;
+                        updateField('members', arr.filter(Boolean).join('\n'));
+                      }}
+                      className={inputClass('members')}
+                      style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                      placeholder={`Anggota ${i + 1}${i < minTeamMembers ? ' (wajib)' : ' (opsional)'}`}
+                    />
+                  </div>
+                );
+              })}
               {errors.members && (
                 <span className="text-[11px] text-red-500 font-medium">{errors.members}</span>
               )}

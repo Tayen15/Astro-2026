@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Pencil, Trash2, X, Loader2, Search } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface User {
   id: string;
@@ -51,10 +52,11 @@ export default function UsersPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Gagal membuat user');
+      toast.success('User berhasil dibuat');
       setModal(null);
       fetchUsers();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
     setSaving(false);
   };
@@ -76,10 +78,11 @@ export default function UsersPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Gagal mengupdate user');
+      toast.success('User berhasil diupdate');
       setModal(null);
       fetchUsers();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
     setSaving(false);
   };
@@ -95,10 +98,11 @@ export default function UsersPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Gagal menghapus user');
+      toast.success('User berhasil dihapus');
       setDeleteTarget(null);
       fetchUsers();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
     setDeleting(false);
   };

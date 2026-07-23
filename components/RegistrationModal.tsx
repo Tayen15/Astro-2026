@@ -72,7 +72,7 @@ export default function RegistrationModal({ competition, onClose }: Props) {
 
   if (!competition) return null;
 
-  const isTeam = competition.id !== 'science-olympiad' && competition.id !== 'fifa-championship';
+  const isTeam = competition.type === 'team';
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -81,7 +81,9 @@ export default function RegistrationModal({ competition, onClose }: Props) {
       if (!formData.teamName.trim()) newErrors.teamName = 'Nama tim wajib diisi';
       if (!formData.leaderName.trim()) newErrors.leaderName = 'Nama ketua wajib diisi';
       if (!formData.leaderIdentity.trim()) newErrors.leaderIdentity = 'Nomor identitas ketua wajib diisi';
-      if (!formData.members.trim()) newErrors.members = 'Nama-nama anggota wajib diisi';
+      const memberCount = formData.members ? formData.members.split('\n').filter(Boolean).length : 0;
+      const minMembers = (competition as any).minTeamMembers || 1;
+      if (memberCount < minMembers) newErrors.members = `Minimal ${minMembers} anggota wajib diisi`;
     } else {
       if (!formData.fullName.trim()) newErrors.fullName = 'Nama lengkap wajib diisi';
       if (!formData.identityNumber.trim()) newErrors.identityNumber = 'Nomor identitas wajib diisi';
@@ -105,15 +107,40 @@ export default function RegistrationModal({ competition, onClose }: Props) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          competitionId: competition.id,
+          type: isTeam ? 'team' : 'individual',
+          fullName: formData.fullName || null,
+          identityNumber: formData.identityNumber || null,
+          teamName: formData.teamName || null,
+          leaderName: formData.leaderName || null,
+          leaderIdentity: formData.leaderIdentity || null,
+          members: formData.members || null,
+          institution: formData.institution,
+          email: formData.email,
+          whatsapp: formData.whatsapp,
+          paymentAmount: competition.fee,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Gagal mendaftar');
+
       setLoading(false);
       setIsSuccess(true);
-    }, 1500);
+    } catch {
+      setLoading(false);
+      alert('Gagal mengirim pendaftaran. Silakan coba lagi.');
+    }
   };
 
   const handleCopy = () => {
@@ -136,7 +163,7 @@ Detail Pendaftaran:
 - Nama Ketua: ${formData.leaderName}
 - Email Ketua: ${formData.email}
 - Nomor WhatsApp: ${formData.whatsapp}
-- Anggota Tim: ${formData.members}
+- Anggota Tim: ${formData.members.split('\n').filter(Boolean).join(', ')}
 
 Terima kasih.`;
     } else {
@@ -268,7 +295,7 @@ Terima kasih.`;
                         <input
                           type="text"
                           value={formData.leaderIdentity}
-                          onChange={(e) => setFormData({ ...formData, leaderIdentity: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, leaderIdentity: e.target.value.replace(/\D/g, '') })}
                           className={`w-full px-4 py-2.5 bg-slate-50 border ${
                             errors.leaderIdentity ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
                           } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
@@ -312,7 +339,7 @@ Terima kasih.`;
                         <input
                           type="text"
                           value={formData.identityNumber}
-                          onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value.replace(/\D/g, '') })}
                           className={`w-full px-4 py-2.5 bg-slate-50 border ${
                             errors.identityNumber ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
                           } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
@@ -377,11 +404,11 @@ Terima kasih.`;
                     <input
                       type="tel"
                       value={formData.whatsapp}
-                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value.replace(/\D/g, '') })}
                       className={`w-full px-4 py-2.5 bg-slate-50 border ${
                         errors.whatsapp ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
                       } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                      placeholder="Contoh: 62812XXXXXXXX atau 0812XXXXXXXX"
+                      placeholder="62812XXXXXXXX"
                       disabled={loading}
                     />
                     {errors.whatsapp && (
@@ -392,23 +419,28 @@ Terima kasih.`;
                   </div>
 
                   {isTeam && (
-                    <div>
+                    <div className="space-y-2.5">
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Nama Anggota Tim (Tuliskan nama semua anggota lainnya)
+                        Anggota Tim (Min. {(competition as any).minTeamMembers || 1})
                       </label>
-                      <textarea
-                        value={formData.members}
-                        onChange={(e) => setFormData({ ...formData, members: e.target.value })}
-                        className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                          errors.members ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                        } text-slate-855 text-sm focus:outline-none focus:bg-white transition-colors min-h-[80px] resize-y`}
-                        placeholder="Contoh: Anggota 1: John Doe, Anggota 2: Jane Smith, dst."
-                        disabled={loading}
-                      />
+                      {Array.from({ length: competition.maxTeamMembers || 5 }, (_, i) => (
+                        <div key={i}>
+                          <input
+                            type="text"
+                            value={(formData.members as any)[i] || ''}
+                            onChange={(e) => {
+                              const arr = (formData.members as any) || [];
+                              arr[i] = e.target.value;
+                              setFormData({ ...formData, members: arr.filter(Boolean).join('\n') });
+                            }}
+                            placeholder={`Anggota ${i + 1}`}
+                            className={`w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-astro-cyan text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
+                            disabled={loading}
+                          />
+                        </div>
+                      ))}
                       {errors.members && (
-                        <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                          {errors.members}
-                        </span>
+                        <span className="text-[11px] text-red-500 font-medium mt-1 block">{errors.members}</span>
                       )}
                     </div>
                   )}

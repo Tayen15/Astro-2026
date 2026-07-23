@@ -3,6 +3,29 @@ import { db } from '@/src/db';
 import { competitions, registrations } from '@/src/db/schema';
 import { eq, count } from 'drizzle-orm';
 
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+
+    const [comp] = await db
+      .select()
+      .from(competitions)
+      .where(eq(competitions.id, id));
+
+    if (!comp) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: comp });
+  } catch (error) {
+    console.error('GET /api/competitions/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -28,6 +51,9 @@ export async function PUT(
       rulebookUrl: body.rulebookUrl,
       contactName: body.contactName,
       contactWhatsapp: body.contactWhatsapp,
+      type: body.type || 'individual',
+      maxTeamMembers: body.maxTeamMembers || 1,
+      minTeamMembers: body.minTeamMembers || 1,
     };
 
     // Support isActive toggle

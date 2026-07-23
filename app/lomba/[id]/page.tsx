@@ -1,7 +1,6 @@
 'use client';
 
-import astroData from '@/data/astro-data.json';
-import type { AstroData } from '@/types/astro';
+import { useState, useEffect } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,15 +12,37 @@ import {
   Trophy,
   CalendarDays,
   MapPin,
-  DollarSign,
+  Coins,
   Users,
   ArrowLeft,
   FileText,
   MessageCircle,
 } from 'lucide-react';
 
-const data = astroData as AstroData;
 const MotionImage = motion.create(Image);
+
+function toCompetition(c: any) {
+  return {
+    id: c.id,
+    title: c.title,
+    category: c.category as 'akademik' | 'olahraga' | 'esports',
+    tagline: c.tagline || '',
+    description: c.description || '',
+    fee: c.fee,
+    maxSlots: c.maxSlots,
+    filledSlots: c.filledSlots,
+    scheduleDate: c.scheduleDate?.toISOString?.() || c.scheduleDate || '',
+    location: c.location || '',
+    prizes: { first: c.prizesFirst || '', second: c.prizesSecond || '', third: c.prizesThird || '' },
+    rulesSummary: c.rulesSummary || [],
+    rulebookUrl: c.rulebookUrl || '',
+    registrationUrl: '',
+    type: c.type || 'individual',
+    maxTeamMembers: c.maxTeamMembers || 1,
+    minTeamMembers: c.minTeamMembers || 1,
+    contactPerson: { name: c.contactName || '', whatsapp: c.contactWhatsapp || '' },
+  };
+}
 
 const categoryConfig = {
   akademik: {
@@ -82,7 +103,24 @@ export default function CompetitionDetailPage() {
   const reduce = useReducedMotion();
   const params = useParams();
   const id = params.id as string;
-  const competition = data.competitions.find((c) => c.id === id);
+  const [competition, setCompetition] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/competitions/${id}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.data) {
+          notFound();
+        } else {
+          setCompetition(toCompetition(json.data));
+        }
+      })
+      .catch(() => notFound())
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return null;
 
   if (!competition) {
     notFound();
@@ -107,7 +145,7 @@ export default function CompetitionDetailPage() {
 
   const infoCards = [
     {
-      icon: DollarSign,
+      icon: Coins,
       label: 'Biaya Pendaftaran',
       value: `Rp ${competition.fee.toLocaleString('id-ID')}`,
     },
@@ -127,7 +165,7 @@ export default function CompetitionDetailPage() {
     },
     {
       icon: Users,
-      label: 'Kuota Peserta',
+      label: competition.type === 'team' ? 'Kuota Tim' : 'Kuota Peserta',
       value: `${competition.filledSlots} / ${competition.maxSlots} Terisi`,
       sub: leftSlots > 0 ? `Sisa ${leftSlots} slot` : 'Penuh',
       isLow: leftSlots <= 5,
@@ -168,7 +206,7 @@ export default function CompetitionDetailPage() {
           {/* ════════════════════════════════════════
               1. HERO
               ════════════════════════════════════════ */}
-          <section className="relative min-h-[80svh] flex flex-col justify-center pt-36 pb-20 bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100 md:pt-40 md:pb-28 overflow-hidden">
+          <section className="relative pt-36 pb-20 bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100 md:pt-40 md:pb-28 overflow-hidden">
 
             {/* ─── FLOATING BLOBS ─── */}
             {blobs.map((b, i) => (
@@ -211,7 +249,7 @@ export default function CompetitionDetailPage() {
 
             {/* ─── HERO CONTENT ─── */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="w-full lg:w-3/4">
+              <div className="lg:w-10/12 xl:w-3/4">
                 {/* Back link */}
                 <motion.div
                   variants={reduce ? undefined : fadeUp}

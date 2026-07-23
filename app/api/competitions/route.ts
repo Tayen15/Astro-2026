@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { competitions } from '@/src/db/schema';
-import { asc } from 'drizzle-orm';
+import { asc, desc } from 'drizzle-orm';
 
 export async function GET() {
   try {
     const data = await db
       .select()
       .from(competitions)
-      .orderBy(asc(competitions.title));
+      .orderBy(desc(competitions.createdAt));
 
     return NextResponse.json({ data });
   } catch (error) {
@@ -41,6 +41,10 @@ export async function POST(request: NextRequest) {
         rulebookUrl: body.rulebookUrl || '',
         contactName: body.contactName || '',
         contactWhatsapp: body.contactWhatsapp || '',
+        type: body.type || 'individual',
+        maxTeamMembers: body.maxTeamMembers || 1,
+        minTeamMembers: body.minTeamMembers || 1,
+        membersRequired: body.membersRequired || 'optional',
       })
       .returning();
 

@@ -4,18 +4,34 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import astroData from '@/data/astro-data.json';
-import type { AstroData, Competition } from '@/types/astro';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import FormStep from './FormStep';
 import PaymentStep from './PaymentStep';
-import { ArrowLeft, Trophy } from 'lucide-react';
+import { ArrowLeft, Trophy, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 const MotionImage = motion.create(Image);
 
-const data = astroData as AstroData;
+interface CompetitionData {
+  id: string;
+  title: string;
+  category: string;
+  tagline: string;
+  description: string;
+  fee: number;
+  maxSlots: number;
+  filledSlots: number;
+  scheduleDate: string;
+  location: string;
+  prizes: { first: string; second: string; third: string };
+  rulesSummary: string[];
+  rulebookUrl: string;
+  contactPerson: { name: string; whatsapp: string };
+  type?: string;
+  maxTeamMembers?: number;
+  minTeamMembers?: number;
+}
 
 const categoryConfig: Record<string, {
   label: string;
@@ -59,10 +75,13 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function RegistrationPage({ params }: PageProps) {
+export default function RegistrationPage({ params }: { params: Promise<{ id: string }> }) {
   const reduce = useReducedMotion();
   const router = useRouter();
   const [resolvedId, setResolvedId] = useState<string | null>(null);
+  const [competition, setCompetition] = useState<CompetitionData | null>(null);
+  const [fetching, setFetching] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
@@ -79,14 +98,81 @@ export default function RegistrationPage({ params }: PageProps) {
   });
 
   useEffect(() => {
-    params.then((p) => setResolvedId(p.id));
+    params.then(async (p) => {
+      setResolvedId(p.id);
+      try {
+        // Check if there's a regId query param (continue payment flow)
+        const regId = new URLSearchParams(window.location.search).get('regId');
+
+        const [compRes] = await Promise.all([
+          fetch(`/api/competitions/${p.id}`),
+        ]);
+        const compJson = await compRes.json();
+        if (!compJson.data) {
+          setNotFound(true);
+          setFetching(false);
+          return;
+        }
+
+        const c = compJson.data;
+        setCompetition({
+          id: c.id,
+          title: c.title,
+          category: c.category,
+          tagline: c.tagline || '',
+          description: c.description || '',
+          fee: c.fee,
+          maxSlots: c.maxSlots,
+          filledSlots: c.filledSlots,
+          scheduleDate: c.scheduleDate?.toISOString?.() || c.scheduleDate || '',
+          location: c.location || '',
+          prizes: { first: c.prizesFirst || '', second: c.prizesSecond || '', third: c.prizesThird || '' },
+          rulesSummary: c.rulesSummary || [],
+          rulebookUrl: c.rulebookUrl || '',
+          contactPerson: { name: c.contactName || '', whatsapp: c.contactWhatsapp || '' },
+          type: c.type || 'individual',
+          maxTeamMembers: c.maxTeamMembers || 1,
+          minTeamMembers: c.minTeamMembers || 1,
+        });
+
+        // If regId provided, fetch existing registration data
+        if (regId) {
+          const regRes = await fetch(`/api/registrations/${regId}`);
+          const regJson = await regRes.json();
+          if (regJson.data) {
+            const r = regJson.data;
+            setRegistrationId(r.id);
+            setPaymentReference(r.paymentReference);
+            setFormData({
+              fullName: r.fullName || '',
+              teamName: r.teamName || '',
+              institution: r.institution || '',
+              identityNumber: r.identityNumber || '',
+              leaderName: r.leaderName || '',
+              leaderIdentity: r.leaderIdentity || '',
+              email: r.email || '',
+              whatsapp: r.whatsapp || '',
+              members: r.members || '',
+            });
+            setStep(1); // Stay on form step with pre-filled data
+          }
+        }
+      } catch {
+        setNotFound(true);
+      }
+      setFetching(false);
+    });
   }, [params]);
 
-  if (!resolvedId) return null;
+  if (fetching || !resolvedId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 animate-spin text-astro-cyan" />
+      </div>
+    );
+  }
 
-  const competition = data.competitions.find((c) => c.id === resolvedId);
-
-  if (!competition) {
+  if (notFound || !competition) {
     return (
       <>
         <Navbar />
@@ -109,7 +195,7 @@ export default function RegistrationPage({ params }: PageProps) {
   }
 
   const cat = categoryConfig[competition.category] || categoryConfig.akademik;
-  const isTeam = competition.id !== 'science-olympiad' && competition.id !== 'fifa-championship';
+  const isTeam = competition.type === 'team';
 
   const handleFormSubmit = (regId: string, ref: string) => {
     setRegistrationId(regId);
@@ -315,6 +401,10 @@ export default function RegistrationPage({ params }: PageProps) {
                       formData={formData}
                       setFormData={setFormData}
                       onContinue={handleFormSubmit}
+                      existingRegId={registrationId}
+                      existingRef={paymentReference}
+                      maxTeamMembers={competition.maxTeamMembers || 5}
+                      minTeamMembers={competition.minTeamMembers || 1}
                     />
                   </motion.div>
                 ) : (

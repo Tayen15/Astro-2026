@@ -163,7 +163,7 @@ export default function Navbar() {
                       onClick={() => { router.push('/cek-pendaftaran'); setIsDropdownOpen(false); }}
                       className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-slate-700 hover:text-slate-950 hover:bg-sky-50 transition-all duration-200 cursor-pointer text-left"
                     >
-                      <Search className="w-3.5 h-3.5" /> Cek Status
+                      <Search className="w-3.5 h-3.5" /> Cek Pendaftaran
                     </button>
                     {userRole === 'admin' && (
                       <>
@@ -280,7 +280,7 @@ export default function Navbar() {
                           className="flex items-center gap-3 w-full px-3.5 py-3 text-sm font-bold tracking-[0.1em] text-left text-slate-600 hover:text-sky-700 hover:bg-white rounded-lg transition-all duration-200 cursor-pointer"
                         >
                           <Search className="w-4 h-4 text-slate-400" />
-                          Cek Status
+                          Cek Pendaftaran
                         </button>
                         {userRole === 'admin' && (
                           <button
