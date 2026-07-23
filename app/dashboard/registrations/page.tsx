@@ -1,8 +1,9 @@
-import { db } from '@/src/db';
-import { registrations, competitions, users } from '@/src/db/schema';
-import { eq, desc, sql, ilike } from 'drizzle-orm';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { createClient } from '@/src/db/supabase/client';
 import Link from 'next/link';
-import { Search, Filter, ChevronRight } from 'lucide-react';
+import { Search, Filter, ChevronRight, ClipboardList, Loader2 } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -11,76 +12,98 @@ const statusColors: Record<string, string> = {
   failed: 'bg-red-50 text-red-700 border-red-200',
 };
 
-export const dynamic = 'force-dynamic';
+export default function RegistrationsPage() {
+  const [tab, setTab] = useState<'all' | 'mine'>('all');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [lombaFilter, setLombaFilter] = useState('');
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [myRegistrations, setMyRegistrations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [allCompetitions, setAllCompetitions] = useState<{ id: string; title: string }[]>([]);
+  const [userEmail, setUserEmail] = useState('');
 
-export default async function RegistrationsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ search?: string; status?: string; lomba?: string }>;
-}) {
-  const params = await searchParams;
-  const search = params.search || '';
-  const statusFilter = params.status || '';
-  const lombaFilter = params.lomba || '';
+  useEffect(() => {
+    async function init() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) setUserEmail(user.email);
 
-  // Build query
-  const conditions = [];
-  if (search) {
-    conditions.push(
-      sql`(${registrations.fullName} ILIKE ${'%' + search + '%'} OR ${registrations.teamName} ILIKE ${'%' + search + '%'} OR ${registrations.email} ILIKE ${'%' + search + '%'})`,
+      const [regRes, compRes] = await Promise.all([
+        fetch('/api/registrations'),
+        fetch('/api/competitions'),
+      ]);
+      const regJson = await regRes.json();
+      const compJson = await compRes.json();
+
+      setRegistrations(regJson.data || []);
+      if (user?.email) {
+        const myRes = await fetch(`/api/registrations?search=${encodeURIComponent(user.email)}`);
+        const myJson = await myRes.json();
+        setMyRegistrations(myJson.data || []);
+      }
+      setAllCompetitions(compJson.data || []);
+      setLoading(false);
+    }
+    init();
+  }, []);
+
+  const displayed = tab === 'mine' ? myRegistrations : registrations;
+
+  const filtered = displayed.filter((reg: any) => {
+    const matchSearch = !search ||
+      reg.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      reg.teamName?.toLowerCase().includes(search.toLowerCase()) ||
+      reg.email?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = !statusFilter || reg.paymentStatus === statusFilter;
+    const matchLomba = !lombaFilter || reg.competitionName === lombaFilter;
+    return matchSearch && matchStatus && matchLomba;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-astro-cyan" />
+      </div>
     );
   }
-  if (statusFilter) {
-    conditions.push(eq(registrations.paymentStatus, statusFilter));
-  }
-  if (lombaFilter) {
-    conditions.push(eq(registrations.competitionId, lombaFilter));
-  }
-
-  const where = conditions.length > 0 ? sql`${conditions.reduce((a, b) => sql`${a} AND ${b}`)}` : undefined;
-
-  const allRegistrations = await db
-    .select({
-      id: registrations.id,
-      type: registrations.type,
-      fullName: registrations.fullName,
-      teamName: registrations.teamName,
-      email: registrations.email,
-      institution: registrations.institution,
-      paymentStatus: registrations.paymentStatus,
-      paymentAmount: registrations.paymentAmount,
-      paymentReference: registrations.paymentReference,
-      createdAt: registrations.createdAt,
-      competitionName: competitions.title,
-      competitionCategory: competitions.category,
-    })
-    .from(registrations)
-    .innerJoin(competitions, eq(registrations.competitionId, competitions.id))
-    .where(where)
-    .orderBy(desc(registrations.createdAt));
-
-  // Get all competitions for filter dropdown
-  const allCompetitions = await db
-    .select({ id: competitions.id, title: competitions.title })
-    .from(competitions)
-    .orderBy(competitions.title);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Pendaftaran</h1>
         <p className="text-sm text-slate-500 font-light mt-1">
-          {allRegistrations.length} total pendaftaran
+          {tab === 'mine' ? `${userEmail} — ${myRegistrations.length} pendaftaran` : `${registrations.length} total pendaftaran`}
         </p>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => { setTab('all'); setSearch(''); setStatusFilter(''); setLombaFilter(''); }}
+          className={`px-4 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all duration-200 cursor-pointer ${
+            tab === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          Semua Pendaftaran
+        </button>
+        <button
+          onClick={() => { setTab('mine'); setSearch(''); setStatusFilter(''); setLombaFilter(''); }}
+          className={`px-4 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all duration-200 cursor-pointer ${
+            tab === 'mine' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          Pendaftaran Saya
+        </button>
+      </div>
+
       {/* Filters */}
-      <form className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <input
-            name="search"
-            defaultValue={search}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama, tim, atau email..."
             className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-astro-cyan transition-colors"
             style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
@@ -88,8 +111,8 @@ export default async function RegistrationsPage({
         </div>
 
         <select
-          name="status"
-          defaultValue={statusFilter}
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
           className="px-3 py-2.5 bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-astro-cyan transition-colors cursor-pointer"
           style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
         >
@@ -101,26 +124,17 @@ export default async function RegistrationsPage({
         </select>
 
         <select
-          name="lomba"
-          defaultValue={lombaFilter}
+          value={lombaFilter}
+          onChange={(e) => setLombaFilter(e.target.value)}
           className="px-3 py-2.5 bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-astro-cyan transition-colors cursor-pointer"
           style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
         >
           <option value="">Semua Lomba</option>
-          {allCompetitions.map((c) => (
-            <option key={c.id} value={c.id}>{c.title}</option>
+          {allCompetitions.map((c: any) => (
+            <option key={c.id} value={c.title}>{c.title}</option>
           ))}
         </select>
-
-        <button
-          type="submit"
-          className="px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase transition-all duration-200 hover:bg-cyan-400 cursor-pointer"
-          style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-        >
-          <Filter className="w-3.5 h-3.5 inline mr-1" />
-          Filter
-        </button>
-      </form>
+      </div>
 
       {/* Table */}
       <div className="bg-white border border-slate-200 overflow-hidden"
@@ -140,14 +154,14 @@ export default async function RegistrationsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {allRegistrations.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-slate-400 text-sm">
                     Belum ada pendaftaran.
                   </td>
                 </tr>
               ) : (
-                allRegistrations.map((reg, i) => (
+                filtered.map((reg: any, i: number) => (
                   <tr key={reg.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3.5 text-slate-400 text-xs font-mono">{i + 1}</td>
                     <td className="px-5 py-3.5">

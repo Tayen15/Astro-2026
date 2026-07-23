@@ -21,6 +21,12 @@ export default async function DashboardLayout({
   });
 
   const role = userRecord?.role || 'participant';
+
+  // Only admin can access dashboard
+  if (role !== 'admin') {
+    redirect('/');
+  }
+
   const userName = userRecord?.name || user.email?.split('@')[0] || 'User';
 
   return (

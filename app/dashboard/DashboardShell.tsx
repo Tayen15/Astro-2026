@@ -15,6 +15,7 @@ import {
   User,
   HelpCircle,
   Trophy,
+  Users,
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -38,12 +39,12 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
 
   const navItems = [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    { href: '/dashboard/registrations-saya', label: 'Pendaftaran Saya', icon: ClipboardList },
     ...(role === 'admin' ? [
-      { href: '/dashboard/registrations', label: 'Semua Pendaftaran', icon: ClipboardList },
+      { href: '/dashboard/registrations', label: 'Pendaftaran', icon: ClipboardList },
       { href: '/dashboard/kompetisi', label: 'Kompetisi', icon: Trophy },
       { href: '/dashboard/faq', label: 'FAQ', icon: HelpCircle },
       { href: '/dashboard/export', label: 'Export Data', icon: Download },
+      { href: '/dashboard/users', label: 'User', icon: Users },
     ] : []),
     { href: '/dashboard/profile', label: 'Profil', icon: User },
   ];
@@ -54,10 +55,10 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50">
       {/* ─── Sidebar ─── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -140,9 +141,9 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
       )}
 
       {/* ─── Main Content ─── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
         {/* Top bar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 lg:px-6 gap-4">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 lg:px-6 gap-4 fixed top-0 right-0 left-0 lg:left-64 z-40">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 text-slate-500 hover:text-slate-800 -ml-2 cursor-pointer"
@@ -161,7 +162,7 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">
+        <main className="flex-1 p-4 lg:p-8 overflow-auto mt-16">
           {children}
         </main>
       </div>

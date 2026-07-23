@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, LogIn } from 'lucide-react';
+import { Menu, X, LogIn, ChevronDown, LogOut, LayoutDashboard, User, Search } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/src/db/supabase/client';
 
@@ -19,6 +19,9 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -29,10 +32,18 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    // Check login state
+    // Check login state and role
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
+      if (user) {
+        fetch('/api/auth/me')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.data?.role) setUserRole(data.data.role);
+          })
+          .catch(() => {});
+      }
     });
   }, []);
 
@@ -40,6 +51,16 @@ export default function Navbar() {
     document.body.style.overflow = isMobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isMobileOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const scrollTo = (href: string) => {
     setIsMobileOpen(false);
@@ -51,6 +72,13 @@ export default function Navbar() {
     } else {
       router.push('/' + href);
     }
+  };
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setIsDropdownOpen(false);
+    router.replace('/login');
   };
 
   const handleDaftar = () => {
@@ -110,28 +138,55 @@ export default function Navbar() {
 
         {/* Right: CTA + Mobile */}
         <div className="flex items-center gap-2 pr-4 md:pr-6 h-full">
-          <button
-            onClick={() => router.push('/cek-pendaftaran')}
-            className={`px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer hidden md:block ${
-              isScrolled
-                ? 'text-slate-500 hover:text-slate-700'
-                : 'text-white/70 hover:text-white'
-            }`}
-          >
-            Cek Status
-          </button>
-
           {isLoggedIn ? (
-            <button
-              onClick={() => router.push('/dashboard')}
-              className={`px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer hidden md:block ${
-                isScrolled
-                  ? 'text-slate-500 hover:text-slate-700'
-                  : 'text-white/70 hover:text-white'
-              }`}
-            >
-              Dashboard
-            </button>
+            <div className="relative hidden md:block" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer ${
+                  isScrolled
+                    ? 'text-slate-500 hover:text-slate-700'
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" /> Akun <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-44 bg-white/90 backdrop-blur-xl rounded-xl border border-slate-200 shadow-xl shadow-black/10 overflow-hidden"
+                  >
+                    <button
+                      onClick={() => { router.push('/cek-pendaftaran'); setIsDropdownOpen(false); }}
+                      className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-slate-700 hover:text-slate-950 hover:bg-sky-50 transition-all duration-200 cursor-pointer text-left"
+                    >
+                      <Search className="w-3.5 h-3.5" /> Cek Status
+                    </button>
+                    {userRole === 'admin' && (
+                      <>
+                        <hr className="border-slate-100" />
+                        <button
+                          onClick={() => { router.push('/dashboard'); setIsDropdownOpen(false); }}
+                          className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-slate-700 hover:text-slate-950 hover:bg-sky-50 transition-all duration-200 cursor-pointer text-left"
+                        >
+                          <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+                        </button>
+                      </>
+                    )}
+                    <hr className="border-slate-100" />
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 cursor-pointer text-left"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> Logout
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           ) : (
             <button
               onClick={() => router.push('/login')}
@@ -215,34 +270,57 @@ export default function Navbar() {
                     <span className="w-1.5 h-1.5 bg-sky-500 rounded-sm scale-0 group-hover:scale-100 transition-transform duration-200" />
                   </button>
                 ))}
-                <hr className="my-4 border-slate-200" />
-                <button
-                  onClick={() => router.push('/cek-pendaftaran')}
-                  className="px-5 py-3.5 text-sm font-bold tracking-[0.15em] text-left text-slate-700 hover:text-slate-950 hover:bg-slate-50 rounded-xl transition-all duration-200 cursor-pointer"
-                >
-                  Cek Status Pendaftaran
-                </button>
-                {isLoggedIn ? (
+                <div className="mt-auto">
+                  <hr className="mb-4 border-slate-200" />
+                  <div className="bg-slate-50/80 rounded-xl p-2 space-y-0.5">
+                    {isLoggedIn ? (
+                      <>
+                        <button
+                          onClick={() => router.push('/cek-pendaftaran')}
+                          className="flex items-center gap-3 w-full px-3.5 py-3 text-sm font-bold tracking-[0.1em] text-left text-slate-600 hover:text-sky-700 hover:bg-white rounded-lg transition-all duration-200 cursor-pointer"
+                        >
+                          <Search className="w-4 h-4 text-slate-400" />
+                          Cek Status
+                        </button>
+                        {userRole === 'admin' && (
+                          <button
+                            onClick={() => { router.push('/dashboard'); setIsMobileOpen(false); }}
+                            className="flex items-center gap-3 w-full px-3.5 py-3 text-sm font-bold tracking-[0.1em] text-left text-slate-600 hover:text-sky-700 hover:bg-white rounded-lg transition-all duration-200 cursor-pointer"
+                          >
+                            <LayoutDashboard className="w-4 h-4 text-slate-400" />
+                            Dashboard
+                          </button>
+                        )}
+                        <button
+                          onClick={async () => {
+                            const supabase = createClient();
+                            await supabase.auth.signOut();
+                            setIsMobileOpen(false);
+                            router.replace('/login');
+                          }}
+                          className="flex items-center gap-3 w-full px-3.5 py-3 text-sm font-bold tracking-[0.1em] text-left text-red-600 hover:text-red-700 hover:bg-white rounded-lg transition-all duration-200 cursor-pointer"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Logout
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => router.push('/login')}
+                        className="flex items-center gap-3 w-full px-3.5 py-3 text-sm font-bold tracking-[0.1em] text-left text-slate-600 hover:text-sky-700 hover:bg-white rounded-lg transition-all duration-200 cursor-pointer"
+                      >
+                        <LogIn className="w-4 h-4 text-slate-400" />
+                        Masuk
+                      </button>
+                    )}
+                  </div>
                   <button
-                    onClick={() => router.push('/dashboard')}
-                    className="px-5 py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer shadow-md"
+                    onClick={handleDaftar}
+                    className="mt-3 w-full px-5 py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer shadow-md"
                   >
-                    Dashboard
+                    Daftar Sekarang
                   </button>
-                ) : (
-                  <button
-                    onClick={() => router.push('/login')}
-                    className="px-5 py-3.5 border border-slate-200 text-slate-700 font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer hover:bg-slate-50"
-                  >
-                    <LogIn className="w-4 h-4 inline mr-1" /> Masuk
-                  </button>
-                )}
-                <button
-                  onClick={handleDaftar}
-                  className="px-5 py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm tracking-wider uppercase text-center rounded-xl transition-all duration-200 cursor-pointer shadow-md mt-2"
-                >
-                  Daftar Sekarang
-                </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
