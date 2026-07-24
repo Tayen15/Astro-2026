@@ -28,7 +28,7 @@ interface Props {
 export default function CompetitionCard({ competition, index }: Props) {
   const reduce = useReducedMotion();
   const router = useRouter();
-  const cat = categoryConfig[competition.category];
+  const cat = categoryConfig[competition.category] || categoryConfig.akademik;
   const ratio = Math.min((competition.filledSlots / competition.maxSlots) * 100, 100);
   const left = competition.maxSlots - competition.filledSlots;
 

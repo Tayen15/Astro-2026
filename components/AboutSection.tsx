@@ -1,51 +1,69 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'motion/react';
-import { Eye, Target, Sparkles, Award, ShieldCheck, Users } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { Search } from 'lucide-react';
+import type { Competition, CategoryType } from '@/types/astro';
+import CompetitionCard from './CompetitionCard';
 
 const MotionImage = motion.create(Image);
 
-export default function AboutSection() {
+interface Props {
+  competitions: Competition[];
+}
+
+export default function AboutSection({ competitions }: Props) {
   const reduce = useReducedMotion();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
 
-  const keyFeatures = [
-    {
-      icon: Sparkles,
-      title: 'Multi-Disiplin Lomba',
-      desc: 'Menggabungkan kategori akademik, olahraga, dan esports secara seimbang.',
-    },
-    {
-      icon: Award,
-      title: 'Hadiah Fantastis',
-      desc: 'Penghargaan resmi dan dana pembinaan bernilai jutaan rupiah untuk para pemenang.',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Juri Profesional',
-      desc: 'Sistem penilaian yang objektif, transparan, dan terpercaya oleh para ahli.',
-    },
-    {
-      icon: Users,
-      title: 'Komunitas Pelajar',
-      desc: 'Membangun jaringan relasi dan persahabatan positif antar peserta.',
-    },
-  ];
+  // Derive categories dynamically from competition data
+  const categoryMap = useMemo(() => {
+    const map = new Map<CategoryType, string>();
+    competitions.forEach((c) => {
+      if (!map.has(c.category)) {
+        // Capitalize label
+        const label = c.category.charAt(0).toUpperCase() + c.category.slice(1);
+        map.set(c.category, label);
+      }
+    });
+    return map;
+  }, [competitions]);
 
-  const misiList = [
-    'Menyelenggarakan kompetisi berkualitas tinggi yang adil, menantang, dan profesional.',
-    'Mendorong kolaborasi lintas bakat antara sains, olahraga, dan esports.',
-    'Mengembangkan karakter yang tangguh, berjiwa sportif, dan berorientasi pada prestasi.',
-  ];
+  const CATEGORIES: { label: string; value: CategoryType | 'all' }[] = useMemo(
+    () => [
+      { label: 'SEMUA', value: 'all' as const },
+      ...Array.from(categoryMap.entries()).map(([value, label]) => ({ label, value })),
+    ],
+    [categoryMap]
+  );
+
+  const categoryOrder = useMemo(() => Array.from(categoryMap.keys()), [categoryMap]);
+
+  const filtered = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return competitions
+      .filter((c) => {
+        const matchCat = selectedCategory === 'all' || c.category === selectedCategory;
+        const matchQ = !q || c.title.toLowerCase().includes(q) || c.tagline.toLowerCase().includes(q);
+        return matchCat && matchQ;
+      })
+      .sort((a, b) => {
+        const catDiff = categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
+        if (catDiff !== 0) return catDiff;
+        return a.title.localeCompare(b.title);
+      });
+  }, [competitions, selectedCategory, searchQuery]);
 
   return (
-    <section id="about" className="relative py-20 md:py-28 overflow-hidden">
+    <section id="competitions" className="relative py-20 md:py-28 overflow-hidden">
       {/* Background — seamless transition from Hero's sky fade */}
       <div className="absolute inset-0 bg-gradient-to-b from-sky-100/80 via-white to-white -z-10" />
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-cyan-500/2 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-500/2 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* ─── FLOATING BLOB ROUND IMAGES (like Hero) ─── */}
+      {/* ─── FLOATING BLOB ROUND IMAGES ─── */}
       <motion.div
         initial={reduce ? false : { opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -160,111 +178,72 @@ export default function AboutSection() {
       </motion.div>
 
       <div className="relative z-30 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+        {/* Pilih Lombamu */}
+        <div>
+          {/* Title — rata kiri */}
+          <div className="mb-8">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="accent-line mb-3" />
+              <h2 className="font-masterpiece text-4xl md:text-5xl lg:text-6xl text-slate-900 leading-tight">
+                Pilih<br />
+                <span className="text-astro-cyan">Lombamu</span>
+              </h2>
+              <p className="text-sm text-slate-600 mt-2">Tersedia berbagai cabang lomba seru dari tiga kategori berbeda.</p>
+            </motion.div>
+          </div>
 
-          {/* Left Column: Title & Key Features */}
-          <div className="lg:col-span-5 flex flex-col justify-between h-full">
-            <div>
-              <motion.div
-                initial={reduce ? false : { opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="accent-line mb-3" />
-                <h2 className="font-masterpiece text-5xl md:text-6xl lg:text-7xl text-slate-900 leading-tight">
-                  Tentang <br />
-                  <span className="text-astro-cyan">ASTRO 2026</span>
-                </h2>
-              </motion.div>
-
-              <motion.p
-                initial={reduce ? false : { opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="text-sm md:text-base text-slate-650 mt-6 leading-relaxed font-normal"
-              >
-                ASTRO 2026 adalah ajang kompetisi dan kreativitas tahunan terbesar yang dirancang khusus untuk mewadahi minat, bakat, serta potensi generasi muda. Kami menyatukan tiga pilar utama yaitu kompetisi akademik, ketangkasan olahraga, dan ketajaman esports di bawah satu payung sportivitas yang kokoh.
-              </motion.p>
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="CARI LOMBA..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-bold tracking-wider text-slate-850 placeholder:text-slate-455 uppercase focus:outline-none focus:border-astro-cyan transition-colors"
+                style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+              />
             </div>
-
-            {/* Key Features Grid */}
-            <div className="mt-10 grid sm:grid-cols-2 gap-6">
-              {keyFeatures.map((feature, i) => {
-                const Icon = feature.icon;
-                return (
-                  <motion.div
-                    key={feature.title}
-                    initial={reduce ? false : { opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.08, duration: 0.4, ease: [0.16, 1, 0.3, 1] as const }}
-                    className="flex flex-col gap-2.5 p-4 rounded-2xl hover:bg-slate-50 transition-colors duration-250 border border-transparent hover:border-slate-100"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-200/40 flex items-center justify-center text-astro-cyan flex-shrink-0">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{feature.title}</h4>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">{feature.desc}</p>
-                    </div>
-                  </motion.div>
-                );
-              })}
+            <div className="flex flex-wrap gap-1">
+              {CATEGORIES.map((cat) => (
+                <button key={cat.value} onClick={() => setSelectedCategory(cat.value)}
+                  className={`px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer ${
+                    selectedCategory === cat.value ? 'bg-astro-cyan text-slate-950 shadow-sm' : 'bg-white border border-slate-200 text-slate-650 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Right Column: Visi & Misi Cards */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Visi Card */}
-            <motion.div
-              initial={reduce ? false : { opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }}
-              className="p-6 md:p-8 bg-slate-50 border border-slate-200/60 rounded-2xl relative overflow-hidden group hover:border-cyan-500/35 transition-colors duration-200"
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 blur-xl rounded-full" />
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500 text-white flex items-center justify-center shadow-md shadow-cyan-500/10">
-                  <Eye className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-black tracking-[0.15em] text-slate-900 uppercase">VISI KAMI</h3>
-              </div>
-              <p className="text-sm text-slate-655 leading-relaxed font-medium">
-                Menjadi wadah kolaboratif terbesar bagi generasi muda untuk mengeksplorasi potensi terbaik, menyatukan sportivitas kompetisi, kreativitas tanpa batas, dan keunggulan akademik.
-              </p>
-            </motion.div>
-
-            {/* Misi Card */}
-            <motion.div
-              initial={reduce ? false : { opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] as const }}
-              className="p-6 md:p-8 bg-slate-50 border border-slate-200/60 rounded-2xl relative overflow-hidden group hover:border-cyan-500/35 transition-colors duration-200"
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 blur-xl rounded-full" />
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500 text-white flex items-center justify-center shadow-md shadow-cyan-500/10">
-                  <Target className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-black tracking-[0.15em] text-slate-900 uppercase">MISI KAMI</h3>
-              </div>
-              <ul className="space-y-4">
-                {misiList.map((misi, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-55 border border-cyan-100 flex items-center justify-center text-[10px] font-bold text-cyan-600 mt-0.5">
-                      {idx + 1}
-                    </span>
-                    <p className="text-sm text-slate-655 leading-relaxed font-medium">{misi}</p>
-                  </li>
+          {/* Competition Grid */}
+          <AnimatePresence mode="wait">
+            {filtered.length > 0 ? (
+              <motion.div key={`${selectedCategory}-${searchQuery}`}
+                className="grid sm:grid-cols-2 md:grid-cols-3 gap-4"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+              >
+                {filtered.map((c, i) => (
+                  <CompetitionCard key={c.id} competition={c} index={i} />
                 ))}
-              </ul>
-            </motion.div>
-          </div>
-
+              </motion.div>
+            ) : (
+              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="text-center py-16 border border-slate-200 bg-white shadow-sm rounded-2xl"
+              >
+                <p className="text-slate-600 text-base font-black uppercase tracking-wider">Tidak Ditemukan</p>
+                <p className="text-slate-450 text-sm mt-1">Coba kata kunci atau filter lain.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </section>

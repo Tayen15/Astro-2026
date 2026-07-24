@@ -6,7 +6,6 @@ import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import StatsBar from '@/components/StatsBar';
 import AboutSection from '@/components/AboutSection';
-import CompetitionSection from '@/components/CompetitionSection';
 import TimelineSection from '@/components/TimelineSection';
 import FAQSection from '@/components/FAQSection';
 import Footer from '@/components/Footer';
@@ -67,8 +66,7 @@ export default async function Home() {
       <main>
         <HeroSection eventConfig={data.eventConfig} />
         <StatsBar data={data} />
-        <AboutSection />
-        <CompetitionSection competitions={data.competitions} />
+        <AboutSection competitions={data.competitions} />
         <TimelineSection timeline={data.timeline} />
         <FAQSection faqs={data.faqs} />
       </main>

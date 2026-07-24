@@ -513,7 +513,7 @@ export default function CompetitionDetailPage() {
                   </motion.div>
 
                   <ul className="space-y-4">
-                    {competition.rulesSummary.map((rule, idx) => (
+                    {competition.rulesSummary.map((rule: string, idx: number) => (
                       <motion.li
                         key={idx}
                         initial={reduce ? false : { opacity: 0, x: 16 }}

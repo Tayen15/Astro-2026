@@ -27,6 +27,7 @@ interface CompetitionData {
   prizes: { first: string; second: string; third: string };
   rulesSummary: string[];
   rulebookUrl: string;
+  registrationUrl?: string;
   contactPerson: { name: string; whatsapp: string };
   type?: string;
   maxTeamMembers?: number;
@@ -129,6 +130,7 @@ export default function RegistrationPage({ params }: { params: Promise<{ id: str
           prizes: { first: c.prizesFirst || '', second: c.prizesSecond || '', third: c.prizesThird || '' },
           rulesSummary: c.rulesSummary || [],
           rulebookUrl: c.rulebookUrl || '',
+          registrationUrl: '',
           contactPerson: { name: c.contactName || '', whatsapp: c.contactWhatsapp || '' },
           type: c.type || 'individual',
           maxTeamMembers: c.maxTeamMembers || 1,
@@ -396,7 +398,7 @@ export default function RegistrationPage({ params }: { params: Promise<{ id: str
                     exit="exit"
                   >
                     <FormStep
-                      competition={competition}
+                      competition={competition as any}
                       isTeam={isTeam}
                       formData={formData}
                       setFormData={setFormData}
@@ -416,7 +418,7 @@ export default function RegistrationPage({ params }: { params: Promise<{ id: str
                     exit="exit"
                   >
                     <PaymentStep
-                      competition={competition}
+                      competition={competition as any}
                       formData={formData}
                       isTeam={isTeam}
                       registrationId={registrationId || ''}
