@@ -163,14 +163,6 @@ export default function ProfilePage() {
             </a>
           </div>
         </motion.div>
-
-        {/* Bottom scroll indicator */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
-        >
-          <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">Scroll</span>
-          <ArrowDown className="w-4 h-4 text-white/40 animate-bounce" />
-        </motion.div>
       </section>
 
       {/* ════════════ 2. ABOUT ASTRO ════════════ */}
