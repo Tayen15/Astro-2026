@@ -54,11 +54,19 @@ export default function SponsorSection({ sponsors, mediaPartners }: Props) {
   const reduce = useReducedMotion();
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-slate-50 via-sky-100 to-white">
+    <section className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-slate-50 via-sky-200 to-sky-300">
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/3 blur-[150px] rounded-full pointer-events-none" />
-      <div className="absolute top-[30%] left-0 w-[200px] h-[2px] bg-gradient-to-r from-sky-200/40 to-transparent skew-x-[-12deg] pointer-events-none" />
-      <div className="absolute bottom-[20%] right-0 w-[150px] h-[2px] bg-gradient-to-l from-sky-200/30 to-transparent skew-x-[12deg] pointer-events-none" />
+      {/* Decorative strokes — each independent, short, angled, not connected */}
+      <div className="absolute top-[12%] left-[4%] w-[40px] h-px bg-slate-300/20 skew-x-[-12deg] pointer-events-none" />
+      <div className="absolute top-[12%] left-[calc(4%+60px)] w-[20px] h-px bg-slate-300/10 skew-x-[-12deg] pointer-events-none" />
+      <div className="absolute top-[8%] right-[10%] w-[60px] h-px bg-slate-300/20 skew-x-[12deg] pointer-events-none" />
+      <div className="absolute top-[20%] right-[4%] w-[30px] h-px bg-slate-300/15 skew-x-[12deg] pointer-events-none" />
+      <div className="absolute bottom-[15%] left-[6%] w-[50px] h-px bg-slate-300/15 skew-x-[-12deg] pointer-events-none" />
+      <div className="absolute bottom-[10%] left-[3%] w-[25px] h-px bg-slate-300/10 skew-x-[-12deg] pointer-events-none" />
+      <div className="absolute bottom-[25%] right-[5%] w-[40px] h-px bg-slate-300/15 skew-x-[12deg] pointer-events-none" />
+      <div className="absolute bottom-[35%] right-[8%] w-[20px] h-px bg-slate-300/10 skew-x-[12deg] pointer-events-none" />
+      <div className="absolute top-[45%] left-[2%] w-[35px] h-px bg-slate-300/10 skew-x-[-12deg] pointer-events-none" />
 
       {/* Floating Cloud Decorations */}
       <MotionImage
@@ -175,7 +183,8 @@ export default function SponsorSection({ sponsors, mediaPartners }: Props) {
             })}
             {sponsors.length < 8 && Array.from({ length: Math.min(8 - sponsors.length, 4) }).map((_, i) => (
               <motion.div key={`sp-empty-${i}`} variants={reduce ? undefined : fadeUp}
-                className="h-24 md:h-28 bg-white/10 border border-sky-200/10 rounded-xl md:rounded-2xl pointer-events-none" />
+                className="h-24 md:h-28 bg-white/10 border border-sky-200/10 pointer-events-none"
+                style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }} />
             ))}
           </motion.div>
         </div>
@@ -210,7 +219,8 @@ export default function SponsorSection({ sponsors, mediaPartners }: Props) {
             })}
             {mediaPartners.length < 8 && Array.from({ length: Math.min(8 - mediaPartners.length, 4) }).map((_, i) => (
               <motion.div key={`mp-empty-${i}`} variants={reduce ? undefined : fadeUp}
-                className="h-24 md:h-28 bg-white/10 border border-sky-200/10 rounded-xl md:rounded-2xl pointer-events-none" />
+                className="h-24 md:h-28 bg-white/10 border border-sky-200/10 pointer-events-none"
+                style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }} />
             ))}
           </motion.div>
         </div>
@@ -230,7 +240,15 @@ function LogoCard({
   const hasWebsite = 'website' in sponsor && sponsor.website;
 
   const content = (
-    <div className="relative w-full h-24 md:h-28 bg-white/75 backdrop-blur-[6px] border border-slate-200/60 rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.07)] hover:-translate-y-1 transition-all duration-300 ease-out overflow-hidden group">
+    <div className="relative w-full h-24 md:h-28 bg-white/75 backdrop-blur-[6px] border border-slate-200/60 flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.07)] hover:-translate-y-1 transition-all duration-300 ease-out overflow-hidden group"
+      style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
+    >
+      {/* Top angular corner accent — torn-corner notch */}
+      <div
+        className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-sky-300/60"
+        style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+      />
+
       {/* Noise texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
