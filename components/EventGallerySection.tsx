@@ -128,10 +128,9 @@ export default function EventGallerySection() {
   }, [selectedPhotoIndex]);
 
   return (
-    <section id="gallery" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100 text-slate-900">
+    <section id="gallery" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-sky-100 text-slate-900">
       {/* ─── SKY BACKGROUND GLOWS ─── */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[850px] h-[850px] bg-cyan-300/35 rounded-full blur-[140px] pointer-events-none z-0" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-sky-300/30 blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[850px] bg-cyan-300/25 rounded-full blur-[140px] pointer-events-none z-0" />
 
       {/* ─── FLOATING DECORATIVE CLOUDS & BLOBS ─── */}
       <MotionImage
@@ -211,12 +210,12 @@ export default function EventGallerySection() {
         >
           {/* ── NARROW LEFT FADE OVERLAY MASK (Hanya di Ujung Luar) ── */}
           <div 
-            className="absolute top-0 bottom-0 left-0 w-12 sm:w-16 md:w-24 bg-gradient-to-r from-sky-300 to-transparent z-30 pointer-events-none"
+            className="absolute top-0 bottom-0 left-0 w-12 sm:w-16 md:w-24 bg-gradient-to-r from-sky-100 via-sky-100/60 to-transparent z-30 pointer-events-none"
           />
 
           {/* ── NARROW RIGHT FADE OVERLAY MASK (Hanya di Ujung Luar) ── */}
           <div 
-            className="absolute top-0 bottom-0 right-0 w-12 sm:w-16 md:w-24 bg-gradient-to-l from-sky-100 to-transparent z-30 pointer-events-none"
+            className="absolute top-0 bottom-0 right-0 w-12 sm:w-16 md:w-24 bg-gradient-to-l from-sky-100 via-sky-100/60 to-transparent z-30 pointer-events-none"
           />
 
           <div className="space-y-6">

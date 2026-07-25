@@ -621,7 +621,7 @@ export default function ProfilePage() {
       {/* ════════════ 9. COMMITTEE ════════════ */}
       <CommitteeSection />
 
-     
+
       <Footer />
     </div>
   );
