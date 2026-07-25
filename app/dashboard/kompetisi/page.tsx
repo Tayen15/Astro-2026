@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   Loader2, Pencil, X, Check, Search, Plus, Trophy,
   Coins, Users, MapPin, Calendar, Phone, User, Tag,
-  Trash2, EyeOff, Eye,
+  Trash2, EyeOff, Eye, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
@@ -270,6 +270,22 @@ export default function KompetisiPage() {
   // Delete modal
   const [deleteModal, setDeleteModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
+  // Timeline manager state
+  interface TimelineItemData {
+    id: number;
+    competitionId: string;
+    date: string;
+    title: string;
+    desc: string;
+    sortOrder: number;
+  }
+  const [timelineOpen, setTimelineOpen] = useState<string | null>(null);
+  const [timelineItems, setTimelineItems] = useState<Record<string, TimelineItemData[]>>({});
+  const [tlForm, setTlForm] = useState({ date: '', title: '', desc: '' });
+  const [tlEditingId, setTlEditingId] = useState<number | null>(null);
+  const [tlSaving, setTlSaving] = useState(false);
+  const [tlDateRange, setTlDateRange] = useState({ start: '', end: '' });
+
   const fetchData = async () => {
     const [compRes, catRes] = await Promise.all([
       fetch('/api/competitions'),
@@ -410,6 +426,98 @@ export default function KompetisiPage() {
         } catch (err) { console.error(err); toast.error('Gagal menghapus lomba'); }
       },
     });
+  };
+
+  /* ─── Timeline CRUD ─── */
+  const composeDate = (start: string, end: string) => {
+    if (!start) return '';
+    const s = new Date(start + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    if (!end) return s;
+    const e = new Date(end + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    return s === e ? s : `${s} - ${e}`;
+  };
+
+  const handleTimelineOpen = async (compId: string) => {
+    if (timelineOpen === compId) {
+      setTimelineOpen(null);
+      return;
+    }
+    setTimelineOpen(compId);
+    setTlEditingId(null);
+    setTlForm({ date: '', title: '', desc: '' });
+    setTlDateRange({ start: '', end: '' });
+    try {
+      const res = await fetch(`/api/competitions/${compId}/timeline`);
+      const json = await res.json();
+      setTimelineItems((prev) => ({ ...prev, [compId]: json.data || [] }));
+    } catch {
+      toast.error('Gagal memuat timeline');
+    }
+  };
+
+  const handleTlSave = async (compId: string) => {
+    const dateStr = composeDate(tlDateRange.start, tlDateRange.end);
+    if (!tlForm.title || !dateStr || !tlForm.desc) {
+      toast.error('Judul, tanggal, dan deskripsi wajib diisi');
+      return;
+    }
+    const payload = { ...tlForm, date: dateStr, desc: tlForm.desc };
+    setTlSaving(true);
+    try {
+      if (tlEditingId) {
+        await fetch(`/api/competitions/${compId}/timeline/${tlEditingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetch(`/api/competitions/${compId}/timeline`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+      setTlForm({ date: '', title: '', desc: '' });
+      setTlDateRange({ start: '', end: '' });
+      setTlEditingId(null);
+      toast.success(tlEditingId ? 'Timeline diperbarui' : 'Timeline ditambahkan');
+      const res = await fetch(`/api/competitions/${compId}/timeline`);
+      const json = await res.json();
+      setTimelineItems((prev) => ({ ...prev, [compId]: json.data || [] }));
+    } catch {
+      toast.error('Gagal menyimpan timeline');
+    }
+    setTlSaving(false);
+  };
+
+  const handleTlEdit = (item: TimelineItemData) => {
+    setTlEditingId(item.id);
+    setTlForm({ date: item.date, title: item.title, desc: item.desc });
+    // Try to parse existing date back to range
+    const parts = item.date.split(' - ');
+    if (parts.length === 2) {
+      // Convert Indonesian date-ish back to YYYY-MM-DD — best effort
+      const guess = (s: string) => {
+        try { return new Date(s).toISOString().split('T')[0]; } catch { return ''; }
+      };
+      setTlDateRange({ start: guess(parts[0]), end: guess(parts[1]) });
+    } else {
+      const d = new Date(item.date).toISOString().split('T')[0];
+      setTlDateRange({ start: d, end: '' });
+    }
+  };
+
+  const handleTlDelete = async (compId: string, itemId: number) => {
+    if (!confirm('Hapus item timeline ini?')) return;
+    try {
+      await fetch(`/api/competitions/${compId}/timeline/${itemId}`, { method: 'DELETE' });
+      toast.success('Item timeline dihapus');
+      const res = await fetch(`/api/competitions/${compId}/timeline`);
+      const json = await res.json();
+      setTimelineItems((prev) => ({ ...prev, [compId]: json.data || [] }));
+    } catch {
+      toast.error('Gagal menghapus item timeline');
+    }
   };
 
   /* ─── Category CRUD ─── */
@@ -708,11 +816,125 @@ export default function KompetisiPage() {
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
+                      <button onClick={() => handleTimelineOpen(comp.id)}
+                        className={`p-2 transition-colors cursor-pointer ${timelineOpen === comp.id ? 'text-astro-cyan' : 'text-slate-400 hover:text-astro-cyan'}`}
+                        title="Atur Timeline"
+                      >
+                        <Clock className="w-4 h-4" />
+                      </button>
                       <button onClick={() => handleDeleteComp(comp.id)}
                         className="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer" title="Hapus"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── Timeline Manager ─── */}
+                {timelineOpen === comp.id && (
+                  <div className="border-t border-slate-200 mt-5 pt-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-astro-cyan" /> Timeline Lomba
+                      </h3>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        {(timelineItems[comp.id] || []).length} item
+                      </span>
+                    </div>
+
+                    {/* Timeline list */}
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {(timelineItems[comp.id] || []).length === 0 && (
+                        <p className="text-xs text-slate-400 italic">Belum ada timeline. Tambah item baru di bawah.</p>
+                      )}
+                      {(timelineItems[comp.id] || []).map((item, idx) => (
+                        <div key={item.id}
+                          className="flex items-start gap-3 bg-slate-50 border border-slate-100 p-3 group"
+                          style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+                        >
+                          <span className="flex-shrink-0 w-6 h-6 text-[10px] font-black bg-cyan-100 text-cyan-700 flex items-center justify-center"
+                            style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                          >
+                            {idx + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-black text-slate-800 uppercase tracking-tight truncate">{item.title}</span>
+                              <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">{item.date}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-1">{item.desc}</p>
+                          </div>
+                          <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleTlEdit(item)}
+                              className="p-1 text-slate-400 hover:text-astro-cyan cursor-pointer" title="Edit"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button onClick={() => handleTlDelete(comp.id, item.id)}
+                              className="p-1 text-slate-400 hover:text-red-500 cursor-pointer" title="Hapus"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add/Edit form */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Mulai</label>
+                        <input type="date" value={tlDateRange.start}
+                          onChange={(e) => setTlDateRange({ ...tlDateRange, start: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 text-xs mt-1 focus:outline-none focus:border-astro-cyan"
+                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Akhir <span className="text-slate-400 font-normal normal-case tracking-normal">(opsional)</span></label>
+                        <input type="date" value={tlDateRange.end}
+                          onChange={(e) => setTlDateRange({ ...tlDateRange, end: e.target.value })}
+                          min={tlDateRange.start || undefined}
+                          className="w-full px-3 py-2 border border-slate-200 text-xs mt-1 focus:outline-none focus:border-astro-cyan"
+                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Judul</label>
+                        <input value={tlForm.title} onChange={(e) => setTlForm({ ...tlForm, title: e.target.value })}
+                          placeholder="Pendaftaran Dibuka"
+                          className="w-full px-3 py-2 border border-slate-200 text-xs mt-1 focus:outline-none focus:border-astro-cyan"
+                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                        />
+                      </div>
+                      <div className="flex gap-2 self-end">
+                        <button onClick={() => handleTlSave(comp.id)} disabled={tlSaving}
+                          className="flex-1 px-3 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+                          style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                        >
+                          {tlSaving ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : tlEditingId ? <Check className="w-3 h-3 mx-auto" /> : <Plus className="w-3 h-3 mx-auto" />}
+                        </button>
+                        {tlEditingId && (
+                          <button onClick={() => { setTlEditingId(null); setTlForm({ date: '', title: '', desc: '' }); setTlDateRange({ start: '', end: '' }); }}
+                            className="px-3 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
+                            style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Deskripsi</label>
+                      <textarea value={tlForm.desc} onChange={(e) => setTlForm({ ...tlForm, desc: e.target.value })}
+                        placeholder="Deskripsi item timeline..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-slate-200 text-xs mt-1 focus:outline-none focus:border-astro-cyan"
+                        style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                      />
                     </div>
                   </div>
                 )}

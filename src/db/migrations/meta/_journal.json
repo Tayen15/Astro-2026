@@ -8,6 +8,13 @@
       "when": 1784780759118,
       "tag": "0000_careful_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784981578917,
+      "tag": "0001_flawless_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

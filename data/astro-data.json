@@ -36,7 +36,39 @@
       "contactPerson": {
         "name": "Andi Pratama",
         "whatsapp": "628123456789"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran peserta Astro Hackathon dibuka secara online. Peserta dapat mendaftar dalam tim yang terdiri dari maksimal 3 orang."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "Sesi TM online untuk penjelasan teknis lomba, aturan main, sistem penjurian, serta sesi tanya jawab dengan panitia dan juri."
+        },
+        {
+          "date": "20 Agustus 2026",
+          "title": "Briefing & Challenge Reveal",
+          "desc": "Pembukaan resmi dan pengumuman challenge/tema hackathon. Peserta mulai menyusun strategi pengerjaan."
+        },
+        {
+          "date": "20 - 21 Agustus 2026",
+          "title": "Hackathon (24 Jam)",
+          "desc": "Waktu pengerjaan coding selama 24 jam penuh. Peserta mengerjakan solusi di venue yang telah ditentukan."
+        },
+        {
+          "date": "22 Agustus 2026",
+          "title": "Presentasi & Penjurian",
+          "desc": "Setiap tim mempresentasikan hasil karyanya di hadapan juri selama maksimal 5 menit. Penilaian berdasarkan kreativitas, fungsionalitas, dan dampak."
+        },
+        {
+          "date": "24 Agustus 2026",
+          "title": "Pengumuman Pemenang",
+          "desc": "Pengumuman pemenang Astro Hackathon pada Malam Puncak ASTRO 2026. Juara 1, 2, dan 3 akan mendapatkan hadiah dan sertifikat."
+        }
+      ]
     },
     {
       "id": "science-olympiad",
@@ -66,7 +98,39 @@
       "contactPerson": {
         "name": "Siti Rahmawati",
         "whatsapp": "628123456790"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran peserta Science Olympiad dibuka secara online. Peserta mendaftar secara individu dan memilih bidang yang akan diikuti."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan tata tertib, pembagian ruangan, dan teknis pelaksanaan olimpiade."
+        },
+        {
+          "date": "24 Agustus 2026, 08.00 WIB",
+          "title": "Babak Penyisihan",
+          "desc": "Babak penyisihan dengan soal pilihan ganda mencakup Matematika, Fisika, dan Kimia. Durasi 90 menit."
+        },
+        {
+          "date": "24 Agustus 2026, 13.00 WIB",
+          "title": "Babak Semifinal",
+          "desc": "Babak semifinal untuk peserta dengan nilai terbaik. Soal esai dan analisis kasus. Durasi 90 menit."
+        },
+        {
+          "date": "24 Agustus 2026, 16.00 WIB",
+          "title": "Babak Final",
+          "desc": "Babak final dengan soal tantangan kompleks yang menguji pemahaman konsep mendalam. Durasi 90 menit."
+        },
+        {
+          "date": "24 Agustus 2026",
+          "title": "Pengumuman Pemenang",
+          "desc": "Pengumuman pemenang Science Olympiad pada Malam Puncak ASTRO 2026."
+        }
+      ]
     },
     {
       "id": "debate-championship",
@@ -96,7 +160,39 @@
       "contactPerson": {
         "name": "Rizky Fauzi",
         "whatsapp": "628123456791"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran tim debat dibuka secara online. Setiap tim terdiri dari 2 pendebat."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan format British Parliamentary, sistem bracket, dan etika debat."
+        },
+        {
+          "date": "22 Agustus 2026, 08.00 WIB",
+          "title": "Babak Preliminary",
+          "desc": "Babak penyisihan dengan sistem round-robin. Setiap tim akan berdebat sebanyak 3 ronde dengan motion yang berbeda."
+        },
+        {
+          "date": "22 Agustus 2026, 14.00 WIB",
+          "title": "Babak Semifinal",
+          "desc": "4 tim teratas dari babak preliminary bertanding di semifinal dengan sistem gugur."
+        },
+        {
+          "date": "23 Agustus 2026, 09.00 WIB",
+          "title": "Grand Final",
+          "desc": "Dua tim terbaik bertanding di babak grand final. Motion final diumumkan 30 menit sebelum debat dimulai."
+        },
+        {
+          "date": "24 Agustus 2026",
+          "title": "Pengumuman Pemenang",
+          "desc": "Pengumuman juara Debate Championship pada Malam Puncak ASTRO 2026."
+        }
+      ]
     },
     {
       "id": "astro-futsal",
@@ -126,7 +222,39 @@
       "contactPerson": {
         "name": "Budi Santoso",
         "whatsapp": "628123456792"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran tim futsal dibuka secara online. Setiap tim maksimal 10 pemain."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan peraturan pertandingan, sistem gugur, pembagian grup, dan jadwal."
+        },
+        {
+          "date": "20 Agustus 2026",
+          "title": "Drawing & Pengundian",
+          "desc": "Pengundian tim peserta untuk menentukan grup dan jadwal pertandingan."
+        },
+        {
+          "date": "22 Agustus 2026, 08.00 WIB",
+          "title": "Babak Grup",
+          "desc": "Babak grup menggunakan sistem setengah kompetisi. Tim terbaik dari setiap grup lolos ke babak gugur."
+        },
+        {
+          "date": "23 Agustus 2026, 08.00 WIB",
+          "title": "Babak Gugur & Semifinal",
+          "desc": "Babak 8 besar dan semifinal dengan sistem gugur. Pertandingan sengit untuk memperebutkan tiket final."
+        },
+        {
+          "date": "24 Agustus 2026, 10.00 WIB",
+          "title": "Perebutan Juara 3 & Final",
+          "desc": "Pertandingan final dan perebutan juara 3. Disusul seremonial penyerahan hadiah."
+        }
+      ]
     },
     {
       "id": "badminton-championship",
@@ -156,7 +284,39 @@
       "contactPerson": {
         "name": "Dewi Lestari",
         "whatsapp": "628123456793"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran pasangan ganda putra/putri/campuran dibuka secara online."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan peraturan pertandingan, sistem rally point, dan jadwal."
+        },
+        {
+          "date": "20 Agustus 2026",
+          "title": "Drawing Bracket",
+          "desc": "Pengundian bracket pertandingan untuk semua kategori ganda."
+        },
+        {
+          "date": "22 Agustus 2026, 08.00 WIB",
+          "title": "Babak Penyisihan",
+          "desc": "Babak penyisihan grup dengan sistem setengah kompetisi. Setiap pasangan bermain 2-3 pertandingan."
+        },
+        {
+          "date": "23 Agustus 2026, 08.00 WIB",
+          "title": "Babak Gugur & Final",
+          "desc": "Babak gugur dimulai dari 8 besar hingga final untuk semua kategori. Best of 3 games, rally point 21."
+        },
+        {
+          "date": "24 Agustus 2026",
+          "title": "Pengumuman Pemenang",
+          "desc": "Pengumuman pemenang Badminton Championship pada Malam Puncak ASTRO 2026."
+        }
+      ]
     },
     {
       "id": "basketball-league",
@@ -186,7 +346,39 @@
       "contactPerson": {
         "name": "Ahmad Fatih",
         "whatsapp": "628123456794"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran tim basket 3x3 dibuka secara online. Setiap tim maksimal 5 pemain."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan peraturan 3x3, sistem round-robin, dan jadwal pertandingan."
+        },
+        {
+          "date": "20 Agustus 2026",
+          "title": "Drawing & Pengundian",
+          "desc": "Pengundian grup untuk babak round-robin."
+        },
+        {
+          "date": "22 Agustus 2026, 08.00 WIB",
+          "title": "Babak Round-Robin",
+          "desc": "Babak penyisihan grup dengan sistem round-robin. Setiap tim bermain 3-4 pertandingan."
+        },
+        {
+          "date": "23 Agustus 2026, 09.00 WIB",
+          "title": "Babak Semifinal",
+          "desc": "4 tim terbaik dari babak round-robin bertanding di semifinal. Durasi 10 menit atau 21 poin."
+        },
+        {
+          "date": "24 Agustus 2026, 09.00 WIB",
+          "title": "Final & Penutupan",
+          "desc": "Pertandingan final memperebutkan juara 1, 2, dan 3. Disusul seremonial penyerahan hadiah."
+        }
+      ]
     },
     {
       "id": "mlbb-tournament",
@@ -216,7 +408,39 @@
       "contactPerson": {
         "name": "Rafi Ahmad",
         "whatsapp": "628123456795"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran tim MLBB dibuka secara online. Setiap tim terdiri dari 5 pemain inti + 1 cadangan."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan sistem bracket ganda, aturan draft pick, dan teknis pertandingan."
+        },
+        {
+          "date": "20 Agustus 2026",
+          "title": "Verifikasi & Seed",
+          "desc": "Sesi verifikasi akun dan penentuan seed berdasarkan rank. Wajib submit screenshot rank Epic+."
+        },
+        {
+          "date": "22 Agustus 2026, 09.00 WIB",
+          "title": "Babak Upper Bracket",
+          "desc": "Babak awal upper bracket BO3. Tim yang kalah turun ke lower bracket."
+        },
+        {
+          "date": "23 Agustus 2026, 09.00 WIB",
+          "title": "Babak Lower Bracket & Semifinal",
+          "desc": "Pertandingan lower bracket dan semifinal upper bracket. Sistem BO3."
+        },
+        {
+          "date": "24 Agustus 2026, 13.00 WIB",
+          "title": "Grand Final BO5",
+          "desc": "Grand final BO5 antara pemenang upper bracket dan lower bracket. Disertai sesi live casting."
+        }
+      ]
     },
     {
       "id": "valorant-tournament",
@@ -246,7 +470,39 @@
       "contactPerson": {
         "name": "Kevin Tan",
         "whatsapp": "628123456796"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran tim Valorant dibuka secara online. Setiap tim terdiri dari 5 pemain inti + 1 cadangan."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan aturan kompetitif, map pool, dan sistem bracket."
+        },
+        {
+          "date": "20 Agustus 2026",
+          "title": "Verifikasi Akun & Config",
+          "desc": "Sesi verifikasi akun Valorant dan pengecekan perangkat. Setiap tim submit roster final."
+        },
+        {
+          "date": "22 Agustus 2026, 10.00 WIB",
+          "title": "Babak Penyisihan BO3",
+          "desc": "Babak penyisihan upper bracket BO3 di semua map kompetitif."
+        },
+        {
+          "date": "23 Agustus 2026, 10.00 WIB",
+          "title": "Semifinal & Lower Bracket",
+          "desc": "Pertandingan semifinal dan lower bracket. Seluruh pertandingan BO3."
+        },
+        {
+          "date": "24 Agustus 2026, 15.00 WIB",
+          "title": "Grand Final BO5",
+          "desc": "Grand final BO5 dengan seluruh map kompetitif. Disertai live streaming dan casting."
+        }
+      ]
     },
     {
       "id": "fifa-championship",
@@ -276,7 +532,39 @@
       "contactPerson": {
         "name": "Doni Saputra",
         "whatsapp": "628123456797"
-      }
+      },
+      "timeline": [
+        {
+          "date": "1 - 18 Agustus 2026",
+          "title": "Pendaftaran",
+          "desc": "Pendaftaran peserta FIFA Championship dibuka secara online. Peserta mendaftar secara individu (1v1)."
+        },
+        {
+          "date": "19 Agustus 2026",
+          "title": "Technical Meeting",
+          "desc": "TM online untuk penjelasan peraturan, klub yang diperbolehkan (5 star max), dan jadwal."
+        },
+        {
+          "date": "20 Agustus 2026",
+          "title": "Verifikasi & Drawing",
+          "desc": "Verifikasi akun/platform peserta dan pengundian bracket pertandingan."
+        },
+        {
+          "date": "22 Agustus 2026, 10.00 WIB",
+          "title": "Babak Awal (BO3)",
+          "desc": "Babak penyisihan dengan sistem BO3. Durasi 6 menit per pertandingan."
+        },
+        {
+          "date": "23 Agustus 2026, 10.00 WIB",
+          "title": "Babak 16 Besar & Semifinal",
+          "desc": "Pertandingan 16 besar hingga semifinal. Extra time dan penalty berlaku di babak gugur."
+        },
+        {
+          "date": "24 Agustus 2026, 14.00 WIB",
+          "title": "Grand Final",
+          "desc": "Grand final BO3. Pertandingan disiarkan dengan layar besar dan komentator langsung."
+        }
+      ]
     }
   ],
   "timeline": [

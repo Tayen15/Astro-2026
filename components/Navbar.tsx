@@ -104,11 +104,13 @@ export default function Navbar() {
         { label: 'JOURNEY', href: '#journey' },
         { label: 'GALLERY', href: '#gallery' },
         { label: 'MEDIA', href: '#social' },
+        { label: 'PENGUMUMAN', href: '/pengumuman' },
         { label: 'PANITIA', href: '/panitia' },
       ]
     : [
         { label: 'TENTANG', href: '#about' },
         { label: 'KOMPETISI', href: '#competitions' },
+        { label: 'PENGUMUMAN', href: '/pengumuman' },
         { label: 'TIMELINE', href: '#timeline' },
         { label: 'FAQ', href: '#faq' },
       ];

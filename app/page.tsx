@@ -7,9 +7,11 @@ import HeroSection from '@/components/HeroSection';
 import StatsBar from '@/components/StatsBar';
 import AboutSection from '@/components/AboutSection';
 import TimelineSection from '@/components/TimelineSection';
+import SponsorSection from '@/components/SponsorSection';
 import FAQSection from '@/components/FAQSection';
 import Footer from '@/components/Footer';
 import astroData from '@/data/astro-data.json';
+import { sponsors, mediaPartners } from '@/data/sponsorData';
 
 const fallbackData = astroData as AstroData;
 
@@ -69,6 +71,7 @@ export default async function Home() {
         <AboutSection competitions={data.competitions} />
         <TimelineSection timeline={data.timeline} />
         <FAQSection faqs={data.faqs} />
+        <SponsorSection sponsors={sponsors} mediaPartners={mediaPartners} />
       </main>
       <Footer />
     </>

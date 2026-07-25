@@ -8,6 +8,10 @@ import { motion, useReducedMotion } from 'motion/react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import RegisterSection from './RegisterSection';
+import CompetitionTimeline from './CompetitionTimeline';
+import SponsorSection from '@/components/SponsorSection';
+import { sponsors, mediaPartners } from '@/data/sponsorData';
+import type { Competition, TimelineItem as TlType } from '@/types/astro';
 import {
   Trophy,
   CalendarDays,
@@ -41,6 +45,7 @@ function toCompetition(c: any) {
     maxTeamMembers: c.maxTeamMembers || 1,
     minTeamMembers: c.minTeamMembers || 1,
     contactPerson: { name: c.contactName || '', whatsapp: c.contactWhatsapp || '' },
+    timeline: c.timeline || [],
   };
 }
 
@@ -53,8 +58,10 @@ const categoryConfig = {
     accent: 'bg-emerald-500',
     accentLight: 'bg-emerald-500/10',
     dot: 'bg-emerald-500',
+    ring: 'ring-emerald-500/20',
     iconBg: 'bg-emerald-50 text-emerald-600',
     iconBorder: 'border-emerald-200',
+    hex: '#10b981',
   },
   olahraga: {
     label: 'OLAHRAGA',
@@ -64,8 +71,10 @@ const categoryConfig = {
     accent: 'bg-orange-500',
     accentLight: 'bg-orange-500/10',
     dot: 'bg-orange-500',
+    ring: 'ring-orange-500/20',
     iconBg: 'bg-orange-50 text-orange-600',
     iconBorder: 'border-orange-200',
+    hex: '#f97316',
   },
   esports: {
     label: 'ESPORTS',
@@ -75,8 +84,10 @@ const categoryConfig = {
     accent: 'bg-cyan-500',
     accentLight: 'bg-cyan-500/10',
     dot: 'bg-cyan-500',
+    ring: 'ring-cyan-500/20',
     iconBg: 'bg-cyan-50 text-cyan-600',
     iconBorder: 'border-cyan-200',
+    hex: '#06b6d4',
   },
 } as const;
 
@@ -105,6 +116,8 @@ export default function CompetitionDetailPage() {
   const id = params.id as string;
   const [competition, setCompetition] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [timeline, setTimeline] = useState<any[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(true);
 
   useEffect(() => {
     fetch(`/api/competitions/${id}`)
@@ -118,9 +131,18 @@ export default function CompetitionDetailPage() {
       })
       .catch(() => notFound())
       .finally(() => setLoading(false));
+
+    // Fetch timeline dari API
+    fetch(`/api/competitions/${id}/timeline`)
+      .then((r) => r.json())
+      .then((json) => {
+        setTimeline(json.data || []);
+      })
+      .catch(() => {})
+      .finally(() => setTimelineLoading(false));
   }, [id]);
 
-  if (loading) return null;
+  if (loading) return <DetailSkeleton />;
 
   if (!competition) {
     notFound();
@@ -547,7 +569,25 @@ export default function CompetitionDetailPage() {
           </section>
 
           {/* ════════════════════════════════════════
-              3. CTA
+              3. TIMELINE LOMBA
+              ════════════════════════════════════════ */}
+          {timeline.length > 0 && (
+            <CompetitionTimeline
+              timeline={timeline}
+              lineColor={cat.hex}
+              categoryColors={{
+                accent: cat.accent,
+                dot: cat.dot,
+                ring: cat.ring,
+                iconBg: cat.iconBg,
+                iconBorder: cat.iconBorder,
+                hex: cat.hex,
+              }}
+            />
+          )}
+
+          {/* ════════════════════════════════════════
+              4. CTA
               ════════════════════════════════════════ */}
           <section className="relative bg-gradient-to-b from-white via-sky-50 to-slate-50 py-16 md:py-20 overflow-hidden">
             {/* Background glow */}
@@ -644,8 +684,130 @@ export default function CompetitionDetailPage() {
               </svg>
             </div>
           </section>
+
+          {/* ════════════════════════════════════════
+              5. SPONSOR & MEDIA PARTNER
+              ════════════════════════════════════════ */}
+          <SponsorSection sponsors={sponsors} mediaPartners={mediaPartners} />
+
         </main>
 
+        <Footer />
+      </div>
+    </>
+  );
+}
+
+/* ─── Skeleton Loading ─── */
+function DetailSkeleton() {
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen flex flex-col justify-between bg-white">
+        <main className="flex-grow">
+          {/* Skeleton Hero */}
+          <section className="relative pt-36 pb-20 bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100 md:pt-40 md:pb-28 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="lg:w-10/12 xl:w-3/4 animate-pulse space-y-6">
+                <div className="h-3 w-32 bg-white/40 rounded" />
+                <div className="h-4 w-24 bg-white/40" style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }} />
+                <div className="h-12 w-3/4 bg-white/30 rounded-lg" />
+                <div className="h-4 w-1/2 bg-white/30 rounded" />
+                <div className="h-0.5 w-10 bg-white/30" />
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-white/20 rounded" />
+                  <div className="h-3 w-5/6 bg-white/20 rounded" />
+                  <div className="h-3 w-2/3 bg-white/20 rounded" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Skeleton Details */}
+          <section className="bg-gradient-to-b from-sky-100 via-sky-50 to-white py-12 md:py-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+                <div className="lg:col-span-7 space-y-12">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="bg-white/60 border border-slate-200/50 p-5 flex items-start gap-4"
+                        style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
+                      >
+                        <div className="p-3 bg-slate-100 border border-slate-200"
+                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                        >
+                          <div className="w-5 h-5 bg-slate-200 rounded" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 w-20 bg-slate-200 rounded" />
+                          <div className="h-5 w-32 bg-slate-200 rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                    <div className="h-5 w-40 bg-slate-200 rounded" />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white/60 border border-slate-200/50 p-5"
+                          style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+                        >
+                          <div className="h-1 w-8 bg-slate-200 mb-4" />
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 border border-slate-200 bg-slate-50 rounded">
+                              <div className="w-4 h-4 bg-slate-200" />
+                            </div>
+                            <div className="space-y-1">
+                              <div className="h-3 w-12 bg-slate-200 rounded" />
+                              <div className="h-4 w-28 bg-slate-200 rounded" />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="lg:col-span-5 space-y-4 lg:border-l lg:border-slate-200 lg:pl-10">
+                  <div className="h-5 w-36 bg-slate-200 rounded" />
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="flex items-start gap-4">
+                        <div className="w-7 h-7 bg-slate-200"
+                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                        />
+                        <div className="flex-1 h-4 bg-slate-200 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Skeleton CTA */}
+          <section className="bg-gradient-to-b from-white via-sky-50 to-slate-50 py-16 md:py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse text-center space-y-6">
+              <div className="max-w-xl mx-auto space-y-4">
+                <div className="h-8 w-72 bg-slate-200 rounded mx-auto" />
+                <div className="h-4 w-96 bg-slate-200 rounded mx-auto" />
+                <div className="flex justify-center"><div className="h-0.5 w-10 bg-slate-200" /></div>
+              </div>
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-12 w-64 bg-slate-200 rounded"
+                  style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
+                />
+                <div className="flex gap-3 max-w-md w-full justify-center">
+                  <div className="h-10 w-1/2 bg-slate-200 rounded"
+                    style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+                  />
+                  <div className="h-10 w-1/2 bg-slate-200 rounded"
+                    style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
         <Footer />
       </div>
     </>

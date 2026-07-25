@@ -53,6 +53,7 @@ export const competitions = pgTable('competitions', {
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({
   registrations: many(registrations),
+  timeline: many(competitionTimeline),
 }));
 
 /* ─── Registrations ─── */
@@ -89,6 +90,26 @@ export const registrations = pgTable('registrations', {
 export const registrationsRelations = relations(registrations, ({ one }) => ({
   competition: one(competitions, {
     fields: [registrations.competitionId],
+    references: [competitions.id],
+  }),
+}));
+
+/* ─── Competition Timeline ─── */
+export const competitionTimeline = pgTable('competition_timeline', {
+  id: serial('id').primaryKey(),
+  competitionId: text('competition_id')
+    .notNull()
+    .references(() => competitions.id, { onDelete: 'cascade' }),
+  date: text('date').notNull(),
+  title: text('title').notNull(),
+  desc: text('desc').notNull(),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const competitionTimelineRelations = relations(competitionTimeline, ({ one }) => ({
+  competition: one(competitions, {
+    fields: [competitionTimeline.competitionId],
     references: [competitions.id],
   }),
 }));

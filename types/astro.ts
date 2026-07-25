@@ -26,6 +26,7 @@ export interface Competition {
     name: string;
     whatsapp: string;
   };
+  timeline?: TimelineItem[];
 }
 
 export interface EventConfig {

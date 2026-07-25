@@ -17,20 +17,9 @@ export default function FAQSection({ faqs }: Props) {
   const reduce = useReducedMotion();
 
   return (
-    <section id="faq" className="relative overflow-hidden">
+    <section id="faq" className="relative overflow-hidden py-24 md:py-32">
       {/* Background — starts at sky-100 (connects Timeline's bottom) → deeper sky */}
       <div className="absolute inset-0 bg-gradient-to-b from-sky-100 via-sky-200 to-slate-50 -z-10" />
-      {/* Grass image — full-width carpet */}
-      <div className="absolute bottom-0 left-0 right-0 w-full h-[300px] md:h-[400px] pointer-events-none select-none z-10">
-        <Image
-          src="/assets/padang-rumput.png"
-          alt=""
-          width={1920}
-          height={400}
-          className="w-full h-full object-cover object-bottom"
-          style={{ maxHeight: '400px' }}
-        />
-      </div>
 
       {/* ─── FLOATING BLOB ROUND IMAGES ─── */}
       <MotionImage
@@ -90,16 +79,11 @@ export default function FAQSection({ faqs }: Props) {
         className="absolute bottom-[15%] right-[2%] w-24 h-auto md:w-32 object-contain pointer-events-none select-none z-0 opacity-60"
       />
 
-      {/* White gradient overlay on top of grass → smooth fade to footer */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 md:h-56 bg-gradient-to-t from-slate-50 via-slate-50/60 to-transparent pointer-events-none select-none z-20" />
-
-      {/* Extra spacing so grass reaches footer */}
-      <div className="h-[300px] md:h-[400px]" />
       {/* Angular accent lines */}
       <div className="absolute top-[20%] -left-[10%] w-[400px] h-[400px] bg-sky-500/5 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[30%] right-[5%] w-[100px] h-[2px] bg-gradient-to-r from-sky-300/20 to-transparent skew-x-[-12deg] pointer-events-none" />
 
-      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 -mt-50 mb-20">
+      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 mb-10">
         {/* Section Header */}
         <motion.div
           className="text-center mb-12 md:mb-14"
