@@ -31,7 +31,7 @@ export default function SocialMediaSection() {
   const bgSkyColor = '#e0f2fe';
 
   return (
-    <section 
+    <section
       className="relative min-h-screen w-full overflow-hidden text-slate-900 py-16 md:py-24 font-sans bg-sky-100"
     >
       {/* ── Subtle Sky Ambient Glow ── */}
@@ -58,7 +58,7 @@ export default function SocialMediaSection() {
       />
 
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-        
+
         {/* ── 1. HEADLINE AREA ── */}
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           <motion.div
@@ -105,7 +105,7 @@ export default function SocialMediaSection() {
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full flex justify-center items-center"
           >
-            {/* Tablet Image Showcase — Spans 100% width of container */}
+            {/* Tablet Image — desktop/tablet */}
             <MotionImage
               src="/assets/IG-Tablet.png"
               alt="ASTRO Instagram Hub Showcase"
@@ -113,7 +113,7 @@ export default function SocialMediaSection() {
               height={1200}
               animate={reduce ? undefined : { y: [0, -8, 0] }}
               transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-full h-auto object-contain select-none z-0"
+              className="hidden sm:block w-full h-auto object-contain select-none z-0"
               style={{
                 maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 96%)',
                 WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 96%)',
@@ -122,6 +122,30 @@ export default function SocialMediaSection() {
             />
           </motion.div>
         </div>
+
+        {/* ── 2B. MOBILE PHONE IMAGE — full bleed edge to edge ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.97 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="block sm:hidden relative w-screen -mx-4 mb-12 flex justify-center"
+        >
+          <MotionImage
+            src="/assets/IG-Phone-front.png"
+            alt="ASTRO Instagram Hub Mobile"
+            width={800}
+            height={1600}
+            animate={reduce ? undefined : { y: [0, -6, 0] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-full h-auto object-contain select-none z-0"
+            style={{
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 92%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 92%)',
+            }}
+            priority
+          />
+        </motion.div>
 
         {/* ── 3. SPEC GRID (Shares exact container alignment) ── */}
         <motion.div
