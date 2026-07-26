@@ -61,13 +61,11 @@ export default function CompetitionCard({ competition, index }: Props) {
             >
               {cat.label}
             </span>
-            {competition.origin === 'external' && (
-              <span className="text-[9px] font-bold tracking-[0.1em] uppercase px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-200"
-                style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-              >
-                Eksternal
-              </span>
-            )}
+            <span className="text-[9px] font-bold tracking-[0.1em] uppercase px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-200"
+              style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+            >
+              {competition.origin === 'external' ? 'Eksternal' : 'Internal'}
+            </span>
           </div>
           <span className={`text-[10px] font-bold tracking-wide flex-shrink-0 ${left <= 5 ? 'text-red-650' : 'text-slate-550'}`}>
             {left > 0 ? `SISA ${left} SLOT` : 'PENUH'}

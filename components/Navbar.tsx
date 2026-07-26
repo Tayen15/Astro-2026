@@ -100,7 +100,6 @@ export default function Navbar() {
   // Section links specific to Company Profile page vs Competition Home page
   const sectionLinks = isProfilePage
     ? [
-        { label: 'TENTANG', href: '#about-event' },
         { label: 'JOURNEY', href: '#journey' },
         { label: 'GALLERY', href: '#gallery' },
         { label: 'MEDIA', href: '#social' },
@@ -108,7 +107,6 @@ export default function Navbar() {
         { label: 'PANITIA', href: '/panitia' },
       ]
     : [
-        { label: 'TENTANG', href: '#about' },
         { label: 'KOMPETISI', href: '#competitions' },
         { label: 'PENGUMUMAN', href: '/pengumuman' },
         { label: 'TIMELINE', href: '#timeline' },
