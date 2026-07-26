@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle, LogIn, Search, X, Building2, Phone, Mail, User, Users, CalendarDays, DollarSign, FileText, CreditCard } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle, LogIn, Search, X, Building2, Phone, Mail, User, Users, CalendarDays, Coins, FileText, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/db/supabase/client';
@@ -459,7 +459,7 @@ export default function CekPendaftaranPage() {
                     {/* Payment */}
                     <div className="space-y-3">
                       <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                        <DollarSign className="w-3.5 h-3.5" /> Pembayaran
+                        <Coins className="w-3.5 h-3.5" /> Pembayaran
                       </h3>
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Referensi</span>

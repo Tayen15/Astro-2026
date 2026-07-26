@@ -10,7 +10,7 @@ import {
   Info,
   CalendarDays,
   MapPin,
-  DollarSign,
+  Coins,
   Users,
   FileText,
   MessageCircle,
@@ -136,7 +136,7 @@ export default function CompetitionModal({ competition, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-slate-50 border border-slate-100/60 rounded-xl p-4">
                         <div className="flex items-center gap-2 text-slate-550 text-xs mb-1">
-                          <DollarSign className="w-3.5 h-3.5 text-cyan-600" /> Biaya Pendaftaran
+                          <Coins className="w-3.5 h-3.5 text-cyan-600" /> Biaya Pendaftaran
                         </div>
                         <div className="text-slate-900 font-semibold">Rp {competition.fee.toLocaleString('id-ID')}</div>
                       </div>

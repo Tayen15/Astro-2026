@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'motion/react';
-import { Users, DollarSign, CalendarDays, MapPin } from 'lucide-react';
+import { Users, Coins, CalendarDays, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Competition, CategoryType } from '@/types/astro';
@@ -85,7 +85,7 @@ export default function CompetitionCard({ competition, index }: Props) {
         {/* Metadata grid */}
         <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 mt-1">
           <span className="flex items-center gap-1.5">
-            <DollarSign className="w-3 h-3 text-cyan-600" />
+            <Coins className="w-3 h-3 text-cyan-600" />
             {toIdr(competition.fee)}
           </span>
           <span className="flex items-center gap-1.5">

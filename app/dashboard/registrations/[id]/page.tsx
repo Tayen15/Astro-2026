@@ -2,7 +2,7 @@ import { db } from '@/src/db';
 import { registrations, competitions } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import { CalendarDays, DollarSign, Mail, Phone, Building2, Users, User, CheckCircle2, XCircle } from 'lucide-react';
+import { CalendarDays, Coins, Mail, Phone, Building2, Users, User, CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import PaymentStatusUpdate from './PaymentStatusUpdate';
 
@@ -189,7 +189,7 @@ export default async function RegistrationDetailPage({
           >
             <div className="p-5 space-y-4">
               <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] flex items-center gap-1">
-                <DollarSign className="w-3 h-3" /> Pembayaran
+                <Coins className="w-3 h-3" /> Pembayaran
               </h3>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Referensi</span>
