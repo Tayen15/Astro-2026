@@ -8,6 +8,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 10;
 
 interface Competition {
   id: string;
@@ -65,6 +68,8 @@ const emptyForm = {
   contactWhatsapp: '',
   isActive: '1',
   feeDisplay: '',
+  isFree: false,
+  origin: 'internal',
 };
 
 /* ─── Form Fields Sub-component ─── */
@@ -175,14 +180,33 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
         />
       </div>
       <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Coins className="w-3 h-3" /> Biaya</label>
-        <div className="relative mt-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">Rp</span>
-          <input type="text" inputMode="numeric" value={form.feeDisplay || formatRupiah(String(form.fee))} onChange={(e) => { update('feeDisplay', formatRupiah(e.target.value)); update('fee', parseRupiah(e.target.value)); }}
-            className={`${inp('fee')} pl-10`}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          />
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Tag className="w-3 h-3" /> Tipe Lomba</label>
+        <div className="flex gap-2 mt-1">
+          <button type="button" onClick={() => update('origin', 'internal')}
+            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (form.origin === 'internal' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Internal</button>
+          <button type="button" onClick={() => update('origin', 'external')}
+            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (form.origin === 'external' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Eksternal</button>
         </div>
+      </div>
+      <div>
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Coins className="w-3 h-3" /> Biaya</label>
+        <div className="flex gap-2 mt-1">
+          <button type="button" onClick={() => update('isFree', false)}
+            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (!form.isFree ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Berbayar</button>
+          <button type="button" onClick={() => update('isFree', true)}
+            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (form.isFree ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
+            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Gratis</button>
+        </div>
+        {!form.isFree && (
+          <div className="relative mt-2">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">Rp</span>
+            <input type="text" inputMode="numeric" value={form.feeDisplay || formatRupiah(String(form.fee))} onChange={(e) => { update('feeDisplay', formatRupiah(e.target.value)); update('fee', parseRupiah(e.target.value)); }}
+              className={inp('fee') + ' pl-10'} style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
+          </div>
+        )}
       </div>
       <div>
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> {form.type === 'team' ? 'Kuota Tim' : 'Kuota Peserta'}</label>
@@ -253,6 +277,7 @@ export default function KompetisiPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<'newest' | 'az' | 'za'>('newest');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
@@ -326,6 +351,8 @@ export default function KompetisiPage() {
       contactName: comp.contactName || '',
       contactWhatsapp: comp.contactWhatsapp || '',
       feeDisplay: formatRupiah(String(comp.fee)),
+      isFree: (comp as any).isFree === '1' || (comp as any).isFree === true,
+      origin: (comp as any).origin || 'internal',
     });
   };
 
@@ -576,6 +603,7 @@ export default function KompetisiPage() {
       if (sortBy === 'za') return b.title.localeCompare(a.title);
       return 0; // newest — keep DB order
     });
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
@@ -742,7 +770,7 @@ export default function KompetisiPage() {
 
       {/* List */}
       <div className="grid grid-cols-1 gap-4">
-        {filtered.map((comp) => {
+        {paginated.map((comp) => {
           const cat = categories.find((c) => c.id === comp.category);
           const catColor = cat?.color || 'bg-slate-50 text-slate-600 border-slate-200';
 
@@ -777,12 +805,26 @@ export default function KompetisiPage() {
                 ) : (
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{comp.title}</h3>
                         <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${catColor}`}
                           style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
                         >
                           {cat?.label || comp.category}
+                        </span>
+                        <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                          (comp as any).isFree === '1' || (comp as any).isFree === true
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}
+                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                        >
+                          {(comp as any).isFree === '1' || (comp as any).isFree === true ? 'Gratis' : 'Berbayar'}
+                        </span>
+                        <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border bg-sky-50 text-sky-700 border-sky-200"
+                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                        >
+                          {(comp as any).origin === 'external' ? 'Eksternal' : 'Internal'}
                         </span>
                       </div>
                       {comp.tagline && (
@@ -943,6 +985,8 @@ export default function KompetisiPage() {
           );
         })}
       </div>
+
+      <Pagination currentPage={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
 
       {/* Delete Modal */}
       <DeleteModal

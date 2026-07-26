@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/src/db/supabase/client';
 import { ClipboardList, Loader2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 10;
 
 const statusColors: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -16,6 +19,7 @@ export default function MyRegistrationsPage() {
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function fetchData() {
@@ -40,6 +44,8 @@ export default function MyRegistrationsPage() {
     }
     fetchData();
   }, []);
+
+  const paginated = registrations.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
     return (
@@ -83,7 +89,7 @@ export default function MyRegistrationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {registrations.map((reg: any) => (
+                {paginated.map((reg: any) => (
                   <tr key={reg.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3.5 font-medium text-slate-900">{reg.competitionName}</td>
                     <td className="px-5 py-3.5 hidden sm:table-cell">
@@ -107,6 +113,8 @@ export default function MyRegistrationsPage() {
           </div>
         </div>
       )}
+
+      <Pagination currentPage={page} totalItems={registrations.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
     </div>
   );
 }

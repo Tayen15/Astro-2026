@@ -15,6 +15,20 @@
       "when": 1784981578917,
       "tag": "0001_flawless_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785048133531,
+      "tag": "0002_careful_swordsman",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785051258972,
+      "tag": "0003_fresh_jigsaw",
+      "breakpoints": true
     }
   ]
 }

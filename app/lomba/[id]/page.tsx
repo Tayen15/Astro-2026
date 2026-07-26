@@ -10,8 +10,6 @@ import Footer from '@/components/Footer';
 import RegisterSection from './RegisterSection';
 import CompetitionTimeline from './CompetitionTimeline';
 import SponsorSection from '@/components/SponsorSection';
-import { sponsors, mediaPartners } from '@/data/sponsorData';
-import type { Competition, TimelineItem as TlType } from '@/types/astro';
 import {
   Trophy,
   CalendarDays,
@@ -46,6 +44,8 @@ function toCompetition(c: any) {
     minTeamMembers: c.minTeamMembers || 1,
     contactPerson: { name: c.contactName || '', whatsapp: c.contactWhatsapp || '' },
     timeline: c.timeline || [],
+    isFree: c.isFree === '1' || c.isFree === true,
+    origin: c.origin || 'internal',
   };
 }
 
@@ -169,7 +169,7 @@ export default function CompetitionDetailPage() {
     {
       icon: Coins,
       label: 'Biaya Pendaftaran',
-      value: `Rp ${competition.fee.toLocaleString('id-ID')}`,
+      value: competition.isFree ? 'Gratis' : 'Rp ' + competition.fee.toLocaleString('id-ID'),
     },
     {
       icon: CalendarDays,
@@ -289,23 +289,42 @@ export default function CompetitionDetailPage() {
                   </Link>
                 </motion.div>
 
-                {/* Category badge */}
+                {/* Category badge + origin/free badges */}
                 <motion.div
                   variants={reduce ? undefined : fadeUp}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
                   transition={{ delay: 0.05 }}
-                  className="mb-5"
+                  className="flex flex-wrap items-center gap-1.5 mb-5"
                 >
                   <span
-                    className={`inline-flex items-center px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase ${cat.bg} ${cat.color} ${cat.border} border`}
-                    style={{
-                      clipPath:
-                        'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)',
-                    }}
+                    className={`inline-flex items-center px-2.5 py-1 text-[10px] font-bold tracking-[0.15em] uppercase ${cat.bg} ${cat.color} ${cat.border} border`}
+                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
                   >
                     {cat.label}
+                  </span>
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 text-[9px] font-bold tracking-[0.1em] uppercase border bg-sky-50 text-sky-700 border-sky-200"
+                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                  >
+                    {competition.origin === 'external' ? 'Eksternal' : 'Internal'}
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 text-[9px] font-bold tracking-[0.1em] uppercase border ${
+                      competition.isFree
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
+                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                  >
+                    {competition.isFree ? 'Gratis' : 'Berbayar'}
+                  </span>
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 text-[9px] font-bold tracking-[0.1em] uppercase border bg-purple-50 text-purple-700 border-purple-200"
+                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                  >
+                    {competition.type === 'team' ? 'Tim' : 'Individu'}
                   </span>
                 </motion.div>
 
@@ -684,11 +703,6 @@ export default function CompetitionDetailPage() {
               </svg>
             </div>
           </section>
-
-          {/* ════════════════════════════════════════
-              5. SPONSOR & MEDIA PARTNER
-              ════════════════════════════════════════ */}
-          <SponsorSection sponsors={sponsors} mediaPartners={mediaPartners} />
 
         </main>
 

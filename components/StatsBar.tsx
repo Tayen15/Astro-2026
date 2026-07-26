@@ -8,6 +8,25 @@ interface Props {
   data: AstroData;
 }
 
+function calcEventDays(data: AstroData) {
+  const dates = data.competitions
+    .map((c) => c.scheduleDate)
+    .filter(Boolean)
+    .map((d) => {
+      const date = new Date(d);
+      return isNaN(date.getTime()) ? null : date.toISOString().split('T')[0];
+    })
+    .filter(Boolean) as string[];
+
+  if (dates.length === 0) return '0';
+
+  const unique = [...new Set(dates)].sort();
+  const start = new Date(unique[0]);
+  const end = new Date(unique[unique.length - 1]);
+  const days = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  return String(Math.max(1, days));
+}
+
 const stats = (data: AstroData) => {
   const totalSlots = data.competitions.reduce((s, c) => s + c.maxSlots, 0);
   const filled = data.competitions.reduce((s, c) => s + c.filledSlots, 0);
@@ -16,7 +35,7 @@ const stats = (data: AstroData) => {
     { icon: Trophy, value: String(data.competitions.length), label: 'CABANG LOMBA' },
     { icon: Users, value: `${filled}/${totalSlots}`, label: 'PARTISIPAN' },
     { icon: Gamepad2, value: String(cats), label: 'KATEGORI' },
-    { icon: CalendarCheck, value: '3', label: 'HARI EVENT' },
+    { icon: CalendarCheck, value: calcEventDays(data), label: 'HARI EVENT' },
   ];
 };
 

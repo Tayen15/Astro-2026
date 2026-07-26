@@ -17,6 +17,7 @@ export default function AboutSection({ competitions }: Props) {
   const reduce = useReducedMotion();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
+  const [selectedOrigin, setSelectedOrigin] = useState<'all' | 'internal' | 'external'>('all');
 
   // Derive categories dynamically from competition data
   const categoryMap = useMemo(() => {
@@ -46,15 +47,16 @@ export default function AboutSection({ competitions }: Props) {
     return competitions
       .filter((c) => {
         const matchCat = selectedCategory === 'all' || c.category === selectedCategory;
+        const matchOrigin = selectedOrigin === 'all' || c.origin === selectedOrigin;
         const matchQ = !q || c.title.toLowerCase().includes(q) || c.tagline.toLowerCase().includes(q);
-        return matchCat && matchQ;
+        return matchCat && matchOrigin && matchQ;
       })
       .sort((a, b) => {
         const catDiff = categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
         if (catDiff !== 0) return catDiff;
         return a.title.localeCompare(b.title);
       });
-  }, [competitions, selectedCategory, searchQuery]);
+  }, [competitions, selectedCategory, selectedOrigin, searchQuery]);
 
   return (
     <section id="competitions" className="relative py-20 md:py-28 overflow-hidden">
@@ -198,19 +200,46 @@ export default function AboutSection({ competitions }: Props) {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="CARI LOMBA..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-bold tracking-wider text-slate-850 placeholder:text-slate-455 uppercase focus:outline-none focus:border-astro-cyan transition-colors"
-                style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-              />
+          <div className="flex flex-col gap-3 mb-6">
+            {/* Row 1: Search + Origin */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="relative flex-1 sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="CARI LOMBA..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-bold tracking-wider text-slate-850 placeholder:text-slate-455 uppercase focus:outline-none focus:border-astro-cyan transition-colors"
+                  style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+                />
+              </div>
+              {/* Origin filter — compact segmented control */}
+              <div className="flex items-center gap-1 bg-white border border-slate-200 self-start sm:self-auto"
+                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+              >
+                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase pl-3 pr-1">Asal</span>
+                {[
+                  { label: 'Semua', value: 'all' as const },
+                  { label: 'Internal', value: 'internal' as const },
+                  { label: 'Eksternal', value: 'external' as const },
+                ].map((opt) => (
+                  <button key={opt.value} onClick={() => setSelectedOrigin(opt.value)}
+                    className={`px-3 py-2 text-[10px] font-bold tracking-[0.1em] uppercase transition-all duration-200 cursor-pointer ${
+                      selectedOrigin === opt.value
+                        ? 'bg-astro-cyan text-slate-950'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1">
+
+            {/* Row 2: Category buttons */}
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mr-1">Kategori</span>
               {CATEGORIES.map((cat) => (
                 <button key={cat.value} onClick={() => setSelectedCategory(cat.value)}
                   className={`px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer ${

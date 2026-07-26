@@ -54,13 +54,22 @@ export default function CompetitionCard({ competition, index }: Props) {
 
       <div className="p-5 md:p-6 flex flex-col gap-3">
         {/* Top row: badge + slots */}
-        <div className="flex items-center justify-between">
-          <span className={`text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 ${cat.bg} ${cat.color} ${cat.border} border`}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          >
-            {cat.label}
-          </span>
-          <span className={`text-[10px] font-bold tracking-wide ${left <= 5 ? 'text-red-650' : 'text-slate-550'}`}>
+        <div className="flex items-start justify-between gap-1">
+          <div className="flex flex-wrap items-center gap-1">
+            <span className={`text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 ${cat.bg} ${cat.color} ${cat.border} border`}
+              style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+            >
+              {cat.label}
+            </span>
+            {competition.origin === 'external' && (
+              <span className="text-[9px] font-bold tracking-[0.1em] uppercase px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-200"
+                style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+              >
+                Eksternal
+              </span>
+            )}
+          </div>
+          <span className={`text-[10px] font-bold tracking-wide flex-shrink-0 ${left <= 5 ? 'text-red-650' : 'text-slate-550'}`}>
             {left > 0 ? `SISA ${left} SLOT` : 'PENUH'}
           </span>
         </div>

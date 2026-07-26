@@ -39,7 +39,7 @@ export async function PUT(
       category: body.category,
       tagline: body.tagline,
       description: body.description,
-      fee: body.fee,
+      fee: body.isFree ? 0 : (body.fee || 0),
       maxSlots: body.maxSlots,
       filledSlots: body.filledSlots ?? 0,
       scheduleDate: body.scheduleDate ? new Date(body.scheduleDate) : undefined,
@@ -54,6 +54,8 @@ export async function PUT(
       type: body.type || 'individual',
       maxTeamMembers: body.maxTeamMembers || 1,
       minTeamMembers: body.minTeamMembers || 1,
+      isFree: body.isFree ? '1' : '0',
+      origin: body.origin || 'internal',
     };
 
     // Support isActive toggle

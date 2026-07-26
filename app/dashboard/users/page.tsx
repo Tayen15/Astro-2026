@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Pencil, Trash2, X, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 10;
 
 interface User {
   id: string;
@@ -35,6 +38,8 @@ export default function UsersPage() {
     u.email.toLowerCase().includes(search.toLowerCase()) ||
     u.name?.toLowerCase().includes(search.toLowerCase())
   );
+  const [page, setPage] = useState(1);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -161,14 +166,14 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.length === 0 ? (
+              {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-slate-400 text-sm">
                     {search ? 'Tidak ditemukan.' : 'Belum ada user.'}
                   </td>
                 </tr>
               ) : (
-                filtered.map((u, i) => (
+                paginated.map((u, i) => (
                   <tr key={u.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3.5 text-slate-400 text-xs font-mono">{i + 1}</td>
                     <td className="px-5 py-3.5">
@@ -218,6 +223,8 @@ export default function UsersPage() {
           </table>
         </div>
       </div>
+
+      <Pagination currentPage={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
 
       {/* ─── Modal Create / Edit ─── */}
       <AnimatePresence>

@@ -48,6 +48,8 @@ export const competitions = pgTable('competitions', {
   maxTeamMembers: integer('max_team_members').default(1),
   minTeamMembers: integer('min_team_members').default(1),
   membersRequired: text('members_required').default('optional'), // 'optional' | 'required'
+  isFree: text('is_free').default('0'), // '0' = bayar, '1' = gratis
+  origin: text('origin').default('internal'), // 'internal' | 'external'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -144,5 +146,24 @@ export const otpCodes = pgTable('otp_codes', {
   password: text('password'),
   expiresAt: timestamp('expires_at').notNull(),
   usedAt: timestamp('used_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/* ─── Sponsors ─── */
+export const sponsors = pgTable('sponsors', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  tier: text('tier').notNull().default('gold'), // 'platinum' | 'gold' | 'silver'
+  website: text('website'),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/* ─── Media Partners ─── */
+export const mediaPartners = pgTable('media_partners', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  website: text('website'),
+  sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
         maxTeamMembers: body.maxTeamMembers || 1,
         minTeamMembers: body.minTeamMembers || 1,
         membersRequired: body.membersRequired || 'optional',
+        isFree: body.isFree ? '1' : '0',
+        origin: body.origin || 'internal',
       })
       .returning();
 

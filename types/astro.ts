@@ -22,6 +22,8 @@ export interface Competition {
   maxTeamMembers?: number;
   minTeamMembers?: number;
   registrationUrl: string;
+  isFree?: boolean;
+  origin?: 'internal' | 'external';
   contactPerson: {
     name: string;
     whatsapp: string;

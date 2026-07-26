@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/src/db';
-import { registrations } from '@/src/db/schema';
-import { eq } from 'drizzle-orm';
+import { competitions, registrations } from '@/src/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import { createClient } from '@/src/db/supabase/server';
 
 export async function GET(
@@ -35,6 +35,16 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
+    // Get current registration before update (to check status changes)
+    const [current] = await db
+      .select()
+      .from(registrations)
+      .where(eq(registrations.id, id));
+
+    if (!current) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
     const [updated] = await db
       .update(registrations)
       .set({
@@ -44,8 +54,30 @@ export async function PATCH(
       .where(eq(registrations.id, id))
       .returning();
 
-    if (!updated) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    // Auto-update filledSlots when paymentStatus changes to/from 'paid'
+    if (body.paymentStatus && body.paymentStatus !== current.paymentStatus) {
+      const wasPaid = current.paymentStatus === 'paid';
+      const nowPaid = body.paymentStatus === 'paid';
+      const isTeam = current.type === 'team';
+      const delta = isTeam ? 1 : 1; // Each approved registration = 1 slot
+
+      if (!wasPaid && nowPaid) {
+        // Just approved -> increment filledSlots
+        await db
+          .update(competitions)
+          .set({
+            filledSlots: sql`${competitions.filledSlots} + ${delta}`,
+          })
+          .where(eq(competitions.id, current.competitionId));
+      } else if (wasPaid && !nowPaid) {
+        // Un-approved -> decrement filledSlots (min 0)
+        await db
+          .update(competitions)
+          .set({
+            filledSlots: sql`GREATEST(${competitions.filledSlots} - ${delta}, 0)`,
+          })
+          .where(eq(competitions.id, current.competitionId));
+      }
     }
 
     return NextResponse.json({ data: updated });

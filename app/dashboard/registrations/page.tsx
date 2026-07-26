@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/src/db/supabase/client';
 import Link from 'next/link';
 import { Search, Filter, ChevronRight, ClipboardList, Loader2 } from 'lucide-react';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 10;
 
 const statusColors: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -50,6 +53,7 @@ export default function RegistrationsPage() {
 
   const displayed = tab === 'mine' ? myRegistrations : registrations;
 
+  const [page, setPage] = useState(1);
   const filtered = displayed.filter((reg: any) => {
     const matchSearch = !search ||
       reg.fullName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,6 +63,7 @@ export default function RegistrationsPage() {
     const matchLomba = !lombaFilter || reg.competitionName === lombaFilter;
     return matchSearch && matchStatus && matchLomba;
   });
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
     return (
@@ -161,7 +166,7 @@ export default function RegistrationsPage() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((reg: any, i: number) => (
+                paginated.map((reg: any, i: number) => (
                   <tr key={reg.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3.5 text-slate-400 text-xs font-mono">{i + 1}</td>
                     <td className="px-5 py-3.5">
@@ -206,6 +211,8 @@ export default function RegistrationsPage() {
           </table>
         </div>
       </div>
+
+      <Pagination currentPage={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
     </div>
   );
 }

@@ -11,7 +11,6 @@ import SponsorSection from '@/components/SponsorSection';
 import FAQSection from '@/components/FAQSection';
 import Footer from '@/components/Footer';
 import astroData from '@/data/astro-data.json';
-import { sponsors, mediaPartners } from '@/data/sponsorData';
 
 const fallbackData = astroData as AstroData;
 
@@ -55,6 +54,8 @@ export default async function Home() {
         name: c.contactName || '',
         whatsapp: c.contactWhatsapp || '',
       },
+      isFree: c.isFree === '1',
+      origin: c.origin || 'internal',
     })),
     faqs: dbFaqs.map((f: any) => ({
       q: f.question,
@@ -71,7 +72,7 @@ export default async function Home() {
         <AboutSection competitions={data.competitions} />
         <TimelineSection timeline={data.timeline} />
         <FAQSection faqs={data.faqs} />
-        <SponsorSection sponsors={sponsors} mediaPartners={mediaPartners} />
+        <SponsorSection />
       </main>
       <Footer />
     </>

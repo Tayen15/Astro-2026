@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Plus, Loader2, Pencil, Trash2, Check, X, ChevronUp, ChevronDown } from 'lucide-react';
 import DeleteModal from '@/components/DeleteModal';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 10;
 
 interface FAQItem {
   id: number;
@@ -21,6 +24,7 @@ export default function FAQPage() {
   const [saving, setSaving] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [page, setPage] = useState(1);
 
   const fetchFaqs = async () => {
     const res = await fetch('/api/faqs');
@@ -106,6 +110,8 @@ export default function FAQPage() {
     return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
   }
 
+  const faqPaginated = faqs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <div className="space-y-6 max-w-7xl">
       <div className="flex items-center justify-between">
@@ -174,7 +180,7 @@ export default function FAQPage() {
         style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
       >
         <div className="divide-y divide-slate-100">
-          {faqs.map((faq, idx) => (
+          {faqPaginated.map((faq, idx) => (
             <div key={faq.id} className="p-5">
               {editingId === faq.id ? (
                 <div className="space-y-3">
@@ -237,6 +243,8 @@ export default function FAQPage() {
           ))}
         </div>
       </div>
+
+      <Pagination currentPage={page} totalItems={faqs.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
 
       {/* Delete Modal */}
       <DeleteModal

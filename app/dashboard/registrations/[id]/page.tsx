@@ -56,7 +56,7 @@ export default async function RegistrationDetailPage({
   const StatusIcon = statusConfig[reg.paymentStatus]?.icon || statusConfig.pending.icon;
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-7xl">
       {/* Back + Header */}
       <div className="flex items-center justify-between">
         <div>

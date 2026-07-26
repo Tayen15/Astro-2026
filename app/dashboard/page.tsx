@@ -2,6 +2,7 @@ import { db } from '@/src/db';
 import { competitions, registrations } from '@/src/db/schema';
 import { count, sql, eq } from 'drizzle-orm';
 import { Users, Trophy, Banknote, CheckCircle2 } from 'lucide-react';
+import OverviewCharts from '@/components/OverviewCharts';
 
 export default async function DashboardOverview() {
   const totalRegistrations = await db.select({ count: count() }).from(registrations);
@@ -88,6 +89,9 @@ export default async function DashboardOverview() {
           );
         })}
       </div>
+
+      {/* Charts */}
+      <OverviewCharts />
 
       {/* Per Competition Table */}
       <div className="bg-white border border-slate-200"
