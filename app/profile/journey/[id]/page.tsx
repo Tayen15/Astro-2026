@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowLeft, Users, Calendar, Star, Award, ArrowRight, MapPin } from 'lucide-react';
+import { ArrowLeft, Users, Award, Target, Sparkles, ArrowRight, Monitor, Mic2, Trophy, Handshake, Camera, Group } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -26,9 +26,9 @@ const journeyData = [
       'Mendapatkan apresiasi dari universitas',
     ],
     docs: [
-      { label: 'Peserta coding competition', emoji: '💻' },
-      { label: 'Session seminar teknologi', emoji: '🎤' },
-      { label: 'Foto bersama pemenang', emoji: '🏆' },
+      { label: 'Peserta coding competition', icon: Monitor },
+      { label: 'Session seminar teknologi', icon: Mic2 },
+      { label: 'Foto bersama pemenang', icon: Trophy },
     ],
   },
   {
@@ -48,9 +48,9 @@ const journeyData = [
       'Liputan media yang lebih luas',
     ],
     docs: [
-      { label: 'Presentasi finalis', emoji: '📊' },
-      { label: 'Persiapan panitia', emoji: '🤝' },
-      { label: 'Sesi foto bersama', emoji: '📸' },
+      { label: 'Presentasi finalis', icon: Monitor },
+      { label: 'Persiapan panitia', icon: Handshake },
+      { label: 'Sesi foto bersama', icon: Camera },
     ],
   },
   {
@@ -70,9 +70,9 @@ const journeyData = [
       'Pengalaman peserta premium',
     ],
     docs: [
-      { label: 'Interaksi peserta', emoji: '🗣️' },
-      { label: 'Dokumentasi tim', emoji: '👥' },
-      { label: 'Moment awarding', emoji: '🎉' },
+      { label: 'Interaksi peserta', icon: Group },
+      { label: 'Dokumentasi tim', icon: Camera },
+      { label: 'Moment awarding', icon: Trophy },
     ],
   },
   {
@@ -92,10 +92,24 @@ const journeyData = [
       'Inovasi tanpa batas',
     ],
     docs: [
-      { label: 'Coming soon — persiapkan dirimu!', emoji: '🚀' },
+      { label: 'Coming soon — persiapkan dirimu!', icon: Sparkles },
     ],
   },
 ];
+
+/* ─── Icon map per label for docs ─── */
+const iconMap: Record<string, typeof Monitor> = {
+  'Peserta coding competition': Monitor,
+  'Session seminar teknologi': Mic2,
+  'Foto bersama pemenang': Trophy,
+  'Presentasi finalis': Monitor,
+  'Persiapan panitia': Handshake,
+  'Sesi foto bersama': Camera,
+  'Interaksi peserta': Group,
+  'Dokumentasi tim': Camera,
+  'Moment awarding': Trophy,
+  'Coming soon': Sparkles,
+};
 
 export default function JourneyDetailPage() {
   const params = useParams();
@@ -118,61 +132,73 @@ export default function JourneyDetailPage() {
       <Navbar />
 
       {/* ═══ HERO BANNER ═══ */}
-      <section className={`relative pt-28 pb-20 md:pt-36 md:pb-28 bg-gradient-to-br ${data.color} overflow-hidden`}>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-[100px]" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-[120px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white rounded-full blur-[150px]" />
+      <section className={`relative pt-28 pb-24 md:pt-36 md:pb-32 bg-gradient-to-br ${data.color} overflow-hidden`}>
+        {/* Radial glow */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 -left-[10%] w-[40%] h-[50%] bg-white/20 blur-[120px] rounded-full" />
+          <div className="absolute bottom-1/4 -right-[10%] w-[40%] h-[50%] bg-white/10 blur-[100px] rounded-full" />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+            {/* Back */}
             <Link
               href="/profile"
-              className="inline-flex items-center gap-2 text-white/80 hover:text-white text-xs font-bold uppercase tracking-wider mb-8 transition-colors"
+              className="inline-flex items-center gap-2 text-white/70 hover:text-white text-[11px] font-bold uppercase tracking-wider mb-10 transition-colors group"
             >
-              <ArrowLeft className="w-4 h-4" /> Kembali ke Profile
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              Back to Journey
             </Link>
 
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-[10px] font-black uppercase tracking-wider mb-4 border border-white/20">
-                  <Calendar className="w-3 h-3" /> ASTRO {data.year}
-                </div>
-                <h1 className="font-masterpiece text-4xl md:text-6xl lg:text-7xl text-white leading-tight drop-shadow-lg">
+            <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-end">
+              {/* Title */}
+              <div className="lg:col-span-8">
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-white/90 bg-white/15 border border-white/25 backdrop-blur-sm mb-5"
+                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                >
+                  ASTRO {data.year}
+                </span>
+                <h1 className="font-masterpiece text-4xl md:text-6xl lg:text-7xl text-white leading-[0.95] drop-shadow-lg">
                   {data.theme}
                 </h1>
               </div>
 
-              <div className="flex gap-4 shrink-0">
-                {data.participants > 0 ? (
-                  <div className="text-center bg-white/15 backdrop-blur-md rounded-xl px-5 py-3 border border-white/20">
-                    <div className="text-2xl font-black text-white">{data.participants}+</div>
-                    <div className="text-[9px] font-bold text-white/70 uppercase tracking-wider">Peserta</div>
+              {/* Stats row */}
+              <div className="lg:col-span-4 flex gap-3 flex-wrap">
+                {data.participants > 0 && (
+                  <div className="flex-1 min-w-[100px] bg-white/10 backdrop-blur-sm border border-white/15 p-4 text-center"
+                    style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+                  >
+                    <div className="text-2xl md:text-3xl font-black text-white font-space-grotesk">{data.participants}+</div>
+                    <div className="text-[9px] font-bold text-white/60 uppercase tracking-wider mt-1">Peserta</div>
                   </div>
-                ) : null}
-                {data.universities > 0 ? (
-                  <div className="text-center bg-white/15 backdrop-blur-md rounded-xl px-5 py-3 border border-white/20">
-                    <div className="text-2xl font-black text-white">{data.universities}+</div>
-                    <div className="text-[9px] font-bold text-white/70 uppercase tracking-wider">Universitas</div>
+                )}
+                {data.universities > 0 && (
+                  <div className="flex-1 min-w-[100px] bg-white/10 backdrop-blur-sm border border-white/15 p-4 text-center"
+                    style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+                  >
+                    <div className="text-2xl md:text-3xl font-black text-white font-space-grotesk">{data.universities}+</div>
+                    <div className="text-[9px] font-bold text-white/60 uppercase tracking-wider mt-1">Universitas</div>
                   </div>
-                ) : null}
-                <div className="text-center bg-white/15 backdrop-blur-md rounded-xl px-5 py-3 border border-white/20">
-                  <div className="text-2xl font-black text-white">{data.competitions}</div>
-                  <div className="text-[9px] font-bold text-white/70 uppercase tracking-wider">Cabang Lomba</div>
+                )}
+                <div className="flex-1 min-w-[100px] bg-white/10 backdrop-blur-sm border border-white/15 p-4 text-center"
+                  style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
+                >
+                  <div className="text-2xl md:text-3xl font-black text-white font-space-grotesk">{data.competitions}</div>
+                  <div className="text-[9px] font-bold text-white/60 uppercase tracking-wider mt-1">Cabang Lomba</div>
                 </div>
               </div>
             </div>
           </motion.div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-white" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-white" />
       </section>
 
       {/* ═══ CONTENT ═══ */}
-      <section className="py-16 md:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
+      <section className="py-16 md:py-24">
+        <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
             {/* Left — Description & Highlights */}
             <div className="lg:col-span-7">
               <motion.div
@@ -181,18 +207,19 @@ export default function JourneyDetailPage() {
                 viewport={{ once: true }}
                 variants={fadeUp}
               >
-                <div className="accent-line mb-3" />
-                <h2 className="font-masterpiece text-3xl md:text-4xl text-slate-900 leading-tight mb-6">
-                  Tentang <br />
-                  <span className="text-astro-cyan">ASTRO {data.year}</span>
+                <div className="w-16 h-[3px] bg-astro-cyan mb-5" />
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[0.95] mb-6">
+                  Tentang ASTRO
+                  <br />
+                  <span className="text-astro-cyan">{data.year}</span>
                 </h2>
 
-                <p className="text-sm md:text-base text-slate-600 leading-relaxed mb-8">
+                <p className="text-sm md:text-base text-slate-600 leading-relaxed mb-10 max-w-2xl">
                   {data.description}
                 </p>
 
-                <h3 className="text-xs font-black text-astro-cyan uppercase tracking-[0.2em] mb-4">Highlights</h3>
-                <div className="grid sm:grid-cols-2 gap-3 mb-8">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-astro-cyan mb-5">Highlights</h3>
+                <div className="grid sm:grid-cols-2 gap-3">
                   {data.highlights.map((h, i) => (
                     <motion.div
                       key={i}
@@ -200,9 +227,12 @@ export default function JourneyDetailPage() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.05 }}
-                      className="flex items-center gap-3 text-sm text-slate-700 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100"
+                      className="flex items-center gap-3 text-sm text-slate-700 bg-slate-50 border border-slate-200/60 px-4 py-3"
+                      style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
                     >
-                      <Star className="w-4 h-4 text-astro-cyan shrink-0" fill="currentColor" />
+                      <span className="w-5 h-5 rounded-full bg-astro-cyan/10 text-astro-cyan flex items-center justify-center shrink-0">
+                        <Target className="w-3 h-3" />
+                      </span>
                       {h}
                     </motion.div>
                   ))}
@@ -210,65 +240,81 @@ export default function JourneyDetailPage() {
               </motion.div>
             </div>
 
-            {/* Right — Stats & Achievement */}
+            {/* Right — Sidebar achievement card */}
             <div className="lg:col-span-5">
               <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={fadeUp}
-                className="bg-gradient-to-br from-sky-50 to-cyan-50 rounded-2xl border border-sky-100 p-6 md:p-8 sticky top-24"
+                className="sticky top-28"
               >
-                <div className="flex items-center gap-3 mb-5">
-                  <Award className="w-6 h-6 text-astro-cyan" />
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Pencapaian</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white/80 rounded-xl p-4 border border-sky-100">
-                    <p className="text-sm font-black text-slate-900">{data.achievement}</p>
+                <div className="bg-gradient-to-br from-cyan-50 to-sky-50 border border-cyan-100/80 p-8"
+                  style={{ clipPath: 'polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%)' }}
+                >
+                  {/* Header */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-astro-cyan flex items-center justify-center shrink-0">
+                      <Award className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Pencapaian</h3>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white/80 rounded-xl p-4 border border-sky-100 text-center">
+                  {/* Achievement block */}
+                  <div className="bg-white/80 border border-cyan-100/80 p-5 mb-5"
+                    style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Trophy className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-sm font-bold text-slate-900">{data.achievement}</p>
+                    </div>
+                  </div>
+
+                  {/* Mini stats grid */}
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    <div className="bg-white/80 border border-cyan-100/70 p-4 text-center"
+                      style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                    >
                       <Users className="w-4 h-4 text-astro-cyan mx-auto mb-1" />
-                      <p className="text-lg font-black text-slate-900">
-                        {data.participants > 0 ? data.participants.toLocaleString() : '—'}
-                      </p>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Peserta</p>
+                      <p className="text-lg font-black text-slate-900">{data.participants > 0 ? data.participants.toLocaleString() : '-'}</p>
+                      <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Peserta</p>
                     </div>
-                    <div className="bg-white/80 rounded-xl p-4 border border-sky-100 text-center">
-                      <MapPin className="w-4 h-4 text-astro-cyan mx-auto mb-1" />
-                      <p className="text-lg font-black text-slate-900">
-                        {data.universities > 0 ? `${data.universities}+` : '—'}
-                      </p>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Universitas</p>
+                    <div className="bg-white/80 border border-cyan-100/70 p-4 text-center"
+                      style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                    >
+                      <Award className="w-4 h-4 text-astro-cyan mx-auto mb-1" />
+                      <p className="text-lg font-black text-slate-900">{data.universities > 0 ? `${data.universities}+` : '-'}</p>
+                      <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Universitas</p>
+                    </div>
+                    <div className="bg-white/80 border border-cyan-100/70 p-4 text-center"
+                      style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                    >
+                      <Target className="w-4 h-4 text-astro-cyan mx-auto mb-1" />
+                      <p className="text-lg font-black text-slate-900">{data.competitions}</p>
+                      <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Lomba</p>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-6 pt-6 border-t border-sky-200/60">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      {parseInt(data.year) > 2023 ? (
-                        <Link
-                          href={`/profile/journey/${String(parseInt(data.year) - 1)}`}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-astro-cyan transition-colors"
-                        >
-                          <ArrowLeft className="w-3 h-3" /> {parseInt(data.year) - 1}
-                        </Link>
-                      ) : null}
-                    </div>
-                    <div>
-                      {parseInt(data.year) < 2026 ? (
-                        <Link
-                          href={`/profile/journey/${String(parseInt(data.year) + 1)}`}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-astro-cyan transition-colors"
-                        >
-                          {parseInt(data.year) + 1} <ArrowRight className="w-3 h-3" />
-                        </Link>
-                      ) : null}
-                    </div>
+                  {/* Navigation between years */}
+                  <div className="flex justify-between items-center pt-5 border-t border-cyan-200/60">
+                    {parseInt(data.year) > 2023 ? (
+                      <Link
+                        href={`/profile/journey/${String(parseInt(data.year) - 1)}`}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-astro-cyan transition-colors group"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+                        {parseInt(data.year) - 1}
+                      </Link>
+                    ) : <div />}
+                    {parseInt(data.year) < 2026 ? (
+                      <Link
+                        href={`/profile/journey/${String(parseInt(data.year) + 1)}`}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-astro-cyan transition-colors group"
+                      >
+                        {parseInt(data.year) + 1}
+                        <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                      </Link>
+                    ) : <div />}
                   </div>
                 </div>
               </motion.div>
@@ -281,42 +327,48 @@ export default function JourneyDetailPage() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={fadeUp}
-            className="mt-16 md:mt-20"
+            className="mt-20 md:mt-28"
           >
-            <div className="text-center mb-10">
-              <div className="accent-line mx-auto mb-4" />
-              <h2 className="font-masterpiece text-3xl md:text-4xl text-slate-900 leading-tight mb-2">
-                Dokumentasi <span className="text-astro-cyan">ASTRO {data.year}</span>
+            <div className="text-center mb-12">
+              <div className="w-16 h-[3px] bg-astro-cyan mx-auto mb-4" />
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-2">
+                Dokumentasi
               </h2>
-              <p className="text-sm text-slate-500">Momen-momen berharga selama perjalanan ASTRO</p>
+              <p className="text-sm text-slate-500 font-light">Momen-momen berharga selama perjalanan ASTRO {data.year}</p>
             </div>
 
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {data.docs.map((doc, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={reduce ? {} : { y: -6 }}
-                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-100 to-sky-50 border border-slate-200/60 aspect-[4/3] flex flex-col items-center justify-center cursor-pointer"
-                >
-                  <span className="text-5xl mb-3 opacity-60 group-hover:scale-110 transition-transform duration-300">
-                    {doc.emoji}
-                  </span>
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wider text-center px-4">
-                    {doc.label}
-                  </p>
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/30 backdrop-blur-0 group-hover:backdrop-blur-sm transition-all duration-300 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className="text-[10px] font-black text-astro-cyan uppercase tracking-wider bg-white/80 px-3 py-1.5 rounded-full">
-                        Klik untuk lihat
-                      </span>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+              {data.docs.map((doc, i) => {
+                const DocIcon = doc.icon || (iconMap[doc.label] || Monitor);
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    whileHover={reduce ? {} : { y: -6 }}
+                    className="group relative overflow-hidden aspect-[4/3] flex flex-col items-center justify-center cursor-pointer border border-slate-200/80 hover:border-astro-cyan/30 bg-gradient-to-br from-slate-50 to-cyan-50/30"
+                    style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
+                  >
+                    <div className="w-14 h-14 rounded-full bg-white border border-slate-200/80 group-hover:border-astro-cyan/40 flex items-center justify-center mb-4 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-cyan-500/10 group-hover:scale-110">
+                      <DocIcon className="w-6 h-6 text-slate-400 group-hover:text-astro-cyan transition-colors duration-300" />
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider text-center px-6">
+                      {doc.label}
+                    </p>
+                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-all duration-300 flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <span className="text-[9px] font-black text-astro-cyan uppercase tracking-wider bg-white/90 px-3 py-1.5"
+                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                        >
+                          Lihat
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         </div>

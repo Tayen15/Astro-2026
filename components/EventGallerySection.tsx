@@ -408,26 +408,37 @@ export default function EventGallerySection() {
               </div>
 
               {/* Main Lightbox Image View */}
-              <div className="relative w-full aspect-[16/9] sm:aspect-[16/10] bg-slate-950 overflow-hidden border border-slate-200">
+              <div className="relative w-full aspect-[16/9] sm:aspect-[16/10] bg-slate-200 overflow-hidden border border-slate-200">
+                {/* Skeleton shimmer while loading */}
+                <div className="absolute inset-0 bg-slate-200 z-10">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full animate-[shimmer_1.2s_ease-in-out_infinite]" />
+                </div>
+
                 <Image
+                  key={filteredPhotos[selectedPhotoIndex].imageUrl}
                   src={filteredPhotos[selectedPhotoIndex].imageUrl}
                   alt={filteredPhotos[selectedPhotoIndex].title}
                   fill
-                  className="object-cover"
+                  className="object-cover relative z-20"
                   priority
                   sizes="(max-width: 1280px) 100vw, 1200px"
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    const skeleton = img.parentElement?.querySelector('div:first-child');
+                    if (skeleton) (skeleton as HTMLElement).style.display = 'none';
+                  }}
                 />
 
                 {/* Left/Right Lightbox Navigation Arrows */}
                 <button
                   onClick={handlePrevPhoto}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-3 bg-slate-950/70 hover:bg-astro-cyan hover:text-slate-950 text-white border border-white/20 transition-all rounded-full shadow-lg cursor-pointer"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-3 bg-slate-950/70 hover:bg-astro-cyan hover:text-slate-950 text-white border border-white/20 transition-all rounded-full shadow-lg cursor-pointer z-30"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
                 <button
                   onClick={handleNextPhoto}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-slate-950/70 hover:bg-astro-cyan hover:text-slate-950 text-white border border-white/20 transition-all rounded-full shadow-lg cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-slate-950/70 hover:bg-astro-cyan hover:text-slate-950 text-white border border-white/20 transition-all rounded-full shadow-lg cursor-pointer z-30"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>

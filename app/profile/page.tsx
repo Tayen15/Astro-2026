@@ -6,13 +6,14 @@ import { motion, AnimatePresence, useInView, useReducedMotion } from 'motion/rea
 import {
   ArrowDown, ExternalLink, ArrowRight, Calendar,
   Globe, Mail, MessageCircle, Users, Star, MapPin,
-  Sparkles, Award, ShieldCheck, Eye, Target,
+  Sparkles, Award, ShieldCheck, Eye, Target, X,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CommitteeSection from '@/components/CommitteeSection';
 import EventGallerySection from '@/components/EventGallerySection';
 import SocialMediaSection from '@/components/SocialMediaSection';
+import ProfileHero from '@/components/ProfileHero';
 
 const MotionImage = motion.create(Image);
 
@@ -59,10 +60,10 @@ const clouds = [
 
 /* ─── Journey ─── */
 const journey = [
-  { year: '2023', theme: 'First Step to The Stars', participants: 150, achievement: 'Pertama kali diselenggarakan dengan 4 cabang lomba' },
-  { year: '2024', theme: 'Rising to The Stars', participants: 320, achievement: 'Bertambah 2 cabang lomba baru, menjangkau 15 universitas' },
-  { year: '2025', theme: 'Beyond The Stars', participants: 500, achievement: 'Skala nasional dengan 8 cabang lomba dan 25+ universitas' },
-  { year: '2026', theme: 'Where Innovation Meets The Stars', participants: 0, achievement: 'Edisi terbesar dengan inovasi dan dampak yang lebih luas' },
+  { year: '2023', theme: 'First Step to The Stars', participants: 150, universities: 8, competitions: 4, achievement: 'Pertama kali diselenggarakan dengan 4 cabang lomba', description: 'ASTRO 2023 merupakan edisi perdana yang menandai langkah awal perjalanan besar. Diselenggarakan dengan 4 cabang lomba utama yang diikuti oleh 150+ peserta dari 8 universitas di Indonesia.', highlights: ['4 cabang lomba pertama', '150+ peserta dari 8 universitas', 'Acara perdana yang sukses', 'Mendapatkan apresiasi dari universitas'] },
+  { year: '2024', theme: 'Rising to The Stars', participants: 320, universities: 15, competitions: 6, achievement: 'Bertambah 2 cabang lomba baru, menjangkau 15 universitas', description: 'ASTRO 2024 mengalami pertumbuhan signifikan dengan bertambahnya 2 cabang lomba baru, menjangkau lebih dari 15 universitas, dan diikuti oleh 320+ peserta.', highlights: ['6 cabang lomba (+2 baru)', '320+ peserta dari 15 universitas', 'Kolaborasi dengan sponsor', 'Liputan media yang lebih luas'] },
+  { year: '2025', theme: 'Beyond The Stars', participants: 500, universities: 25, competitions: 8, achievement: 'Skala nasional dengan 8 cabang lomba dan 25+ universitas', description: 'ASTRO 2025 mencapai skala nasional dengan 8 cabang lomba dan partisipasi dari 25+ universitas seluruh Indonesia. Dengan 500+ peserta, acara ini menjadi platform kompetisi teknologi yang diperhitungkan.', highlights: ['8 cabang lomba nasional', '500+ peserta nasional', '25+ universitas se-Indonesia', 'Pengalaman peserta premium'] },
+  { year: '2026', theme: 'Where Innovation Meets The Stars', participants: 0, universities: 0, competitions: 10, achievement: 'Edisi terbesar dengan inovasi dan dampak yang lebih luas', description: 'ASTRO 2026 hadir sebagai edisi terbesar dengan konsep yang lebih inovatif, menjangkau lebih banyak peserta, dan memberikan dampak yang lebih luas.', highlights: ['10+ cabang lomba', 'Konsep acara baru', 'Dampak yang lebih luas', 'Inovasi tanpa batas'] },
 ];
 
 /* ─── Categories ─── */
@@ -89,84 +90,18 @@ const committees = [
 
 export default function ProfilePage() {
   const reduce = useReducedMotion();
+  const [showAllJourney, setShowAllJourney] = useState(false);
+  const [activeJourneyYear, setActiveJourneyYear] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* ════════════ 1. HERO — STATIC ════════════ */}
-      <section className="relative h-screen flex flex-col justify-center overflow-hidden">
-        {/* Background image */}
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80"
-            alt=""
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70 z-10" />
-        </div>
-
-        {/* Floating blobs */}
-        {blobs.map((b, i) => (
-          <MotionImage key={`bh-${i}`} src={b.src} alt="" width={b.w} height={b.h}
-            animate={reduce ? undefined : { y: [0, -16 + (i % 3) * 4, 0], rotate: [0, i % 2 === 0 ? 5 : -5, 0] }}
-            transition={{ duration: b.dur + 2, repeat: Infinity, ease: 'easeInOut' }} className={b.className} />
-        ))}
-        {clouds.map((c, i) => (
-          <MotionImage key={`ch-${i}`} src={c.src} alt="" width={c.w} height={c.h}
-            animate={reduce ? undefined : { x: [0, i === 0 ? 20 : -20, 0] }}
-            transition={{ duration: c.dur, repeat: Infinity, ease: 'easeInOut' }} className={c.className} />
-        ))}
-
-        {/* Content */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
-        >
-          {/* Badge */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] mb-6"
-          >
-            <Star className="w-3 h-3" fill="currentColor" /> INNOVATION
-          </motion.div>
-
-          {/* Title */}
-          <h1 className="font-masterpiece text-5xl md:text-7xl lg:text-8xl text-white leading-tight mb-4 drop-shadow-lg">
-            THE NEXT <br />
-            <span className="bg-gradient-to-r from-astro-cyan via-cyan-300 to-sky-200 bg-clip-text text-transparent">GENERATION</span>
-          </h1>
-
-          {/* Tagline */}
-          <p className="text-sm md:text-base text-white/60 font-light max-w-xl mx-auto mb-2">
-            A yearly technology competition that brings together innovators, creators, and technology enthusiasts to explore ideas beyond boundaries.
-          </p>
-
-          {/* CTA Buttons — parallelogram style */}
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
-            <a href="#about-event"
-              className="group flex items-center gap-2 px-8 py-3.5 bg-astro-cyan text-slate-950 font-black text-xs tracking-wider uppercase skew-x-[-8deg] transition-all duration-200 hover:bg-cyan-400 hover:shadow-[0_12px_40px_rgba(0,188,212,0.4)] hover:-translate-y-0.5 cursor-pointer"
-            >
-              <span className="block skew-x-[8deg] flex items-center gap-2"><ArrowDown className="w-4 h-4" /> Explore Now</span>
-            </a>
-            <a href="#contact"
-              className="group flex items-center gap-2 px-8 py-3.5 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white font-bold text-xs tracking-wider uppercase skew-x-[-8deg] transition-all duration-200 hover:bg-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 cursor-pointer"
-            >
-              <span className="block skew-x-[8deg]">Contact Us</span>
-            </a>
-          </div>
-        </motion.div>
-      </section>
+      {/* ════════════ 1. HERO — CINEMATIC SPLIT ════════════ */}
+      <ProfileHero />
 
       {/* ════════════ 2. ABOUT ASTRO ════════════ */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-b from-sky-400 via-sky-300 to-sky-200 overflow-hidden">
+      <section className="relative py-20 md:py-28 bg-gradient-to-b from-sky-100 via-sky-200 to-sky-200 overflow-hidden">
         {/* Floating blobs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -400,216 +335,280 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {/* ════════════ 4. ASTRO JOURNEY — ANCIENT PARCHMENT MAP ════════════ */}
-      <section id="journey" className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-b from-sky-200 via-amber-950/20 to-sky-300">
-        {/* Floating bubbles */}
+      {/* ════════════ 4. ASTRO JOURNEY — CINEMATIC BENTO ════════════ */}
+      <section id="journey" className="relative py-28 md:py-36 overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-sky-200">
+        {/* Ambient radial glow */}
+        <div className="absolute top-1/3 -left-[20%] w-[40%] h-[50%] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-[10%] w-[30%] h-[40%] bg-sky-500/5 blur-[100px] rounded-full pointer-events-none" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-amber-900/80 text-[10px] font-black uppercase tracking-wider mb-4">
-              <MapPin className="w-3 h-3" fill="currentColor" /> Ancient Route
-            </div>
-            <h2 className="font-masterpiece text-4xl md:text-5xl lg:text-6xl text-amber-900 drop-shadow-lg leading-tight mb-3">
-              ASTRO <span className="text-amber-700">Journey</span>
+        {/* Floating clouds */}
+        <MotionImage
+          src="/assets/awan1.png"
+          alt=""
+          width={200}
+          height={140}
+          animate={reduce ? undefined : { x: [0, 18, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-[6%] left-[2%] w-28 h-auto md:w-52 md:h-auto object-contain pointer-events-none select-none z-0 opacity-30"
+        />
+        <MotionImage
+          src="/assets/awan2.png"
+          alt=""
+          width={240}
+          height={160}
+          animate={reduce ? undefined : { x: [0, -18, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-[18%] -right-4 w-32 h-auto md:w-56 md:h-auto object-contain pointer-events-none select-none z-0 opacity-25"
+        />
+        <MotionImage
+          src="/assets/awan1.png"
+          alt=""
+          width={160}
+          height={110}
+          animate={reduce ? undefined : { x: [0, 12, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute bottom-[15%] left-[4%] w-20 h-auto md:w-40 md:h-auto object-contain pointer-events-none select-none z-0 opacity-20"
+        />
+
+        <div className="relative z-10 max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+          {/* Section Header — centered */}
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center mb-20 md:mb-28"
+          >
+            <span className="text-[10px] font-extrabold tracking-[0.25em] uppercase text-slate-400 mb-4 block">
+              Milestones
+            </span>
+            <h2 className="font-masterpiece text-5xl md:text-7xl lg:text-8xl text-slate-900 leading-[0.9] mb-5">
+              ASTRO
+              <br />
+              <span className="text-astro-cyan">Journey</span>
             </h2>
-            <p className="text-sm text-amber-800/60 max-w-xl mx-auto">
-              Jejak perjalanan ASTRO dari masa ke masa. Klik setiap titik untuk melihat cerita dan dokumentasi lengkapnya.
+            <p className="text-sm md:text-base text-slate-500 font-light max-w-lg mx-auto">
+              Setiap tahun adalah babak baru dalam perjalanan menuju inovasi tanpa batas.
             </p>
           </motion.div>
 
-          {/* ── PARCHMENT MAP ── */}
-          <div className="relative max-w-5xl mx-auto">
-            {/* Parchment paper background — the map itself */}
-            <div className="absolute inset-0 -m-3 md:-m-4 overflow-hidden pointer-events-none z-0">
-              {/* Base parchment */}
-              <div className="absolute inset-0" style={{
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 30%, #fcd34d 60%, #fbbf24 100%)',
-                opacity: 0.35,
-              }} />
-              {/* Paper texture overlay */}
-              <div className="absolute inset-0 opacity-[0.12]" style={{
-                backgroundImage: `
-                  repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(120,70,20,0.05) 2px, rgba(120,70,20,0.05) 3px),
-                  repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(120,70,20,0.04) 3px, rgba(120,70,20,0.04) 4px)
-                `,
-              }} />
-              {/* Age spots / staining */}
-              <div className="absolute top-[10%] left-[5%] w-40 h-40 rounded-full bg-amber-600/10 blur-2xl" />
-              <div className="absolute bottom-[15%] right-[8%] w-48 h-48 rounded-full bg-amber-700/10 blur-2xl" />
-              <div className="absolute top-[50%] left-[40%] w-32 h-32 rounded-full bg-amber-600/8 blur-2xl" />
-              {/* Burn / torn edge top */}
-              <div className="absolute -top-1 left-0 right-0 h-6" style={{
-                background: 'linear-gradient(180deg, rgba(180,100,30,0.3) 0%, transparent 100%)',
-              }} />
-              {/* Burn / torn edge bottom */}
-              <div className="absolute -bottom-1 left-0 right-0 h-6" style={{
-                background: 'linear-gradient(0deg, rgba(180,100,30,0.3) 0%, transparent 100%)',
-              }} />
-              {/* Fold lines — horizontal creases */}
-              <div className="absolute top-1/3 left-0 right-0 h-px bg-amber-700/15" />
-              <div className="absolute top-2/3 left-0 right-0 h-px bg-amber-700/15" />
-              {/* Fold line — vertical center */}
-              <div className="absolute top-0 bottom-0 left-1/2 w-px bg-amber-700/10" />
-              {/* Torn edge decorations — irregular edges */}
-              <div className="absolute top-0 left-0 right-0 h-2" style={{
-                background: 'repeating-linear-gradient(90deg, transparent 0px, transparent 8px, rgba(180,100,30,0.15) 8px, rgba(180,100,30,0.15) 10px, transparent 10px, transparent 18px)',
-              }} />
-              <div className="absolute bottom-0 left-0 right-0 h-2" style={{
-                background: 'repeating-linear-gradient(90deg, transparent 0px, transparent 5px, rgba(180,100,30,0.12) 5px, rgba(180,100,30,0.12) 7px, transparent 7px, transparent 15px)',
-              }} />
-              <div className="absolute top-0 left-0 bottom-0 w-2" style={{
-                background: 'repeating-linear-gradient(180deg, transparent 0px, transparent 6px, rgba(180,100,30,0.12) 6px, rgba(180,100,30,0.12) 8px, transparent 8px, transparent 14px)',
-              }} />
-              <div className="absolute top-0 right-0 bottom-0 w-2" style={{
-                background: 'repeating-linear-gradient(180deg, transparent 0px, transparent 7px, rgba(180,100,30,0.1) 7px, rgba(180,100,30,0.1) 9px, transparent 9px, transparent 16px)',
-              }} />
-            </div>
+          {/* Journey Grid — bento style alternating */}
+          <div className="space-y-8 md:space-y-0 md:grid md:grid-cols-12 md:gap-6 lg:gap-8">
+            {journey.map((j, idx) => {
+              const isFuture = idx === journey.length - 1;
+              const isLarge = idx % 2 === 0;
 
-            {/* ── Glassmorphism wrapper over parchment ── */}
-            <div className="relative bg-white/20 backdrop-blur-[2px] border border-white/40 shadow-2xl z-10" style={{ clipPath: 'polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%)' }}>
-
-              {/* Decorative corner ornaments */}
-              <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-amber-700/30 z-20 pointer-events-none" />
-              <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-amber-700/30 z-20 pointer-events-none" />
-              <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-amber-700/30 z-20 pointer-events-none" />
-              <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-amber-700/30 z-20 pointer-events-none" />
-
-              {/* Compass rose decoration */}
-              <div className="absolute top-6 right-8 z-20 pointer-events-none opacity-30 hidden md:block">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <path d="M24 2L26 20L24 24L22 20L24 2Z" fill="#92400e" />
-                  <path d="M24 46L22 28L24 24L26 28L24 46Z" fill="#92400e" />
-                  <path d="M2 24L20 22L24 24L20 26L2 24Z" fill="#92400e" />
-                  <path d="M46 24L28 26L24 24L28 22L46 24Z" fill="#92400e" />
-                  <circle cx="24" cy="24" r="3" fill="none" stroke="#92400e" strokeWidth="1.5" />
-                  <circle cx="24" cy="24" r="8" fill="none" stroke="#92400e" strokeWidth="0.5" opacity="0.5" />
-                </svg>
-              </div>
-
-              {/* Title banner on map */}
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none hidden md:block">
-                <div className="px-5 py-1.5 bg-amber-800/20 backdrop-blur border border-amber-700/30" style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>
-                  <span className="text-[10px] font-black text-amber-900/60 uppercase tracking-[0.3em]">The Astro Chronicles</span>
-                </div>
-              </div>
-
-              {/* Map content */}
-              <div className="relative p-6 md:p-8 lg:p-12 z-10">
-                {/* Connecting route — old trade route style */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" preserveAspectRatio="xMidYMid meet">
-                  <motion.path
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    whileInView={{ pathLength: 1, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 2.5, ease: 'easeInOut' }}
-                    d={journey.map((_, i) => {
-                      const x = i % 2 === 0 ? 140 : 660;
-                      const y = 90 + i * 170;
-                      return `${i === 0 ? 'M' : 'L'}${x},${y}`;
-                    }).join(' ')}
-                    fill="none"
-                    stroke="#d97706"
-                    strokeWidth="2"
-                    strokeDasharray="4 6"
-                    className="drop-shadow-[0_0_4px_rgba(217,119,6,0.2)]"
-                  />
-                  {/* Route dots */}
-                  {journey.map((_, i) => {
-                    const x = i % 2 === 0 ? 140 : 660;
-                    const y = 90 + i * 170;
-                    return (
-                      <motion.circle
-                        key={`rd-${i}`}
-                        cx={x} cy={y}
-                        r="5"
-                        fill="#d97706"
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: i * 0.2 + 1, duration: 0.3 }}
-                        className="drop-shadow-[0_0_6px_rgba(217,119,6,0.4)]"
-                      />
-                    );
-                  })}
-                </svg>
-
-                {/* Journey items */}
-                {journey.map((j, idx) => {
-                  const isLeft = idx % 2 === 0;
-                  return (
-                    <motion.a
-                      key={j.year}
-                      href={`/profile/journey/${j.year}`}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                      className={`relative flex flex-col md:flex-row items-start gap-5 md:gap-8 mb-10 md:mb-16 last:mb-0 group cursor-pointer z-10 ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'}`}
+              return (
+                <motion.div
+                  key={j.year}
+                  initial={reduce ? false : { opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: idx * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className={`${isLarge ? 'md:col-span-7' : 'md:col-span-5'} ${idx === 2 ? 'md:col-start-1' : ''} ${idx === 3 ? 'md:col-start-8' : ''}`}
+                >
+                  <button
+                    onClick={() => { setShowAllJourney(true); setActiveJourneyYear(j.year); }}
+                    className="block h-full w-full text-left group"
+                  >
+                    <div className={`relative h-full bg-white border border-slate-200/80 hover:border-astro-cyan/30 p-8 md:p-10 transition-all duration-500 hover:shadow-xl hover:shadow-cyan-500/5 hover:-translate-y-1 overflow-hidden cursor-pointer ${
+                      isFuture ? 'border-astro-cyan/20 bg-gradient-to-br from-white to-cyan-50/30' : ''
+                    }`}
+                      style={{ clipPath: isLarge ? 'polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%)' : 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
                     >
-                      {/* Parallelogram Marker */}
-                      <div className="relative shrink-0 flex items-start justify-center w-full md:w-24 pt-1">
-                        <div className={`hidden md:block absolute top-0 ${isLeft ? 'left-12' : 'right-12'} w-0.5 h-full bg-gradient-to-b from-amber-600/40 via-amber-600/15 to-transparent -z-10`} />
-                        <div
-                          className="relative w-24 h-10 bg-gradient-to-r from-amber-700 to-amber-800 border-2 border-amber-500/60 flex items-center justify-center text-amber-100 text-xs font-black shadow-lg shadow-amber-900/30 z-10"
-                          style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+                      {/* Year watermark */}
+                      <div className="absolute -top-4 -right-2 text-[clamp(5rem,10vw,9rem)] font-black text-slate-900/[0.03] leading-none pointer-events-none select-none">
+                        {j.year}
+                      </div>
+
+                      {/* Year badge */}
+                      <div className="flex items-center gap-3 mb-6">
+                        <span className={`inline-flex items-center justify-center px-4 h-10 text-base font-black tracking-tight ${
+                          isFuture ? 'bg-astro-cyan text-white shadow-md shadow-cyan-500/20' : 'bg-slate-100 text-slate-700 group-hover:bg-astro-cyan group-hover:text-white'
+                        } transition-colors duration-300`}
+                          style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
                         >
                           {j.year}
-                        </div>
+                        </span>
+                        {isFuture && (
+                          <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1"
+                            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                          >
+                            Latest Edition
+                          </span>
+                        )}
                       </div>
 
-                      {/* Parallelogram Card — glassmorphism */}
-                      <div className="flex-1 w-full min-w-0">
-                        <div
-                          className="relative bg-white/30 backdrop-blur-xl border border-white/50 shadow-xl hover:bg-white/40 hover:border-white/70 transition-all duration-300"
-                          style={{ clipPath: 'polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%)' }}
-                        >
-                          {/* Aged accent stripe */}
-                          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-transparent opacity-70" />
-                          {/* Glass shine */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+                      {/* Theme */}
+                      <h3 className={`font-bold text-slate-900 leading-tight mb-4 ${
+                        isLarge ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl'
+                      }`}>
+                        {j.theme}
+                      </h3>
 
-                          <div className="p-5 md:p-6 relative">
-                            <div className="flex flex-wrap items-center gap-2.5 mb-2">
-                              <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider">{j.theme}</span>
-                              <span className="text-[9px] font-bold text-amber-800/50 uppercase tracking-wider flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                {j.participants > 0 ? `${j.participants.toLocaleString()}+` : 'Coming Soon'}
-                              </span>
-                            </div>
-                            <p className="text-xs md:text-sm text-amber-900/70 leading-relaxed mb-4 max-w-lg">
-                              {j.achievement}
-                            </p>
-                            {/* CTA parallelogram */}
-                            <div className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-700/70 border border-amber-500/40 text-amber-50 text-[9px] font-black uppercase tracking-wider transition-all duration-200 hover:bg-amber-600 hover:-translate-y-0.5 skew-x-[-8deg] shadow-lg shadow-amber-900/20">
-                              <span className="block skew-x-[8deg] flex items-center gap-1">
-                                Buka Peta <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                      {/* Achievement */}
+                      <p className="text-sm md:text-base text-slate-600 leading-relaxed mb-6 max-w-lg">
+                        {j.achievement}
+                      </p>
+
+                      {/* Stats + CTA */}
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                        <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                          <Users className="w-3.5 h-3.5 text-astro-cyan" />
+                          {j.participants > 0 ? `${j.participants.toLocaleString()}+ Peserta` : 'Coming Soon'}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-astro-cyan group-hover:gap-2.5 transition-all duration-300">
+                          <span>Lihat Detail</span>
+                          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                        </span>
                       </div>
-                    </motion.a>
-                  );
-                })}
 
-                {/* Bottom indicator */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  className="relative z-10 text-center mt-6 pt-4"
-                >
-                  <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 backdrop-blur-md border border-white/40 text-amber-900/60 text-[10px] font-bold uppercase tracking-widest hover:bg-white/30 hover:text-amber-900/80 transition-all duration-200 skew-x-[-8deg]">
-                    <span className="block skew-x-[8deg] flex items-center gap-1.5">
-                      <ArrowDown className="w-3 h-3" /> Lanjutkan Perjalanan
-                    </span>
-                  </div>
+                      {/* Corner accent */}
+                      <div className={`absolute top-0 ${isLarge ? 'right-0' : 'left-0'} w-12 h-1 bg-gradient-to-r from-astro-cyan to-transparent opacity-60`} />
+                    </div>
+                  </button>
                 </motion.div>
-              </div>
-            </div>
+              );
+            })}
           </div>
+
+          {/* View All Trigger Button */}
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center mt-12 md:mt-16"
+          >
+            <button
+              onClick={() => setShowAllJourney(true)}
+              className="inline-flex items-center gap-2.5 px-8 py-4 bg-slate-900 text-white font-bold text-xs tracking-wider uppercase transition-all duration-200 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer"
+              style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Lihat Semua Perjalanan</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          </motion.div>
         </div>
       </section>
+
+      {/* ═══ JOURNEY FULL OVERLAY ═══ */}
+      <AnimatePresence>
+        {showAllJourney && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/60 backdrop-blur-sm py-10 px-4"
+            onClick={() => setShowAllJourney(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.97 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-5xl bg-white shadow-2xl relative overflow-hidden rounded-2xl"
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowAllJourney(false)}
+                className="absolute top-4 right-4 z-20 w-10 h-10 bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer"
+                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+              >
+                <X className="w-4 h-4 text-slate-600" />
+              </button>
+
+              {/* Overlay header */}
+              <div className="bg-gradient-to-br from-sky-500 via-cyan-500 to-sky-600 p-8 md:p-12 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 blur-[60px] rounded-full" />
+                <div className="absolute bottom-0 left-0 w-60 h-60 bg-white/5 blur-[80px] rounded-full" />
+                <h2 className="font-masterpiece text-3xl md:text-5xl text-white leading-tight relative z-10">
+                  ASTRO <span className="text-cyan-200">Journey</span>
+                </h2>
+                <p className="text-white/70 text-sm mt-2 max-w-lg relative z-10">
+                  Jelajahi setiap babak perjalanan ASTRO dari awal hingga sekarang.
+                </p>
+              </div>
+
+              {/* Overlay content — all journeys full details */}
+              <div className="p-6 md:p-10 space-y-8 max-h-[70vh] overflow-y-auto">
+                {journey.map((j, idx) => {
+                  const isActive = activeJourneyYear === j.year;
+                  return (
+                    <motion.div
+                      key={j.year}
+                      initial={isActive ? { opacity: 0, y: 20 } : false}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.08, duration: 0.4 }}
+                      className={`border-l-4 pl-5 md:pl-8 py-4 transition-all duration-300 ${
+                        isActive ? 'border-astro-cyan bg-cyan-50/30 -ml-2 pl-7 md:pl-10 pr-4 md:pr-8 rounded-r-xl' : 'border-slate-200'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <span className={`inline-flex items-center justify-center w-12 h-8 text-sm font-black tracking-tight ${
+                          j.year === '2026' ? 'bg-astro-cyan text-white' : 'bg-slate-100 text-slate-700'
+                        }`}
+                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                        >
+                          {j.year}
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">{j.theme}</span>
+                        {j.year === '2026' && (
+                          <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5"
+                            style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                          >
+                            Latest
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-sm text-slate-600 leading-relaxed mb-4 max-w-3xl">
+                        {j.description}
+                      </p>
+
+                      {/* Highlights */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {j.highlights.map((h, i) => (
+                          <span key={i} className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1"
+                            style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                          >
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Stats row */}
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5 text-astro-cyan" />
+                          {j.participants > 0 ? `${j.participants}+` : '-'} Peserta
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Award className="w-3.5 h-3.5 text-astro-cyan" />
+                          {j.universities > 0 ? `${j.universities}+` : '-'} Universitas
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Target className="w-3.5 h-3.5 text-astro-cyan" />
+                          {j.competitions} Cabang Lomba
+                        </span>
+                        <a
+                          href={`/profile/journey/${j.year}`}
+                          className="inline-flex items-center gap-1 text-astro-cyan font-bold hover:gap-1.5 transition-all ml-auto"
+                        >
+                          Detail <ArrowRight className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ════════════ 5. EVENT GALLERY ════════════ */}
       <EventGallerySection />
