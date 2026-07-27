@@ -29,6 +29,13 @@
       "when": 1785051258972,
       "tag": "0003_fresh_jigsaw",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785131529491,
+      "tag": "0004_add_logo_to_sponsors",
+      "breakpoints": true
     }
   ]
 }

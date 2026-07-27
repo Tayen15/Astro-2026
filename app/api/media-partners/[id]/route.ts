@@ -13,6 +13,7 @@ export async function PUT(
     const [item] = await db.update(mediaPartners).set({
       name: body.name,
       website: body.website || null,
+      logo: body.logo || null,
       sortOrder: body.sortOrder,
     }).where(eq(mediaPartners.id, Number(id))).returning();
     if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 });

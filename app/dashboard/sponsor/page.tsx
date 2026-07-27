@@ -11,11 +11,13 @@ interface Sponsor {
   name: string;
   tier: string;
   website: string | null;
+  logo?: string | null;
 }
 interface MediaPartner {
   id: number;
   name: string;
   website: string | null;
+  logo?: string | null;
 }
 
 const PAGE_SIZE = 10;
@@ -28,11 +30,11 @@ export default function SponsorPage() {
   const [spPage, setSpPage] = useState(1);
   const [mpPage, setMpPage] = useState(1);
 
-  const [spForm, setSpForm] = useState({ name: '', tier: 'gold', website: '' });
+  const [spForm, setSpForm] = useState({ name: '', website: '', logo: '' });
   const [spEditingId, setSpEditingId] = useState<number | null>(null);
   const [spSaving, setSpSaving] = useState(false);
   const [showSpAdd, setShowSpAdd] = useState(false);
-  const [mpForm, setMpForm] = useState({ name: '', website: '' });
+  const [mpForm, setMpForm] = useState({ name: '', website: '', logo: '' });
   const [mpEditingId, setMpEditingId] = useState<number | null>(null);
   const [mpSaving, setMpSaving] = useState(false);
   const [showMpAdd, setShowMpAdd] = useState(false);
@@ -51,7 +53,7 @@ export default function SponsorPage() {
   useEffect(() => { fetchData(); }, []);
 
   const handleSpSave = async () => {
-    if (!spForm.name) { toast.error('Nama sponsor wajib diisi'); return; }
+    if (!spForm.name && !spForm.logo) { toast.error('Nama atau logo wajib diisi'); return; }
     setSpSaving(true);
     try {
       if (spEditingId) {
@@ -65,7 +67,7 @@ export default function SponsorPage() {
           body: JSON.stringify(spForm),
         });
       }
-      setSpForm({ name: '', tier: 'gold', website: '' });
+      setSpForm({ name: '', website: '', logo: '' });
       setSpEditingId(null); setShowSpAdd(false);
       toast.success(spEditingId ? 'Sponsor diperbarui' : 'Sponsor ditambahkan');
       fetchData();
@@ -74,7 +76,7 @@ export default function SponsorPage() {
   };
 
   const handleSpEdit = (s: Sponsor) => {
-    setSpForm({ name: s.name, tier: s.tier, website: s.website || '' });
+    setSpForm({ name: s.name, website: s.website || '', logo: s.logo || '' });
     setSpEditingId(s.id); setShowSpAdd(true);
   };
 
@@ -90,7 +92,7 @@ export default function SponsorPage() {
   };
 
   const handleMpSave = async () => {
-    if (!mpForm.name) { toast.error('Nama media partner wajib diisi'); return; }
+    if (!mpForm.name && !mpForm.logo) { toast.error('Nama atau logo wajib diisi'); return; }
     setMpSaving(true);
     try {
       if (mpEditingId) {
@@ -104,7 +106,7 @@ export default function SponsorPage() {
           body: JSON.stringify(mpForm),
         });
       }
-      setMpForm({ name: '', website: '' });
+      setMpForm({ name: '', website: '', logo: '' });
       setMpEditingId(null); setShowMpAdd(false);
       toast.success(mpEditingId ? 'Media partner diperbarui' : 'Media partner ditambahkan');
       fetchData();
@@ -113,7 +115,7 @@ export default function SponsorPage() {
   };
 
   const handleMpEdit = (m: MediaPartner) => {
-    setMpForm({ name: m.name, website: m.website || '' });
+    setMpForm({ name: m.name, website: m.website || '', logo: m.logo || '' });
     setMpEditingId(m.id); setShowMpAdd(true);
   };
 
@@ -180,30 +182,59 @@ export default function SponsorPage() {
               style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}>
               <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
               <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{spEditingId ? 'Edit' : 'Tambah'} Sponsor</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama <span className="text-slate-400 font-normal normal-case">(opsional, untuk alt text)</span></label>
                   <input value={spForm.name} onChange={(e) => setSpForm({ ...spForm, name: e.target.value })}
                     placeholder="Nama sponsor" className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
                     style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tier</label>
-                  <select value={spForm.tier} onChange={(e) => setSpForm({ ...spForm, tier: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 cursor-pointer focus:outline-none focus:border-astro-cyan"
-                    style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>
-                    <option value="platinum">Platinum</option>
-                    <option value="gold">Gold</option>
-                    <option value="silver">Silver</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website <span className="text-slate-400 font-normal normal-case">(opsional)</span></label>
                   <input value={spForm.website} onChange={(e) => setSpForm({ ...spForm, website: e.target.value })}
                     placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
                     style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
                 </div>
               </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Logo <span className="text-slate-400 font-normal normal-case">(upload gambar, opsional jika ada teks nama)</span>
+                </label>
+                <div className="flex items-center gap-3 mt-1">
+                  <label className="cursor-pointer">
+                    <div className="px-4 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors text-xs font-bold text-slate-700 uppercase tracking-wider"
+                      style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                    >
+                      Pilih File
+                    </div>
+                    <input type="file" accept="image/*" className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                          const json = await res.json();
+                          if (json.url) setSpForm({ ...spForm, logo: json.url });
+                        } catch { console.error('Upload failed'); }
+                      }}
+                    />
+                  </label>
+                  {spForm.logo && (
+                    <span className="text-xs text-emerald-600 font-semibold">File terpilih</span>
+                  )}
+                </div>
+              </div>
+              {spForm.logo && (
+                <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
+                  style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
+                  <img src={spForm.logo} alt="Preview" className="w-10 h-10 object-contain rounded" />
+                  <span className="text-xs text-slate-500">Preview logo</span>
+                  <button onClick={() => setSpForm({ ...spForm, logo: '' })}
+                    className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
+                </div>
+              )}
               <div className="flex gap-2 pt-2">
                 <button onClick={handleSpSave} disabled={spSaving}
                   className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
@@ -224,9 +255,10 @@ export default function SponsorPage() {
               <div key={s.id} className="bg-white border border-slate-200 relative p-4 flex items-center justify-between group"
                 style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
                 <div className="flex items-center gap-3">
-                  <span className={'px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ' + tierBadge(s.tier)}
-                    style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}>{s.tier}</span>
-                  <span className="text-sm font-bold text-slate-900">{s.name}</span>
+                  {s.logo ? (
+                    <img src={s.logo} alt="" className="w-8 h-8 object-contain rounded" />
+                  ) : null}
+                  <span className="text-sm font-bold text-slate-900">{s.name || '(tanpa nama)'}</span>
                   {s.website && <span className="text-[11px] text-slate-400 hidden sm:block">{s.website.replace(/https?:\/\//, '')}</span>}
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -260,18 +292,57 @@ export default function SponsorPage() {
               <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{mpEditingId ? 'Edit' : 'Tambah'} Media Partner</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama <span className="text-slate-400 font-normal normal-case">(opsional, untuk alt text)</span></label>
                   <input value={mpForm.name} onChange={(e) => setMpForm({ ...mpForm, name: e.target.value })}
                     placeholder="Nama" className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
                     style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website <span className="text-slate-400 font-normal normal-case">(opsional)</span></label>
                   <input value={mpForm.website} onChange={(e) => setMpForm({ ...mpForm, website: e.target.value })}
                     placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
                     style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
                 </div>
               </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Logo <span className="text-slate-400 font-normal normal-case">(upload gambar, opsional jika ada teks nama)</span>
+                </label>
+                <div className="flex items-center gap-3 mt-1">
+                  <label className="cursor-pointer">
+                    <div className="px-4 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors text-xs font-bold text-slate-700 uppercase tracking-wider"
+                      style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+                    >
+                      Pilih File
+                    </div>
+                    <input type="file" accept="image/*" className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                          const json = await res.json();
+                          if (json.url) setMpForm({ ...mpForm, logo: json.url });
+                        } catch { console.error('Upload failed'); }
+                      }}
+                    />
+                  </label>
+                  {mpForm.logo && (
+                    <span className="text-xs text-emerald-600 font-semibold">File terpilih</span>
+                  )}
+                </div>
+              </div>
+              {mpForm.logo && (
+                <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
+                  style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
+                  <img src={mpForm.logo} alt="Preview" className="w-10 h-10 object-contain rounded" />
+                  <span className="text-xs text-slate-500">Preview logo</span>
+                  <button onClick={() => setMpForm({ ...mpForm, logo: '' })}
+                    className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
+                </div>
+              )}
               <div className="flex gap-2 pt-2">
                 <button onClick={handleMpSave} disabled={mpSaving}
                   className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
@@ -291,7 +362,13 @@ export default function SponsorPage() {
             {mpPaginated.map((m) => (
               <div key={m.id} className="bg-white border border-slate-200 relative p-4 flex items-center justify-between group"
                 style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
-                <span className="text-sm font-bold text-slate-900">{m.name}</span>
+                <div className="flex items-center gap-3">
+                  {m.logo ? (
+                    <img src={m.logo} alt="" className="w-8 h-8 object-contain rounded" />
+                  ) : null}
+                  <span className="text-sm font-bold text-slate-900">{m.name || '(tanpa nama)'}</span>
+                  {m.website && <span className="text-[11px] text-slate-400 hidden sm:block">{m.website.replace(/https?:\/\//, '')}</span>}
+                </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => handleMpEdit(m)} className="p-1.5 text-slate-400 hover:text-astro-cyan cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
                   <button onClick={() => handleMpDelete(m.id, m.name)} className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>

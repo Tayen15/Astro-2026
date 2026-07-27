@@ -14,6 +14,7 @@ export async function PUT(
       name: body.name,
       tier: body.tier,
       website: body.website || null,
+      logo: body.logo || null,
       sortOrder: body.sortOrder,
     }).where(eq(sponsors.id, Number(id))).returning();
     if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 });

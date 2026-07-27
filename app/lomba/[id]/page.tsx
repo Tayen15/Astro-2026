@@ -702,8 +702,10 @@ export default function CompetitionDetailPage() {
                 <polygon points="0,64 1440,0 1440,64" fill="white" />
               </svg>
             </div>
-          </section>
-
+          {/* ════════════════════════════════════════
+              5. SPONSOR SECTION
+              ════════════════════════════════════════ */}
+          <SponsorSection />
         </main>
 
         <Footer />

@@ -16,12 +16,13 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    if (!body.name) {
-      return NextResponse.json({ error: 'name wajib diisi' }, { status: 400 });
+    if (!body.name && !body.logo) {
+      return NextResponse.json({ error: 'nama atau logo wajib diisi' }, { status: 400 });
     }
     const [item] = await db.insert(mediaPartners).values({
-      name: body.name,
+      name: body.name || '',
       website: body.website || null,
+      logo: body.logo || null,
       sortOrder: body.sortOrder || 0,
     }).returning();
     return NextResponse.json({ data: item }, { status: 201 });

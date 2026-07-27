@@ -155,6 +155,7 @@ export const sponsors = pgTable('sponsors', {
   name: text('name').notNull(),
   tier: text('tier').notNull().default('gold'), // 'platinum' | 'gold' | 'silver'
   website: text('website'),
+  logo: text('logo'),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -164,6 +165,7 @@ export const mediaPartners = pgTable('media_partners', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
   website: text('website'),
+  logo: text('logo'),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
