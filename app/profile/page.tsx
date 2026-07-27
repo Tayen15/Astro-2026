@@ -58,13 +58,7 @@ const clouds = [
   { src: '/assets/awan2.png', w: 240, h: 160, className: 'absolute top-[25%] right-[2%] w-24 h-auto md:w-52 md:h-auto object-contain pointer-events-none select-none z-0 opacity-25', dur: 12 },
 ];
 
-/* ─── Journey ─── */
-const journey = [
-  { year: '2023', theme: 'First Step to The Stars', participants: 150, universities: 8, competitions: 4, achievement: 'Pertama kali diselenggarakan dengan 4 cabang lomba', description: 'ASTRO 2023 merupakan edisi perdana yang menandai langkah awal perjalanan besar. Diselenggarakan dengan 4 cabang lomba utama yang diikuti oleh 150+ peserta dari 8 universitas di Indonesia.', highlights: ['4 cabang lomba pertama', '150+ peserta dari 8 universitas', 'Acara perdana yang sukses', 'Mendapatkan apresiasi dari universitas'] },
-  { year: '2024', theme: 'Rising to The Stars', participants: 320, universities: 15, competitions: 6, achievement: 'Bertambah 2 cabang lomba baru, menjangkau 15 universitas', description: 'ASTRO 2024 mengalami pertumbuhan signifikan dengan bertambahnya 2 cabang lomba baru, menjangkau lebih dari 15 universitas, dan diikuti oleh 320+ peserta.', highlights: ['6 cabang lomba (+2 baru)', '320+ peserta dari 15 universitas', 'Kolaborasi dengan sponsor', 'Liputan media yang lebih luas'] },
-  { year: '2025', theme: 'Beyond The Stars', participants: 500, universities: 25, competitions: 8, achievement: 'Skala nasional dengan 8 cabang lomba dan 25+ universitas', description: 'ASTRO 2025 mencapai skala nasional dengan 8 cabang lomba dan partisipasi dari 25+ universitas seluruh Indonesia. Dengan 500+ peserta, acara ini menjadi platform kompetisi teknologi yang diperhitungkan.', highlights: ['8 cabang lomba nasional', '500+ peserta nasional', '25+ universitas se-Indonesia', 'Pengalaman peserta premium'] },
-  { year: '2026', theme: 'Where Innovation Meets The Stars', participants: 0, universities: 0, competitions: 10, achievement: 'Edisi terbesar dengan inovasi dan dampak yang lebih luas', description: 'ASTRO 2026 hadir sebagai edisi terbesar dengan konsep yang lebih inovatif, menjangkau lebih banyak peserta, dan memberikan dampak yang lebih luas.', highlights: ['10+ cabang lomba', 'Konsep acara baru', 'Dampak yang lebih luas', 'Inovasi tanpa batas'] },
-];
+/* ─── Journey (now fetched from API) ─── */
 
 /* ─── Categories ─── */
 const categories = [
@@ -92,6 +86,26 @@ export default function ProfilePage() {
   const reduce = useReducedMotion();
   const [showAllJourney, setShowAllJourney] = useState(false);
   const [activeJourneyYear, setActiveJourneyYear] = useState<string | null>(null);
+  const [journey, setJourney] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/journeys')
+      .then(r => r.json())
+      .then(json => {
+        const mapped = (json.data || []).map((j: any) => ({
+          year: j.id,
+          theme: j.theme,
+          participants: j.participants || 0,
+          universities: j.universities || 0,
+          competitions: j.competitionsCount || 0,
+          achievement: j.achievement || '',
+          description: j.description || '',
+          highlights: j.highlights || [],
+        }));
+        setJourney(mapped);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -101,7 +115,7 @@ export default function ProfilePage() {
       <ProfileHero />
 
       {/* ════════════ 2. ABOUT ASTRO ════════════ */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-b from-sky-100 via-sky-200 to-sky-200 overflow-hidden">
+      <section id="about-event" className="relative py-20 md:py-28 bg-gradient-to-b from-sky-100 via-sky-200 to-sky-200 overflow-hidden">
         {/* Floating blobs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -1,0 +1,1 @@
+ALTER TABLE "committee_divisions" ADD COLUMN "short_name" text;

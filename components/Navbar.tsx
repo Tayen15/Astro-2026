@@ -20,7 +20,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isProfilePage = pathname.startsWith('/profile') || pathname.startsWith('/panitia');
+  const isProfilePage = pathname.startsWith('/profile');
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
@@ -100,11 +100,12 @@ export default function Navbar() {
   // Section links specific to Company Profile page vs Competition Home page
   const sectionLinks = isProfilePage
     ? [
+        { label: 'TENTANG', href: '#about-event' },
         { label: 'JOURNEY', href: '#journey' },
         { label: 'GALLERY', href: '#gallery' },
         { label: 'MEDIA', href: '#social' },
+        { label: 'PANITIA', href: '#committee' },
         { label: 'PENGUMUMAN', href: '/pengumuman' },
-        { label: 'PANITIA', href: '/panitia' },
       ]
     : [
         { label: 'KOMPETISI', href: '#competitions' },

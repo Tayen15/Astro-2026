@@ -10,80 +10,17 @@ const MotionImage = motion.create(Image);
 interface GalleryPhoto {
   id: string;
   title: string;
-  category: 'Competition' | 'Seminar' | 'Awarding' | 'Behind The Scene';
+  category: string;
   imageUrl: string;
-  year: 'ASTRO 2025' | 'ASTRO 2024' | 'ASTRO 2023';
+  year: string;
   likesCount: number;
 }
 
-const GALLERY_PHOTOS: GalleryPhoto[] = [
-  {
-    id: 'p1',
-    title: 'Finalis CTF Challenge Demonstrasi',
-    category: 'Competition',
-    imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=85',
-    year: 'ASTRO 2025',
-    likesCount: 142,
-  },
-  {
-    id: 'p2',
-    title: 'Sesi Penyerahan Trofi Juara',
-    category: 'Awarding',
-    imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&q=85',
-    year: 'ASTRO 2025',
-    likesCount: 289,
-  },
-  {
-    id: 'p3',
-    title: 'Keynote Speaker Tech Seminar',
-    category: 'Seminar',
-    imageUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1200&q=85',
-    year: 'ASTRO 2025',
-    likesCount: 98,
-  },
-  {
-    id: 'p4',
-    title: 'Dokumentasi Crew & Perlengkapan',
-    category: 'Behind The Scene',
-    imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=85',
-    year: 'ASTRO 2025',
-    likesCount: 210,
-  },
-  {
-    id: 'p5',
-    title: 'Turnamen MLBB Grand Finals Stage',
-    category: 'Competition',
-    imageUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&q=85',
-    year: 'ASTRO 2024',
-    likesCount: 355,
-  },
-  {
-    id: 'p6',
-    title: 'Workshop AI & Future Innovation',
-    category: 'Seminar',
-    imageUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&q=85',
-    year: 'ASTRO 2024',
-    likesCount: 176,
-  },
-  {
-    id: 'p7',
-    title: 'Pertandingan Futsal Ketangkasan',
-    category: 'Competition',
-    imageUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=85',
-    year: 'ASTRO 2024',
-    likesCount: 194,
-  },
-  {
-    id: 'p8',
-    title: 'Selebrasi Pemenang Juara Umum',
-    category: 'Awarding',
-    imageUrl: 'https://images.unsplash.com/photo-1567942712661-82b9b407abbf?w=1200&q=85',
-    year: 'ASTRO 2023',
-    likesCount: 412,
-  },
-];
-
-const CATEGORIES = ['ALL', 'Competition', 'Seminar', 'Awarding', 'Behind The Scene'] as const;
+interface GalleryCategory {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 export default function EventGallerySection() {
   const reduce = useReducedMotion();
@@ -91,10 +28,22 @@ export default function EventGallerySection() {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [likedPhotos, setLikedPhotos] = useState<Record<string, boolean>>({});
   const [isMarqueeHovered, setIsMarqueeHovered] = useState(false);
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
+  const [categories, setCategories] = useState<GalleryCategory[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/gallery').then(r => r.json()),
+      fetch('/api/gallery-categories').then(r => r.json()),
+    ]).then(([gData, cData]) => {
+      setPhotos(gData.data || []);
+      setCategories(cData.data || []);
+    }).catch(() => {});
+  }, []);
 
   const filteredPhotos = activeCategory === 'ALL'
-    ? GALLERY_PHOTOS
-    : GALLERY_PHOTOS.filter((p) => p.category === activeCategory);
+    ? photos
+    : photos.filter((p) => p.category === activeCategory);
 
   // Duplicated arrays for seamless continuous infinite marquee sliding
   const marqueeRow1 = [...filteredPhotos, ...filteredPhotos, ...filteredPhotos];
@@ -177,12 +126,12 @@ export default function EventGallerySection() {
 
           {/* ── Frosted Glass Category Filter Pills ── */}
           <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-2 pt-1 px-2 no-scrollbar max-w-full">
-            {CATEGORIES.map((cat) => {
-              const isActive = cat === activeCategory;
+            {[{ name: 'All', slug: 'ALL' } as any, ...categories].map((cat: any) => {
+              const isActive = activeCategory === cat.slug;
               return (
                 <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
+                  key={cat.slug}
+                  onClick={() => setActiveCategory(cat.slug)}
                   className={`px-4 md:px-5 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 cursor-pointer select-none whitespace-nowrap backdrop-blur-xl ${
                     isActive
                       ? 'bg-astro-cyan text-slate-950 shadow-md border border-cyan-200 scale-105 z-10'
@@ -192,7 +141,7 @@ export default function EventGallerySection() {
                 >
                   <div className="flex items-center gap-2">
                     <Camera className={`w-3.5 h-3.5 ${isActive ? 'text-slate-950' : 'text-cyan-700'}`} />
-                    <span>{cat}</span>
+                    <span>{cat.name}</span>
                   </div>
                 </button>
               );

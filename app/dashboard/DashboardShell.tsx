@@ -17,6 +17,8 @@ import {
   Trophy,
   Users,
   Star,
+  Calendar,
+  ImageIcon,
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -46,6 +48,9 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
       { href: '/dashboard/kompetisi', label: 'Kompetisi', icon: Trophy },
       { href: '/dashboard/faq', label: 'FAQ', icon: HelpCircle },
       { href: '/dashboard/sponsor', label: 'Sponsor', icon: Star },
+      { href: '/dashboard/journey', label: 'Journey', icon: Calendar },
+      { href: '/dashboard/gallery', label: 'Gallery', icon: ImageIcon },
+      { href: '/dashboard/committee', label: 'Committee', icon: Users },
       { href: '/dashboard/export', label: 'Export Data', icon: Download },
     ] : []),
     { href: '/dashboard/profile', label: 'Profil', icon: User },

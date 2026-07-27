@@ -2,7 +2,7 @@ import { db } from '@/src/db';
 import { registrations, competitions } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import { CalendarDays, Coins, Mail, Phone, Building2, Users, User, CheckCircle2, XCircle } from 'lucide-react';
+import { CalendarDays, Coins, Mail, Phone, Building2, Users, User, CheckCircle2, XCircle, Tag, Globe } from 'lucide-react';
 import Link from 'next/link';
 import PaymentStatusUpdate from './PaymentStatusUpdate';
 
@@ -44,6 +44,8 @@ export default async function RegistrationDetailPage({
       competitionName: competitions.title,
       competitionCategory: competitions.category,
       competitionFee: competitions.fee,
+      competitionIsFree: competitions.isFree,
+      competitionOrigin: competitions.origin,
     })
     .from(registrations)
     .innerJoin(competitions, eq(registrations.competitionId, competitions.id))
@@ -173,13 +175,40 @@ export default async function RegistrationDetailPage({
             style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
           >
             <div className="p-5 space-y-4">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">Lomba</h3>
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] flex items-center gap-1">
+                <Tag className="w-3 h-3" /> Lomba
+              </h3>
               <p className="text-sm font-bold text-slate-900">{reg.competitionName}</p>
-              <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border bg-slate-50 text-slate-600 border-slate-200"
-                style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-              >
-                {reg.competitionCategory}
-              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border bg-slate-50 text-slate-600 border-slate-200"
+                  style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                >
+                  {reg.competitionCategory}
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border bg-sky-50 text-sky-700 border-sky-200"
+                  style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                >
+                  <Globe className="w-2.5 h-2.5 mr-1" />
+                  {reg.competitionOrigin === 'external' ? 'Eksternal' : 'Internal'}
+                </span>
+                <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                  reg.competitionIsFree === '1'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}
+                  style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                >
+                  {reg.competitionIsFree === '1' ? 'Gratis' : 'Berbayar'}
+                </span>
+              </div>
+              {reg.competitionFee > 0 && (
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Biaya</span>
+                  <p className="text-sm font-bold text-slate-900 mt-0.5">
+                    Rp {reg.competitionFee.toLocaleString('id-ID')}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

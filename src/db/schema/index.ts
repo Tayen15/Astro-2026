@@ -169,3 +169,63 @@ export const mediaPartners = pgTable('media_partners', {
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+/* ─── Gallery Categories ─── */
+export const galleryCategories = pgTable('gallery_categories', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  slug: text('slug').notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/* ─── Committee Divisions ─── */
+export const committeeDivisions = pgTable('committee_divisions', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  shortName: text('short_name'),
+  slug: text('slug').notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/* ─── Journeys ─── */
+export const journeys = pgTable('journeys', {
+  id: text('id').primaryKey(), // e.g. '2023', '2024'
+  theme: text('theme').notNull(),
+  participants: integer('participants').default(0),
+  universities: integer('universities').default(0),
+  competitionsCount: integer('competitions_count').default(0),
+  achievement: text('achievement'),
+  description: text('description'),
+  highlights: jsonb('highlights').$type<string[]>(),
+  isActive: text('is_active').default('1'),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/* ─── Gallery Photos ─── */
+export const galleryPhotos = pgTable('gallery_photos', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  category: text('category').notNull(), // FK -> gallery_categories.slug
+  imageUrl: text('image_url').notNull(),
+  year: text('year').notNull(),
+  likesCount: integer('likes_count').default(0),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/* ─── Committee Members ─── */
+export const committeeMembers = pgTable('committee_members', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  role: text('role').notNull(), // jabatan (e.g. 'Ketua Pelaksana', 'Staf')
+  division: text('division').notNull(), // FK -> committee_divisions.slug
+  divisionName: text('division_name').notNull(),
+  image: text('image').notNull(),
+  isLeader: text('is_leader').default('0'), // '0' | '1' — controls tipe (Koordinator/Staf)
+  quote: text('quote'),
+  instagram: text('instagram'),
+  linkedin: text('linkedin'),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

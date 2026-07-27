@@ -32,6 +32,7 @@ export default function SocialMediaSection() {
 
   return (
     <section
+      id="social"
       className="relative min-h-screen w-full overflow-hidden text-slate-900 py-16 md:py-24 font-sans bg-sky-100"
     >
       {/* ── Subtle Sky Ambient Glow ── */}

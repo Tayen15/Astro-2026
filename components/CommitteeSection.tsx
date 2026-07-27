@@ -1,32 +1,77 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion, AnimatePresence } from 'motion/react';
 import { Users } from 'lucide-react';
-import { COMMITTEE_DIVISIONS } from '@/data/committeeData';
-import { CommitteeMember } from '@/types/committee';
 
 const MotionImage = motion.create(Image);
 
 export default function CommitteeSection() {
   const reduce = useReducedMotion();
-  const [activeDivision, setActiveDivision] = useState<string>(COMMITTEE_DIVISIONS[0].slug);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [activeDivision, setActiveDivision] = useState<string>('');
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [members, setMembers] = useState<any[]>([]);
+  const [divisions, setDivisions] = useState<any[]>([]);
 
-  const allMembers: (CommitteeMember & { divisionName: string; slug: string })[] = COMMITTEE_DIVISIONS.flatMap((div) =>
-    div.members.map((m) => ({ ...m, divisionName: div.name, slug: div.slug }))
-  );
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/committee').then(r => r.json()),
+      fetch('/api/committee-divisions').then(r => r.json()),
+    ]).then(([memData, divData]) => {
+      const memberList = memData.data || [];
+      const divList = (divData.data || []);
+      setMembers(memberList);
 
-  const filteredMembers = allMembers.filter((m) => m.slug === activeDivision);
-  const currentDivision = COMMITTEE_DIVISIONS.find((d) => d.slug === activeDivision)!;
+      // Build division display list from divisions API
+      const divMap = new Map<string, any[]>();
+      memberList.forEach((m: any) => {
+        const key = m.division;
+        if (!divMap.has(key)) divMap.set(key, []);
+        divMap.get(key)!.push(m);
+      });
 
-  const toggleHover = useCallback((id: string | null) => {
+      const merged = divList.map((d: any) => ({
+        slug: d.slug,
+        name: d.name,
+        shortName: d.shortName || null,
+        displayName: d.shortName ? `${d.name} (${d.shortName})` : d.name,
+        shortDisplay: d.shortName || d.name,
+        members: divMap.get(d.slug) || [],
+        staffCount: divMap.get(d.slug)?.length || 0,
+        id: d.slug,
+      }));
+
+      // Add any divisions from members not in divList
+      memberList.forEach((m: any) => {
+        if (!merged.find((d: any) => d.slug === m.division)) {
+          merged.push({
+            slug: m.division,
+            name: m.divisionName || m.division,
+            shortName: null,
+            displayName: m.divisionName || m.division,
+            shortDisplay: m.divisionName?.split(' ')[0] || m.division,
+            members: divMap.get(m.division) || [],
+            staffCount: divMap.get(m.division)?.length || 0,
+            id: m.division,
+          });
+        }
+      });
+
+      setDivisions(merged);
+      if (merged.length > 0 && !activeDivision) setActiveDivision(merged[0].slug);
+    }).catch(() => {});
+  }, []);
+
+  const filteredMembers = members.filter((m) => m.division === activeDivision);
+  const currentDivision = divisions.find((d) => d.slug === activeDivision);
+
+  const toggleHover = useCallback((id: number | null) => {
     setHoveredId((prev) => (prev === id ? null : id));
   }, []);
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-b from-sky-100 via-sky-200 to-sky-100 text-slate-900">
+    <section id="committee" className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-b from-sky-100 via-sky-200 to-sky-100 text-slate-900">
       {/* Ambient Sky Glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] bg-cyan-300/30 rounded-full blur-[130px] pointer-events-none z-0" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-sky-300/40 blur-[120px] rounded-full pointer-events-none z-0" />
@@ -85,7 +130,7 @@ export default function CommitteeSection() {
 
         {/* ── Filter Pills ── */}
         <div className="flex flex-wrap justify-center gap-2 mb-12">
-          {COMMITTEE_DIVISIONS.map((div) => {
+          {divisions.map((div) => {
             const isActive = activeDivision === div.slug;
             return (
               <button
@@ -98,7 +143,7 @@ export default function CommitteeSection() {
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-astro-cyan' : 'bg-slate-300'}`} />
-                {div.name.split(' ')[0]}
+                {div.shortDisplay}
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                   isActive ? 'bg-sky-50 text-astro-cyan' : 'bg-white/40 text-slate-400'
                 }`}>
@@ -110,13 +155,15 @@ export default function CommitteeSection() {
         </div>
 
         {/* ── Division Label ── */}
-        <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="h-px bg-slate-200/60 flex-1 max-w-24" />
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
-            {currentDivision.name}
-          </span>
-          <div className="h-px bg-slate-200/60 flex-1 max-w-24" />
-        </div>
+        {currentDivision && (
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <div className="h-px bg-slate-200/60 flex-1 max-w-24" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
+              {currentDivision.displayName}
+            </span>
+            <div className="h-px bg-slate-200/60 flex-1 max-w-24" />
+          </div>
+        )}
 
         {/* ── 3-Column Grid ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -146,11 +193,11 @@ export default function CommitteeSection() {
                   {/* Always-visible role badge */}
                   <div className="absolute top-3 left-3 z-20">
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                      member.isLeader
+                      member.isLeader === '1'
                         ? 'bg-amber-400 text-amber-950 shadow-sm'
                         : 'bg-white/80 text-slate-700 backdrop-blur-sm ring-1 ring-white'
                     }`}>
-                      {member.isLeader ? 'Koordinator' : 'Staf'}
+                      {member.isLeader === '1' ? 'Koordinator' : 'Staf'}
                     </span>
                   </div>
 
@@ -202,7 +249,7 @@ export default function CommitteeSection() {
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/50 backdrop-blur-xl rounded-xl ring-1 ring-white/80 shadow-sm">
             <Users className="w-4 h-4 text-astro-cyan" />
             <span className="text-xs font-semibold text-slate-600">
-              {filteredMembers.length} Anggota — {currentDivision.name}
+              {filteredMembers.length} Anggota — {currentDivision?.name || activeDivision}
             </span>
           </div>
         </div>
