@@ -35,7 +35,13 @@ function toCompetition(c: any) {
     filledSlots: c.filledSlots,
     scheduleDate: c.scheduleDate?.toISOString?.() || c.scheduleDate || '',
     location: c.location || '',
-    prizes: { first: c.prizesFirst || '', second: c.prizesSecond || '', third: c.prizesThird || '' },
+    prizes: c.prizes?.length
+      ? c.prizes
+      : [
+          ...(c.prizesFirst ? [{ label: 'Juara 1', value: c.prizesFirst }] : []),
+          ...(c.prizesSecond ? [{ label: 'Juara 2', value: c.prizesSecond }] : []),
+          ...(c.prizesThird ? [{ label: 'Juara 3', value: c.prizesThird }] : []),
+        ],
     rulesSummary: c.rulesSummary || [],
     rulebookUrl: c.rulebookUrl || '',
     registrationUrl: '',
@@ -195,29 +201,18 @@ export default function CompetitionDetailPage() {
     },
   ];
 
-  const prizes = [
-    {
-      rank: 'Juara 1',
-      prize: competition.prizes.first,
-      style: 'border-amber-200 bg-amber-50/40',
-      accentLine: 'bg-amber-500',
-      iconColor: 'text-amber-600 bg-amber-50 border-amber-200',
-    },
-    {
-      rank: 'Juara 2',
-      prize: competition.prizes.second,
-      style: 'border-slate-200 bg-slate-50/40',
-      accentLine: 'bg-slate-400',
-      iconColor: 'text-slate-500 bg-slate-50 border-slate-200',
-    },
-    {
-      rank: 'Juara 3',
-      prize: competition.prizes.third,
-      style: 'border-amber-200/60 bg-amber-50/20',
-      accentLine: 'bg-amber-700',
-      iconColor: 'text-amber-800 bg-amber-50 border-amber-200/60',
-    },
+  const prizeStyles = [
+    { style: 'border-amber-200 bg-amber-50/40', accentLine: 'bg-amber-500', iconColor: 'text-amber-600 bg-amber-50 border-amber-200' },
+    { style: 'border-slate-200 bg-slate-50/40', accentLine: 'bg-slate-400', iconColor: 'text-slate-500 bg-slate-50 border-slate-200' },
+    { style: 'border-amber-200/60 bg-amber-50/20', accentLine: 'bg-amber-700', iconColor: 'text-amber-800 bg-amber-50 border-amber-200/60' },
+    { style: 'border-cyan-100 bg-cyan-50/30', accentLine: 'bg-cyan-400', iconColor: 'text-cyan-600 bg-cyan-50 border-cyan-200' },
+    { style: 'border-violet-100 bg-violet-50/30', accentLine: 'bg-violet-400', iconColor: 'text-violet-600 bg-violet-50 border-violet-200' },
   ];
+  const prizes = competition.prizes.map((p, i) => ({
+    rank: p.label,
+    prize: p.value,
+    ...(prizeStyles[i] || prizeStyles[prizeStyles.length - 1]),
+  }));
 
   return (
     <>
@@ -702,6 +697,8 @@ export default function CompetitionDetailPage() {
                 <polygon points="0,64 1440,0 1440,64" fill="white" />
               </svg>
             </div>
+          </section>
+
           {/* ════════════════════════════════════════
               5. SPONSOR SECTION
               ════════════════════════════════════════ */}

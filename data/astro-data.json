@@ -19,11 +19,20 @@
       "filledSlots": 38,
       "scheduleDate": "2026-08-25",
       "location": "Gedung Serbaguna Lt. 3",
-      "prizes": {
-        "first": "Rp 5.000.000 + Trofi + Sertifikat",
-        "second": "Rp 3.000.000 + Sertifikat",
-        "third": "Rp 1.500.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 5.000.000 + Trofi + Sertifikat"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 3.000.000 + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 1.500.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Peserta maksimal 3 orang per tim",
         "Waktu pengerjaan 24 jam penuh",
@@ -81,11 +90,20 @@
       "filledSlots": 65,
       "scheduleDate": "2026-08-24",
       "location": "Lab Sains Lt. 2",
-      "prizes": {
-        "first": "Rp 3.500.000 + Trofi + Sertifikat",
-        "second": "Rp 2.000.000 + Sertifikat",
-        "third": "Rp 1.000.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 3.500.000 + Trofi + Sertifikat"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 2.000.000 + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 1.000.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Peserta individu",
         "Terdiri dari 3 babak: penyisihan, semifinal, final",
@@ -143,11 +161,20 @@
       "filledSlots": 24,
       "scheduleDate": "2026-08-23",
       "location": "Aula Utama",
-      "prizes": {
-        "first": "Rp 4.000.000 + Trofi + Sertifikat",
-        "second": "Rp 2.500.000 + Sertifikat",
-        "third": "Rp 1.500.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 4.000.000 + Trofi + Sertifikat"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 2.500.000 + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 1.500.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Tim terdiri dari 2 orang",
         "Menggunakan format British Parliamentary",
@@ -205,11 +232,20 @@
       "filledSlots": 20,
       "scheduleDate": "2026-08-22",
       "location": "GOR Futsal Indoor",
-      "prizes": {
-        "first": "Rp 7.000.000 + Trofi + Sertifikat",
-        "second": "Rp 4.000.000 + Sertifikat",
-        "third": "Rp 2.000.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 7.000.000 + Trofi + Sertifikat"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 4.000.000 + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 2.000.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Maksimal 10 pemain per tim (5 inti + 5 cadangan)",
         "Durasi 2 x 15 menit waktu berjalan",
@@ -267,11 +303,20 @@
       "filledSlots": 18,
       "scheduleDate": "2026-08-23",
       "location": "GOR Bulutangkis Lt. 1",
-      "prizes": {
-        "first": "Rp 5.000.000 + Trofi + Sertifikat",
-        "second": "Rp 3.000.000 + Sertifikat",
-        "third": "Rp 1.500.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 5.000.000 + Trofi + Sertifikat"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 3.000.000 + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 1.500.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Pendaftaran per pasangan (ganda)",
         "Menggunakan sistem rally point 21",
@@ -329,11 +374,20 @@
       "filledSlots": 14,
       "scheduleDate": "2026-08-24",
       "location": "Lapangan Basket Outdoor",
-      "prizes": {
-        "first": "Rp 6.000.000 + Trofi + Sertifikat",
-        "second": "Rp 3.500.000 + Sertifikat",
-        "third": "Rp 2.000.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 6.000.000 + Trofi + Sertifikat"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 3.500.000 + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 2.000.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Maksimal 5 pemain per tim (3 inti + 2 cadangan)",
         "Durasi 10 menit atau 21 poin",
@@ -391,11 +445,20 @@
       "filledSlots": 30,
       "scheduleDate": "2026-08-22",
       "location": "Studio Esports Lt. 4",
-      "prizes": {
-        "first": "Rp 8.000.000 + Skin + Trofi",
-        "second": "Rp 4.500.000 + Skin + Sertifikat",
-        "third": "Rp 2.500.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 8.000.000 + Skin + Trofi"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 4.500.000 + Skin + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 2.500.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Tim terdiri dari 5 pemain inti + 1 cadangan",
         "Mode tournament draft pick",
@@ -453,11 +516,20 @@
       "filledSlots": 12,
       "scheduleDate": "2026-08-23",
       "location": "Studio Esports Lt. 4",
-      "prizes": {
-        "first": "Rp 10.000.000 + VPs + Trofi",
-        "second": "Rp 5.000.000 + VPs + Sertifikat",
-        "third": "Rp 3.000.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 10.000.000 + VPs + Trofi"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 5.000.000 + VPs + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 3.000.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Tim terdiri dari 5 pemain inti + 1 cadangan",
         "Mode Standard, best-of-3 (BO3)",
@@ -515,11 +587,20 @@
       "filledSlots": 27,
       "scheduleDate": "2026-08-24",
       "location": "Studio Esports Lt. 4",
-      "prizes": {
-        "first": "Rp 4.000.000 + Trofi + Sertifikat",
-        "second": "Rp 2.500.000 + Sertifikat",
-        "third": "Rp 1.500.000 + Sertifikat"
-      },
+      "prizes": [
+        {
+          "label": "Juara 1",
+          "value": "Rp 4.000.000 + Trofi + Sertifikat"
+        },
+        {
+          "label": "Juara 2",
+          "value": "Rp 2.500.000 + Sertifikat"
+        },
+        {
+          "label": "Juara 3",
+          "value": "Rp 1.500.000 + Sertifikat"
+        }
+      ],
       "rulesSummary": [
         "Peserta individu (1v1)",
         "Menggunakan klub standar FIFA (5 star max)",

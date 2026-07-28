@@ -11,9 +11,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File tidak ditemukan' }, { status: 400 });
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'Hanya file gambar yang diizinkan' }, { status: 400 });
+    // Validate file type: gambar atau PDF
+    const allowedTypes = ['image/', 'application/pdf'];
+    const isValid = allowedTypes.some((t) => file.type.startsWith(t) || file.name.toLowerCase().endsWith('.pdf'));
+    if (!isValid) {
+      return NextResponse.json({ error: 'Hanya file gambar (PNG/JPG) dan PDF yang diizinkan' }, { status: 400 });
     }
 
     // Generate unique filename

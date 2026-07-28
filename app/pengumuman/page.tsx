@@ -1,69 +1,51 @@
-import { db } from '@/src/db';
-import { competitions } from '@/src/db/schema';
-import { asc } from 'drizzle-orm';
 import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PengumumanClient from './PengumumanClient';
-import { ANNOUNCEMENT_WINNERS } from '@/data/announcementData';
-import type { Winner } from '@/data/announcementData';
 
 export const metadata: Metadata = {
   title: 'Pengumuman Pemenang — ASTRO 2026',
   description: 'Daftar pemenang seluruh cabang lomba ASTRO 2026.',
 };
 
-function buildWinnersMap() {
-  const map: Record<string, { first: Winner[]; second: Winner[]; third: Winner[] }> = {};
-  for (const w of ANNOUNCEMENT_WINNERS) {
-    map[w.competitionId] = w.winners;
-  }
-  return map;
-}
-
-function buildPrizesMap(comps: any[]) {
-  const map: Record<string, { first: string | null; second: string | null; third: string | null }> = {};
-  for (const c of comps) {
-    map[c.id] = {
-      first: c.prizesFirst || null,
-      second: c.prizesSecond || null,
-      third: c.prizesThird || null,
-    };
-  }
-  return map;
+interface CompetitionItem {
+  id: string;
+  title: string;
+  category: string;
+  tagline: string;
+  type: string | null;
+  origin: string | null;
+  isFree: string | null;
+  hasWinners: boolean;
 }
 
 export default async function PengumumanPage() {
-  let dbCompetitions: any[] = [];
+  let comps: CompetitionItem[] = [];
 
   try {
-    dbCompetitions = await db.select().from(competitions).orderBy(asc(competitions.createdAt));
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/competitions/with-winners`, {
+      cache: 'no-store',
+    });
+    const json = await res.json();
+    comps = (json.data || []).map((c: any) => ({
+      id: c.id,
+      title: c.title,
+      category: c.category as string,
+      tagline: c.tagline || '',
+      type: c.type || 'individual',
+      origin: c.origin || 'internal',
+      isFree: c.isFree || '0',
+      hasWinners: c.hasWinners,
+    }));
   } catch (e) {
-    // DB unavailable
+    console.error('Failed to fetch competitions with winners:', e);
   }
-
-  const winnersMap = buildWinnersMap();
-  const hasDbData = dbCompetitions.length > 0;
-
-  const comps = hasDbData
-    ? dbCompetitions.map((c: any) => ({
-        id: c.id,
-        title: c.title,
-        category: c.category as 'akademik' | 'olahraga' | 'esports',
-        tagline: c.tagline || '',
-        scheduleDate: c.scheduleDate?.toISOString?.() || c.scheduleDate || null,
-        location: c.location || '',
-        type: c.type || 'individual',
-      }))
-    : [];
-
-  const prizesMap = buildPrizesMap(dbCompetitions);
 
   return (
     <>
       <Navbar />
       <main>
-        <PengumumanClient competitions={comps} winners={winnersMap} prizes={prizesMap} />
+        <PengumumanClient competitions={comps} />
       </main>
       <Footer />
     </>

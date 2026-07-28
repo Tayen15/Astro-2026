@@ -20,17 +20,21 @@ async function seed() {
 
   // Seed competitions
   for (const comp of data.competitions) {
+    const firstPrize = comp.prizes.find((p: any) => p.label === 'Juara 1')?.value || '';
+    const secondPrize = comp.prizes.find((p: any) => p.label === 'Juara 2')?.value || '';
+    const thirdPrize = comp.prizes.find((p: any) => p.label === 'Juara 3')?.value || '';
     await sql`
       INSERT INTO competitions (
         id, title, category, tagline, description, fee,
         max_slots, filled_slots, schedule_date, location,
-        prizes_first, prizes_second, prizes_third,
+        prizes_first, prizes_second, prizes_third, prizes,
         rules_summary, rulebook_url, contact_name, contact_whatsapp
       ) VALUES (
         ${comp.id}, ${comp.title}, ${comp.category}, ${comp.tagline},
         ${comp.description}, ${comp.fee}, ${comp.maxSlots}, ${comp.filledSlots},
         ${new Date(comp.scheduleDate)}, ${comp.location},
-        ${comp.prizes.first}, ${comp.prizes.second}, ${comp.prizes.third},
+        ${firstPrize}, ${secondPrize}, ${thirdPrize},
+        ${JSON.stringify(comp.prizes)},
         ${JSON.stringify(comp.rulesSummary)}, ${comp.rulebookUrl},
         ${comp.contactPerson.name}, ${comp.contactPerson.whatsapp}
       )

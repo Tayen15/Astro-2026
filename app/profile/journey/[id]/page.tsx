@@ -3,10 +3,13 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowLeft, Users, Award, Target, Sparkles, ArrowRight, Monitor, Mic2, Trophy, Handshake, Camera, Group } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+
+const MotionImage = motion.create(Image);
 
 const journeyData = [
   {
@@ -132,12 +135,46 @@ export default function JourneyDetailPage() {
       <Navbar />
 
       {/* ═══ HERO BANNER ═══ */}
-      <section className={`relative pt-28 pb-24 md:pt-36 md:pb-32 bg-gradient-to-br ${data.color} overflow-hidden`}>
+      <section className={`relative pt-28 pb-28 md:pt-36 md:pb-36 bg-gradient-to-br ${data.color} overflow-hidden`}>
         {/* Radial glow */}
         <div className="absolute inset-0">
           <div className="absolute top-1/4 -left-[10%] w-[40%] h-[50%] bg-white/20 blur-[120px] rounded-full" />
           <div className="absolute bottom-1/4 -right-[10%] w-[40%] h-[50%] bg-white/10 blur-[100px] rounded-full" />
         </div>
+
+        {/* Floating clouds */}
+        <MotionImage
+          src="/assets/awan1.png" alt="" width={180} height={120}
+          animate={reduce ? undefined : { x: [0, 18, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-[6%] left-[2%] w-28 h-auto md:w-48 md:h-auto object-contain pointer-events-none select-none z-0 opacity-30"
+        />
+        <MotionImage
+          src="/assets/awan2.png" alt="" width={220} height={150}
+          animate={reduce ? undefined : { x: [0, -16, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-[15%] -right-4 w-32 h-auto md:w-56 md:h-auto object-contain pointer-events-none select-none z-0 opacity-25"
+        />
+        <MotionImage
+          src="/assets/awan1.png" alt="" width={140} height={100}
+          animate={reduce ? undefined : { x: [0, 14, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute bottom-[10%] left-[4%] w-20 h-auto md:w-36 md:h-auto object-contain pointer-events-none select-none z-0 opacity-20"
+        />
+
+        {/* Floating blobs */}
+        <MotionImage
+          src="/assets/blob-round.png" alt="" width={80} height={80}
+          animate={reduce ? undefined : { y: [0, -12, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-[20%] right-[15%] w-12 h-12 md:w-20 md:h-20 object-contain pointer-events-none select-none z-0 opacity-25"
+        />
+        <MotionImage
+          src="/assets/blob-round.png" alt="" width={64} height={64}
+          animate={reduce ? undefined : { y: [0, -10, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+          className="absolute bottom-[15%] right-[6%] w-10 h-10 md:w-16 md:h-16 object-contain pointer-events-none select-none z-0 opacity-20"
+        />
 
         <div className="relative z-10 max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>

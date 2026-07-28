@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
         prizesFirst: body.prizesFirst || '',
         prizesSecond: body.prizesSecond || '',
         prizesThird: body.prizesThird || '',
+        prizes: body.prizes || [],
         rulesSummary: body.rulesSummary || [],
         rulebookUrl: body.rulebookUrl || '',
         contactName: body.contactName || '',
@@ -47,6 +48,9 @@ export async function POST(request: NextRequest) {
         membersRequired: body.membersRequired || 'optional',
         isFree: body.isFree ? '1' : '0',
         origin: body.origin || 'internal',
+        certificateEnabled: body.certificateEnabled ? '1' : '0',
+        certificateType: body.certificateType || 'winner',
+        certificateTemplate: body.certificateTemplate || null,
       })
       .returning();
 

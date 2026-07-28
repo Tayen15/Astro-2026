@@ -174,10 +174,14 @@ export default function CompetitionModal({ competition, onClose }: Props) {
                     className="space-y-4"
                   >
                     {[
-                      { rank: 'Juara 1', prize: competition.prizes.first, color: 'text-amber-700 bg-amber-50 border-amber-200' },
-                      { rank: 'Juara 2', prize: competition.prizes.second, color: 'text-slate-700 bg-slate-100 border-slate-200' },
-                      { rank: 'Juara 3', prize: competition.prizes.third, color: 'text-amber-850 bg-amber-50/80 border-amber-200' },
-                    ].map((item) => (
+                      ...competition.prizes.map((p) => ({ ...p, rank: p.label, prize: p.value })),
+                    ].map((item, i) => ({ ...item, color: [
+                      'text-amber-700 bg-amber-50 border-amber-200',
+                      'text-slate-700 bg-slate-100 border-slate-200',
+                      'text-amber-850 bg-amber-50/80 border-amber-200',
+                      'text-cyan-700 bg-cyan-50 border-cyan-200',
+                      'text-violet-700 bg-violet-50 border-violet-200',
+                    ][i] || 'text-slate-700 bg-slate-100 border-slate-200' })).map((item) => (
                       <div key={item.rank} className="flex items-center gap-4 bg-slate-50 rounded-xl p-4 border border-slate-100">
                         <span className={`p-2 rounded-lg border ${item.color}`}>
                           <Trophy className="w-5 h-5" />

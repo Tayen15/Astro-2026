@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Search, Eye } from 'lucide-react';
-import type { Winner } from '@/data/announcementData';
+import { Search, Eye, ExternalLink, FileText, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import WinnersModal from './WinnersModal';
 
 type CategoryType = 'akademik' | 'olahraga' | 'esports';
@@ -11,28 +11,29 @@ type CategoryType = 'akademik' | 'olahraga' | 'esports';
 interface CompetitionItem {
   id: string;
   title: string;
-  category: CategoryType;
+  category: string;
   tagline: string;
   type: string | null;
+  hasWinners: boolean;
 }
 
-interface WinnersMap {
-  [competitionId: string]: {
-    first: Winner[];
-    second: Winner[];
-    third: Winner[];
-  };
+interface CertItem {
+  name: string;
+  url: string;
 }
 
-interface PrizesMap {
-  [competitionId: string]: {
-    first: string | null;
-    second: string | null;
-    third: string | null;
-  };
+interface RegistrationWinner {
+  id: string;
+  type: string;
+  fullName: string | null;
+  teamName: string | null;
+  leaderName: string | null;
+  email: string;
+  winnerRank: string | null;
+  certificates: CertItem[];
 }
 
-const categoryConfig: Record<CategoryType, { label: string; color: string; bg: string; border: string; accent: string }> = {
+const categoryConfig: Record<string, { label: string; color: string; bg: string; border: string; accent: string }> = {
   akademik: { label: 'AKADEMIK', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', accent: 'bg-emerald-500' },
   olahraga: { label: 'OLAHRAGA', color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200', accent: 'bg-orange-500' },
   esports: { label: 'ESPORTS', color: 'text-cyan-700', bg: 'bg-cyan-50', border: 'border-cyan-200', accent: 'bg-cyan-500' },
@@ -47,17 +48,19 @@ const CATEGORIES: { label: string; value: CategoryType | 'all' }[] = [
 
 export default function PengumumanClient({
   competitions,
-  winners: initialWinners,
-  prizes,
 }: {
   competitions: CompetitionItem[];
-  winners: WinnersMap;
-  prizes: PrizesMap;
 }) {
   const reduce = useReducedMotion();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
   const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [modalData, setModalData] = useState<{
+    competition: CompetitionItem;
+    winners: RegistrationWinner[];
+    certHolders: RegistrationWinner[];
+  } | null>(null);
+  const [loadingModal, setLoadingModal] = useState(false);
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -68,13 +71,36 @@ export default function PengumumanClient({
         return matchCat && matchQ;
       })
       .sort((a, b) => {
+        // Winners first, then by category
+        if (a.hasWinners !== b.hasWinners) return a.hasWinners ? -1 : 1;
         const order = ['akademik', 'olahraga', 'esports'];
         return order.indexOf(a.category) - order.indexOf(b.category);
       });
   }, [competitions, selectedCategory, searchQuery]);
 
-  const openModal = (id: string) => setModalOpen(id);
-  const closeModal = () => setModalOpen(null);
+  const openModal = async (comp: CompetitionItem) => {
+    setModalOpen(comp.id);
+    setLoadingModal(true);
+    try {
+      const res = await fetch(`/api/registrations/winners?competitionId=${comp.id}`);
+      const json = await res.json();
+      setModalData({
+        competition: comp,
+        winners: json.winners || [],
+        certHolders: json.certHolders || [],
+      });
+    } catch {
+      toast.error('Gagal memuat data pemenang');
+      setModalOpen(null);
+    } finally {
+      setLoadingModal(false);
+    }
+  };
+
+  const closeModal = () => {
+    setModalOpen(null);
+    setModalData(null);
+  };
 
   return (
     <section className="relative min-h-screen pt-24 md:pt-32 pb-20 overflow-hidden bg-gradient-to-b from-sky-100 via-sky-200 to-white text-slate-900">
@@ -168,7 +194,6 @@ export default function PengumumanClient({
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {filtered.map((comp, index) => {
               const cat = categoryConfig[comp.category] || categoryConfig.akademik;
-              const compWinners = initialWinners[comp.id];
               const isTeam = comp.type === 'team';
 
               return (
@@ -212,14 +237,19 @@ export default function PengumumanClient({
 
                     {/* Action */}
                     <div className="mt-2">
-                      {compWinners ? (
+                      {comp.hasWinners ? (
                         <button
-                          onClick={() => openModal(comp.id)}
-                          className="w-full py-2.5 text-[10px] font-black tracking-[0.1em] uppercase text-slate-950 bg-astro-cyan hover:bg-cyan-400 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer text-center block"
+                          onClick={() => openModal(comp)}
+                          disabled={loadingModal && modalOpen === comp.id}
+                          className="w-full py-2.5 text-[10px] font-black tracking-[0.1em] uppercase text-slate-950 bg-astro-cyan hover:bg-cyan-400 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer text-center block disabled:opacity-50"
                           style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
                         >
                           <span className="flex items-center justify-center gap-1.5">
-                            <Eye className="w-3.5 h-3.5" />
+                            {loadingModal && modalOpen === comp.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" />
+                            )}
                             Lihat Juara
                           </span>
                         </button>
@@ -249,23 +279,17 @@ export default function PengumumanClient({
         )}
 
         {/* Modal */}
-        {modalOpen && (() => {
-          const comp = competitions.find(c => c.id === modalOpen);
-          const w = comp ? initialWinners[comp.id] : null;
-          if (!comp || !w) return null;
-          const compPrizes = prizes[comp.id] || {};
-          return (
-            <WinnersModal
-              isOpen={true}
-              onClose={closeModal}
-              competitionTitle={comp.title}
-              category={comp.category}
-              type={comp.type}
-              winners={w}
-              prizes={compPrizes}
-            />
-          );
-        })()}
+        {modalOpen && modalData && !loadingModal && (
+          <WinnersModal
+            isOpen={true}
+            onClose={closeModal}
+            competitionTitle={modalData.competition.title}
+            category={modalData.competition.category}
+            type={modalData.competition.type}
+            winners={modalData.winners}
+            certHolders={modalData.certHolders}
+          />
+        )}
       </div>
     </section>
   );

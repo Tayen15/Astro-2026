@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import {
   Loader2, Pencil, X, Check, Search, Plus, Trophy,
   Coins, Users, MapPin, Calendar, Phone, User, Tag,
-  Trash2, EyeOff, Eye, Clock,
+  Trash2, EyeOff, Eye, Clock, Award,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import WinnerManager from '@/components/WinnerManager';
 
 const PAGE_SIZE = 10;
 
@@ -59,9 +60,7 @@ const emptyForm = {
   filledSlots: 0,
   scheduleDate: '',
   location: '',
-  prizesFirst: '',
-  prizesSecond: '',
-  prizesThird: '',
+  prizes: [] as { label: string; value: string }[],
   rulesSummary: '',
   rulebookUrl: '',
   contactName: '',
@@ -231,19 +230,50 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
       </div>
       <div className="sm:col-span-2">
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Trophy className="w-3 h-3" /> Hadiah</label>
-        <div className="grid grid-cols-3 gap-3 mt-1">
-          <input value={form.prizesFirst} onChange={(e) => update('prizesFirst', e.target.value)}
-            placeholder="Juara 1" className={inp('prizesFirst')}
+        <div className="space-y-2 mt-1">
+          {form.prizes.map((p: { label: string; value: string }, i: number) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-slate-400 w-5 flex-shrink-0">#{i + 1}</span>
+              <input
+                value={p.label}
+                onChange={(e) => {
+                  const next = [...form.prizes];
+                  next[i] = { ...next[i], label: e.target.value };
+                  update('prizes', next);
+                }}
+                placeholder="Label (Juara 1, Top Score, ...)"
+                className={`${inp('prizesLabel')} flex-1 min-w-0`}
+                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+              />
+              <input
+                value={p.value}
+                onChange={(e) => {
+                  const next = [...form.prizes];
+                  next[i] = { ...next[i], value: e.target.value };
+                  update('prizes', next);
+                }}
+                placeholder="Hadiah"
+                className={`${inp('prizesValue')} flex-[2] min-w-0`}
+                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+              />
+              <button
+                type="button"
+                onClick={() => update('prizes', form.prizes.filter((_: any, j: number) => j !== i))}
+                className="p-1.5 text-slate-400 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0"
+                title="Hapus"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => update('prizes', [...form.prizes, { label: `Juara ${form.prizes.length + 1}`, value: '' }])}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider border border-dashed border-slate-300 hover:border-astro-cyan hover:text-astro-cyan transition-colors cursor-pointer"
             style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          />
-          <input value={form.prizesSecond} onChange={(e) => update('prizesSecond', e.target.value)}
-            placeholder="Juara 2" className={inp('prizesSecond')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          />
-          <input value={form.prizesThird} onChange={(e) => update('prizesThird', e.target.value)}
-            placeholder="Juara 3" className={inp('prizesThird')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          />
+          >
+            <Plus className="w-3 h-3" /> Tambah Hadiah
+          </button>
         </div>
       </div>
       <div className="sm:col-span-2">
@@ -305,6 +335,7 @@ export default function KompetisiPage() {
     sortOrder: number;
   }
   const [timelineOpen, setTimelineOpen] = useState<string | null>(null);
+  const [winnerOpenId, setWinnerOpenId] = useState<string | null>(null);
   const [timelineItems, setTimelineItems] = useState<Record<string, TimelineItemData[]>>({});
   const [tlForm, setTlForm] = useState({ date: '', title: '', desc: '' });
   const [tlEditingId, setTlEditingId] = useState<number | null>(null);
@@ -343,9 +374,13 @@ export default function KompetisiPage() {
       filledSlots: comp.filledSlots,
       scheduleDate: comp.scheduleDate ? comp.scheduleDate.split('T')[0] : '',
       location: comp.location || '',
-      prizesFirst: comp.prizesFirst || '',
-      prizesSecond: comp.prizesSecond || '',
-      prizesThird: comp.prizesThird || '',
+      prizes: (comp as any).prizes?.length
+        ? (comp as any).prizes
+        : [
+            ...(comp.prizesFirst ? [{ label: 'Juara 1', value: comp.prizesFirst }] : []),
+            ...(comp.prizesSecond ? [{ label: 'Juara 2', value: comp.prizesSecond }] : []),
+            ...(comp.prizesThird ? [{ label: 'Juara 3', value: comp.prizesThird }] : []),
+          ],
       rulesSummary: comp.rulesSummary?.join('\n') || '',
       rulebookUrl: comp.rulebookUrl || '',
       contactName: comp.contactName || '',
@@ -470,6 +505,7 @@ export default function KompetisiPage() {
       return;
     }
     setTimelineOpen(compId);
+    setWinnerOpenId(null);
     setTlEditingId(null);
     setTlForm({ date: '', title: '', desc: '' });
     setTlDateRange({ start: '', end: '' });
@@ -480,6 +516,15 @@ export default function KompetisiPage() {
     } catch {
       toast.error('Gagal memuat timeline');
     }
+  };
+
+  const handleWinnerOpen = (compId: string) => {
+    if (winnerOpenId === compId) {
+      setWinnerOpenId(null);
+      return;
+    }
+    setWinnerOpenId(compId);
+    setTimelineOpen(null);
   };
 
   const handleTlSave = async (compId: string) => {
@@ -864,6 +909,12 @@ export default function KompetisiPage() {
                       >
                         <Clock className="w-4 h-4" />
                       </button>
+                      <button onClick={() => handleWinnerOpen(comp.id)}
+                        className={`p-2 transition-colors cursor-pointer ${winnerOpenId === comp.id ? 'text-astro-cyan' : 'text-slate-400 hover:text-astro-cyan'}`}
+                        title="Atur Sertifikat & Juara"
+                      >
+                        <Award className="w-4 h-4" />
+                      </button>
                       <button onClick={() => handleDeleteComp(comp.id)}
                         className="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer" title="Hapus"
                       >
@@ -978,6 +1029,13 @@ export default function KompetisiPage() {
                         style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
                       />
                     </div>
+                  </div>
+                )}
+
+                {/* ─── Winner Manager ─── */}
+                {winnerOpenId === comp.id && (
+                  <div className="border-t border-slate-200 mt-5 pt-5 space-y-4">
+                    <WinnerManager competitionId={comp.id} />
                   </div>
                 )}
               </div>

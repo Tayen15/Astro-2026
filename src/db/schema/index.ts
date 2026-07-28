@@ -39,6 +39,7 @@ export const competitions = pgTable('competitions', {
   prizesFirst: text('prizes_first'),
   prizesSecond: text('prizes_second'),
   prizesThird: text('prizes_third'),
+  prizes: jsonb('prizes').$type<{ label: string; value: string }[]>().default([]).notNull(),
   rulesSummary: jsonb('rules_summary').$type<string[]>(),
   rulebookUrl: text('rulebook_url'),
   contactName: text('contact_name'),
@@ -50,6 +51,9 @@ export const competitions = pgTable('competitions', {
   membersRequired: text('members_required').default('optional'), // 'optional' | 'required'
   isFree: text('is_free').default('0'), // '0' = bayar, '1' = gratis
   origin: text('origin').default('internal'), // 'internal' | 'external'
+  certificateEnabled: text('certificate_enabled').default('0'), // '0' = tidak ada, '1' = ada
+  certificateType: text('certificate_type').default('winner'), // 'winner' = juara saja, 'all' = semua peserta
+  certificateTemplate: text('certificate_template'), // URL file template sertifikat
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -82,6 +86,11 @@ export const registrations = pgTable('registrations', {
   paymentMethod: text('payment_method'), // 'qris' | 'transfer'
   paymentAmount: integer('payment_amount').notNull(),
   paymentReference: text('payment_reference'),
+  // Winner
+  isWinner: text('is_winner').default('0'), // '0' | '1'
+  winnerRank: text('winner_rank'), // '1' | '2' | '3' | null
+  certificateSent: text('certificate_sent').default('0'), // '0' | '1'
+  certificates: jsonb('certificates').$type<{ name: string; url: string }[]>().default([]).notNull(),
   // User link
   userId: uuid('user_id'),
   // Timestamps

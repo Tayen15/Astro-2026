@@ -12,10 +12,9 @@ export interface Competition {
   scheduleDate: string;
   location: string;
   prizes: {
-    first: string;
-    second: string;
-    third: string;
-  };
+    label: string;
+    value: string;
+  }[];
   rulesSummary: string[];
   rulebookUrl: string;
   type?: string;

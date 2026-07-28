@@ -24,7 +24,7 @@ interface CompetitionData {
   filledSlots: number;
   scheduleDate: string;
   location: string;
-  prizes: { first: string; second: string; third: string };
+  prizes: { label: string; value: string }[];
   rulesSummary: string[];
   rulebookUrl: string;
   registrationUrl?: string;
@@ -127,7 +127,13 @@ export default function RegistrationPage({ params }: { params: Promise<{ id: str
           filledSlots: c.filledSlots,
           scheduleDate: c.scheduleDate?.toISOString?.() || c.scheduleDate || '',
           location: c.location || '',
-          prizes: { first: c.prizesFirst || '', second: c.prizesSecond || '', third: c.prizesThird || '' },
+          prizes: c.prizes?.length
+            ? c.prizes
+            : [
+                ...(c.prizesFirst ? [{ label: 'Juara 1', value: c.prizesFirst }] : []),
+                ...(c.prizesSecond ? [{ label: 'Juara 2', value: c.prizesSecond }] : []),
+                ...(c.prizesThird ? [{ label: 'Juara 3', value: c.prizesThird }] : []),
+              ],
           rulesSummary: c.rulesSummary || [],
           rulebookUrl: c.rulebookUrl || '',
           registrationUrl: '',
