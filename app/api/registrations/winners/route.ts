@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         winnerRank: registrations.winnerRank,
         certificates: registrations.certificates,
         competitionName: competitions.title,
+        prizes: competitions.prizes,
       })
       .from(registrations)
       .innerJoin(competitions, eq(registrations.competitionId, competitions.id))

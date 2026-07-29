@@ -30,6 +30,7 @@ interface Props {
   type: string | null;
   winners: RegistrationWinner[];
   certHolders: RegistrationWinner[];
+  prizes: { label: string; value: string }[];
 }
 
 function CertModal({
@@ -117,6 +118,7 @@ export default function WinnersModal({
   category,
   winners,
   certHolders,
+  prizes = [],
 }: Props) {
   const [showCertModal, setShowCertModal] = useState(false);
 
@@ -274,7 +276,7 @@ export default function WinnersModal({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-end mb-6 pt-4">
                     {/* Juara 2 */}
                     {grouped['2'].length > 0 && (
-                      <div className="relative bg-slate-50/70 border border-blue-100/80 rounded-2xl pt-10 pb-5 px-4 text-center flex flex-col justify-between h-full min-h-[180px] shadow-xs">
+                      <div className="relative bg-slate-50/70 border border-blue-100/80 rounded-2xl pt-10 pb-5 px-4 text-center flex flex-col justify-between h-full min-h-[200px] shadow-xs">
                         <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 drop-shadow-md">
                           <Image src="/assets/medali2.png" alt="Medali Juara 2" fill className="object-contain" />
                         </div>
@@ -284,12 +286,20 @@ export default function WinnersModal({
                             <h3 key={w.id} className="text-base sm:text-lg font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
                           ))}
                         </div>
+                        {prizes.find((p) => p.label.toLowerCase().includes('2') || p.label === 'Juara 2') && (
+                          <div className="mt-3 pt-3 border-t border-slate-200/60">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Hadiah</span>
+                            <span className="text-xs font-black text-blue-600">
+                              {prizes.find((p) => p.label.toLowerCase().includes('2') || p.label === 'Juara 2')?.value}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {/* Juara 1 */}
                     {grouped['1'].length > 0 && (
-                      <div className="relative bg-gradient-to-b from-amber-50/80 to-amber-100/40 border-2 border-amber-300 rounded-2xl pt-11 pb-6 px-4 text-center flex flex-col justify-between h-full min-h-[200px] shadow-md ring-4 ring-amber-400/10 md:-translate-y-1">
+                      <div className="relative bg-gradient-to-b from-amber-50/80 to-amber-100/40 border-2 border-amber-300 rounded-2xl pt-11 pb-6 px-4 text-center flex flex-col justify-between h-full min-h-[220px] shadow-md ring-4 ring-amber-400/10 md:-translate-y-1">
                         <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-16 h-16 drop-shadow-lg">
                           <Image src="/assets/medali1.png" alt="Medali Juara 1" fill className="object-contain" />
                         </div>
@@ -299,12 +309,20 @@ export default function WinnersModal({
                             <h3 key={w.id} className="text-lg sm:text-xl font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
                           ))}
                         </div>
+                        {prizes.find((p) => p.label.toLowerCase().includes('1') || p.label === 'Juara 1') && (
+                          <div className="mt-3 pt-3 border-t border-amber-200/80">
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Hadiah</span>
+                            <span className="text-sm font-black text-amber-700">
+                              {prizes.find((p) => p.label.toLowerCase().includes('1') || p.label === 'Juara 1')?.value}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {/* Juara 3 */}
                     {grouped['3'].length > 0 && (
-                      <div className="relative bg-orange-50/30 border border-orange-200/80 rounded-2xl pt-10 pb-5 px-4 text-center flex flex-col justify-between h-full min-h-[180px] shadow-xs">
+                      <div className="relative bg-orange-50/30 border border-orange-200/80 rounded-2xl pt-10 pb-5 px-4 text-center flex flex-col justify-between h-full min-h-[200px] shadow-xs">
                         <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 drop-shadow-md">
                           <Image src="/assets/medali3.png" alt="Medali Juara 3" fill className="object-contain" />
                         </div>
@@ -314,6 +332,14 @@ export default function WinnersModal({
                             <h3 key={w.id} className="text-base sm:text-lg font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
                           ))}
                         </div>
+                        {prizes.find((p) => p.label.toLowerCase().includes('3') || p.label === 'Juara 3') && (
+                          <div className="mt-3 pt-3 border-t border-orange-200/60">
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Hadiah</span>
+                            <span className="text-xs font-black text-amber-800">
+                              {prizes.find((p) => p.label.toLowerCase().includes('3') || p.label === 'Juara 3')?.value}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

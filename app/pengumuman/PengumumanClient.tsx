@@ -59,6 +59,7 @@ export default function PengumumanClient({
     competition: CompetitionItem;
     winners: RegistrationWinner[];
     certHolders: RegistrationWinner[];
+    prizes: { label: string; value: string }[];
   } | null>(null);
   const [loadingModal, setLoadingModal] = useState(false);
 
@@ -88,6 +89,7 @@ export default function PengumumanClient({
         competition: comp,
         winners: json.winners || [],
         certHolders: json.certHolders || [],
+        prizes: json.winners?.[0]?.prizes || [],
       });
     } catch {
       toast.error('Gagal memuat data pemenang');
@@ -288,6 +290,7 @@ export default function PengumumanClient({
             type={modalData.competition.type}
             winners={modalData.winners}
             certHolders={modalData.certHolders}
+            prizes={modalData.prizes}
           />
         )}
       </div>
