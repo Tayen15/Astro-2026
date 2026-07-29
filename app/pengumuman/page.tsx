@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { db } from '@/src/db';
+import { competitions, registrations } from '@/src/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PengumumanClient from './PengumumanClient';
@@ -16,8 +19,6 @@ interface CompetitionItem {
   category: string;
   tagline: string;
   type: string | null;
-  origin: string | null;
-  isFree: string | null;
   hasWinners: boolean;
 }
 
@@ -25,22 +26,37 @@ export default async function PengumumanPage() {
   let comps: CompetitionItem[] = [];
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/competitions/with-winners`, {
-      cache: 'no-store',
-    });
-    const json = await res.json();
-    comps = (json.data || []).map((c: any) => ({
+    // Query competitions langsung dari DB (tanpa fetch API)
+    const allComps = await db
+      .select({
+        id: competitions.id,
+        title: competitions.title,
+        category: competitions.category,
+        tagline: competitions.tagline,
+        type: competitions.type,
+      })
+      .from(competitions)
+      .orderBy(desc(competitions.createdAt));
+
+    // Cari competitionId yang punya winner
+    const compsWithWinners = await db
+      .select({ id: registrations.competitionId })
+      .from(registrations)
+      .where(eq(registrations.isWinner, '1'))
+      .groupBy(registrations.competitionId);
+
+    const winnerIds = new Set(compsWithWinners.map((r) => r.id));
+
+    comps = allComps.map((c) => ({
       id: c.id,
       title: c.title,
-      category: c.category as string,
+      category: c.category,
       tagline: c.tagline || '',
       type: c.type || 'individual',
-      origin: c.origin || 'internal',
-      isFree: c.isFree || '0',
-      hasWinners: c.hasWinners,
+      hasWinners: winnerIds.has(c.id),
     }));
   } catch (e) {
-    console.error('Failed to fetch competitions with winners:', e);
+    console.error('Failed to load competitions with winners:', e);
   }
 
   return (
