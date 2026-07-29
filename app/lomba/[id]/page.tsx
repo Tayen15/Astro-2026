@@ -208,7 +208,7 @@ export default function CompetitionDetailPage() {
     { style: 'border-cyan-100 bg-cyan-50/30', accentLine: 'bg-cyan-400', iconColor: 'text-cyan-600 bg-cyan-50 border-cyan-200' },
     { style: 'border-violet-100 bg-violet-50/30', accentLine: 'bg-violet-400', iconColor: 'text-violet-600 bg-violet-50 border-violet-200' },
   ];
-  const prizes = competition.prizes.map((p, i) => ({
+  const prizes = competition.prizes.map((p: { label: string; value: string }, i: number) => ({
     rank: p.label,
     prize: p.value,
     ...(prizeStyles[i] || prizeStyles[prizeStyles.length - 1]),
@@ -481,7 +481,7 @@ export default function CompetitionDetailPage() {
                     </motion.div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {prizes.map((item, idx) => (
+                      {prizes.map((item: { rank: string; prize: string; style: string; accentLine: string; iconColor: string }, idx: number) => (
                         <motion.div
                           key={item.rank}
                           initial={

@@ -30,7 +30,7 @@ export default function SponsorPage() {
   const [spPage, setSpPage] = useState(1);
   const [mpPage, setMpPage] = useState(1);
 
-  const [spForm, setSpForm] = useState({ name: '', website: '', logo: '' });
+  const [spForm, setSpForm] = useState({ name: '', website: '', logo: '', tier: 'gold' });
   const [spEditingId, setSpEditingId] = useState<number | null>(null);
   const [spSaving, setSpSaving] = useState(false);
   const [showSpAdd, setShowSpAdd] = useState(false);
@@ -67,7 +67,7 @@ export default function SponsorPage() {
           body: JSON.stringify(spForm),
         });
       }
-      setSpForm({ name: '', website: '', logo: '' });
+      setSpForm({ name: '', website: '', logo: '', tier: 'gold' });
       setSpEditingId(null); setShowSpAdd(false);
       toast.success(spEditingId ? 'Sponsor diperbarui' : 'Sponsor ditambahkan');
       fetchData();
@@ -76,7 +76,7 @@ export default function SponsorPage() {
   };
 
   const handleSpEdit = (s: Sponsor) => {
-    setSpForm({ name: s.name, website: s.website || '', logo: s.logo || '' });
+    setSpForm({ name: s.name, website: s.website || '', logo: s.logo || '', tier: (s as any).tier || 'gold' });
     setSpEditingId(s.id); setShowSpAdd(true);
   };
 
@@ -170,7 +170,7 @@ export default function SponsorPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-slate-500">{sponsors.length} sponsor</p>
-            <button onClick={() => { setShowSpAdd(!showSpAdd); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '' }); }}
+            <button onClick={() => { setShowSpAdd(!showSpAdd); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '', logo: '' }); }}
               className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
               style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
               <Plus className="w-3.5 h-3.5" /> Tambah Sponsor
@@ -241,7 +241,7 @@ export default function SponsorPage() {
                   style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
                   {spSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
                 </button>
-                <button onClick={() => { setShowSpAdd(false); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '' }); }}
+                <button onClick={() => { setShowSpAdd(false); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '', logo: '' }); }}
                   className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
                   style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
                   <X className="w-3 h-3" /> Batal
@@ -278,7 +278,7 @@ export default function SponsorPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-slate-500">{mediaPartners.length} media partner</p>
-            <button onClick={() => { setShowMpAdd(!showMpAdd); setMpEditingId(null); setMpForm({ name: '', website: '' }); }}
+            <button onClick={() => { setShowMpAdd(!showMpAdd); setMpEditingId(null); setMpForm({ name: '', website: '', logo: '' }); }}
               className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
               style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
               <Plus className="w-3.5 h-3.5" /> Tambah Media Partner
@@ -349,7 +349,7 @@ export default function SponsorPage() {
                   style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
                   {mpSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
                 </button>
-                <button onClick={() => { setShowMpAdd(false); setMpEditingId(null); setMpForm({ name: '', website: '' }); }}
+                <button onClick={() => { setShowMpAdd(false); setMpEditingId(null); setMpForm({ name: '', website: '', logo: '' }); }}
                   className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
                   style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
                   <X className="w-3 h-3" /> Batal

@@ -23,6 +23,7 @@ interface Division {
   id: number;
   name: string;
   slug: string;
+  shortName: string | null;
 }
 
 const PAGE_SIZE = 10;

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const lombaFilter = searchParams.get('lomba') || '';
     const userId = searchParams.get('userId') || '';
 
-    const conditions = [];
+    const conditions: any[] = [];
     if (search) {
       conditions.push(
         sql`(${registrations.fullName} ILIKE ${'%' + search + '%'} OR ${registrations.teamName} ILIKE ${'%' + search + '%'} OR ${registrations.email} ILIKE ${'%' + search + '%'})`,
