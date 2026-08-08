@@ -252,11 +252,14 @@ body {
 
 /* ─── Angular Brand Utility ─── */
 .clip-angled {
+  border-radius: 0px;
   clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
 }
 .clip-angled-sm {
+  border-radius: 0px;
   clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
 }
 .clip-angled-lg {
+  border-radius: 0px;
   clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
 }
