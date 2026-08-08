@@ -98,16 +98,21 @@ export default function CompetitionCard({ competition, index }: Props) {
           </div>
 
           {/* Progress bar */}
-          <Progress value={ratio} className="h-1.5 bg-muted [&>div]:rounded-full" />
+          <Progress
+            value={ratio}
+            aria-label={`Kuota ${competition.title}`}
+            className="h-1.5 bg-muted [&>div]:rounded-full"
+          />
 
           {/* Actions */}
           <div className="mt-1 flex items-center gap-2">
             <Button asChild variant="outline" size="sm" className="clip-angled-sm flex-1 text-[10px] font-bold uppercase tracking-[0.1em]">
-              <Link href={`/competitions/${competition.id}`}>Detail</Link>
+              <Link href={`/competitions/${competition.id}`} aria-label={`Detail ${competition.title}`}>Detail</Link>
             </Button>
             <Button
               onClick={() => router.push(`/register/${competition.id}`)}
               size="sm"
+              aria-label={`Daftar ${competition.title}`}
               className="clip-angled-sm flex-1 text-[10px] font-black uppercase tracking-[0.1em]"
             >
               Daftar

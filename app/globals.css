@@ -72,6 +72,16 @@
   100% { background-position: 200% center; }
 }
 
+/* Entrance for hero content — transform-only so text paints immediately (LCP-friendly) */
+@keyframes hero-rise {
+  from { transform: translateY(24px); }
+  to { transform: translateY(0); }
+}
+
+.animate-hero-rise {
+  animation: hero-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ─── Base ─── */
 html { scroll-behavior: smooth; }
 

@@ -12,16 +12,6 @@ interface Props {
   eventConfig: EventConfig;
 }
 
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } },
-};
-
 export default function HeroSection({ eventConfig }: Props) {
   const reduce = useReducedMotion();
 
@@ -89,14 +79,13 @@ export default function HeroSection({ eventConfig }: Props) {
         priority
         className="absolute -top-12 -right-12 w-56 h-56 md:w-[28rem] md:h-[28rem] object-contain pointer-events-none select-none z-0"
       />
-      {/* Chrome blob - bottom left corner */}
+      {/* Chrome blob - bottom left corner (below the fold on mobile; no priority) */}
       <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
         width={512}
         height={640}
         sizes="(min-width: 768px) 32rem, 16rem"
-        priority
         className="absolute -bottom-16 -left-16 w-64 h-64 md:w-[32rem] md:h-[32rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - top left corner */}
@@ -156,15 +145,9 @@ export default function HeroSection({ eventConfig }: Props) {
         className="absolute bottom-[15%] right-[4%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
       />
 
-      <motion.div
-        className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center"
-        variants={reduce ? undefined : stagger}
-        initial="hidden"
-        animate="visible"
-      >
-
-        {/* ─── MAIN TITLE ─── */}
-        <motion.div variants={fadeUp} className="mb-6 md:mb-0 md:-mt-6">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center animate-hero-rise">
+        {/* ─── MAIN TITLE (paints immediately, no JS gate) ─── */}
+        <div className="mb-6 md:mb-0 md:-mt-6">
           <h1 className="text-massive mb-0">
             <span
               className="block bg-gradient-to-b from-slate-300 via-slate-400 to-slate-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(0,0,0,0.15)]"
@@ -193,15 +176,20 @@ export default function HeroSection({ eventConfig }: Props) {
               Meets the Stars
             </span>
           </p>
-        </motion.div>
+        </div>
 
         {/* Accent line */}
-        <motion.div variants={fadeUp} className="flex justify-center mb-8 md:mb-10">
+        <div className="flex justify-center mb-8 md:mb-10">
           <div className="w-24 h-[3px] bg-white/40 rounded-full" />
-        </motion.div>
+        </div>
 
         {/* Countdown - Glass Dashboard */}
-        <motion.div variants={fadeUp} className="mb-8 md:mb-10">
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
+          className="mb-8 md:mb-10"
+        >
           <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-white/80 mb-4 font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.05)]">
             Pendaftaran Ditutup Dalam
           </p>
@@ -209,11 +197,16 @@ export default function HeroSection({ eventConfig }: Props) {
         </motion.div>
 
         {/* CTA - Solid Parallelogram Buttons */}
-        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
           <Button
             onClick={() => document.querySelector('#competitions')?.scrollIntoView({ behavior: 'smooth' })}
             size="lg"
-            className="skew-x-[-8deg] rounded-none border-2 border-sky-300 bg-sky-600 px-8 py-4 text-sm font-black uppercase tracking-wider text-white shadow-[0_8px_30px_rgba(2,132,199,0.4)] hover:-translate-y-0.5 hover:bg-sky-500 hover:shadow-[0_12px_40px_rgba(2,132,199,0.5)] active:scale-95"
+            className="skew-x-[-8deg] rounded-none border-2 border-sky-300 bg-sky-700 px-8 py-4 text-sm font-black uppercase tracking-wider text-white shadow-[0_8px_30px_rgba(2,132,199,0.4)] hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_12px_40px_rgba(2,132,199,0.5)] active:scale-95"
           >
             <span className="block skew-x-[8deg]">Lihat Lomba & Daftar</span>
           </Button>
@@ -227,7 +220,7 @@ export default function HeroSection({ eventConfig }: Props) {
             </a>
           </Button>
         </motion.div>
-      </motion.div>
+      </div>
 
       {/* Bottom gradient fade to white */}
       <div className="absolute bottom-0 left-0 right-0 h-32 z-20 pointer-events-none bg-gradient-to-b from-transparent to-white" />

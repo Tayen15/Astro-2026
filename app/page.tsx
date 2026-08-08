@@ -1,18 +1,25 @@
+import { Suspense } from 'react';
 import { db } from '@/src/db';
 import { competitions, faqs as faqsTable } from '@/src/db/schema';
 import { desc } from 'drizzle-orm';
+import dynamic from 'next/dynamic';
 import type { AstroData } from '@/types/astro';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import StatsBar from '@/components/StatsBar';
-import AboutSection from '@/components/AboutSection';
-import TimelineSection from '@/components/TimelineSection';
-import SponsorSection from '@/components/SponsorSection';
-import FAQSection from '@/components/FAQSection';
 import Footer from '@/components/Footer';
 import astroData from '@/data/astro-data.json';
 
+const AboutSection = dynamic(() => import('@/components/AboutSection'), { ssr: true });
+const TimelineSection = dynamic(() => import('@/components/TimelineSection'), { ssr: true });
+const SponsorSection = dynamic(() => import('@/components/SponsorSection'), { ssr: true });
+const FAQSection = dynamic(() => import('@/components/FAQSection'), { ssr: true });
+
 const fallbackData = astroData as AstroData;
+
+function SectionFallback({ className }: { className: string }) {
+  return <div className={className} aria-hidden="true" />;
+}
 
 export default async function Home() {
   // Try fetching from DB, fallback to JSON
@@ -71,10 +78,18 @@ export default async function Home() {
       <main>
         <HeroSection eventConfig={data.eventConfig} />
         <StatsBar data={data} />
-        <AboutSection competitions={data.competitions} />
-        <TimelineSection timeline={data.timeline} />
-        <FAQSection faqs={data.faqs} />
-        <SponsorSection />
+        <Suspense fallback={<SectionFallback className="py-24 md:py-32" />}>
+          <AboutSection competitions={data.competitions} />
+        </Suspense>
+        <Suspense fallback={<SectionFallback className="py-24 md:py-32" />}>
+          <TimelineSection timeline={data.timeline} />
+        </Suspense>
+        <Suspense fallback={<SectionFallback className="py-24 md:py-32" />}>
+          <FAQSection faqs={data.faqs} />
+        </Suspense>
+        <Suspense fallback={<SectionFallback className="py-24 md:py-32" />}>
+          <SponsorSection />
+        </Suspense>
       </main>
       <Footer />
     </>

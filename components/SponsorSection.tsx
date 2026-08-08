@@ -74,7 +74,7 @@ export default function SponsorSection() {
           <h2 className="font-masterpiece text-5xl md:text-6xl lg:text-7xl text-slate-900 mb-3 leading-tight">
             Didukung <span className="text-sky-500">Oleh</span>
           </h2>
-          <p className="text-[11px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] md:tracking-[0.35em] text-slate-500 uppercase">
+          <p className="text-[11px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] md:tracking-[0.35em] text-slate-700 uppercase">
             TRUSTED BY TEAMS FROM AROUND THE WORLD
           </p>
         </motion.div>
@@ -100,7 +100,7 @@ export default function SponsorSection() {
             </motion.div>
           </div>
         ) : (
-          <p className="text-center text-slate-400 text-sm italic mb-12">Belum ada sponsor.</p>
+          <p className="text-center text-slate-600 text-sm italic mb-12">Belum ada sponsor.</p>
         )}
 
         {/* Media Partners */}
@@ -159,7 +159,7 @@ function BrandItem({ brand }: { brand: { name: string; website?: string | null; 
         <div className="relative w-20 h-10 md:w-16 md:h-14">
           <Image
             src={brand.logo}
-            alt={brand.name}
+            alt=""
             fill
             className="object-contain"
             sizes="(max-width: 768px) 96px, 128px"

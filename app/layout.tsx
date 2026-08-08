@@ -31,6 +31,7 @@ export const metadata: Metadata = {
   title: "ASTRO 2026 | Where Innovation Meets the Stars",
   description:
     "Ajang kompetisi dan kreativitas terbesar tahun ini. Bergabunglah dalam ASTRO 2026 — pengalaman kompetisi multi-kategori yang menggabungkan akademik, olahraga, dan esports dalam satu panggung spektakuler.",
+  metadataBase: new URL("https://astro-2026.vercel.app"),
   keywords: [
     "ASTRO",
     "kompetisi",
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
     title: "ASTRO 2026 | Where Innovation Meets the Stars",
     description:
       "Ajang kompetisi dan kreativitas terbesar tahun ini — Akademik, Olahraga, Esports.",
-    url: "https://astro2026.example.com",
+    url: "https://astro-2026.vercel.app",
     siteName: "ASTRO 2026",
     locale: "id_ID",
     type: "website",

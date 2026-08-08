@@ -51,7 +51,7 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Tautan Cepat</h4>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Tautan Cepat</h3>
             <ul className="space-y-2.5">
               {[
                 { label: 'Beranda', href: '#home' },
@@ -79,7 +79,7 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Ikuti Kami</h4>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Ikuti Kami</h3>
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;

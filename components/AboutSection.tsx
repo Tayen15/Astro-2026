@@ -168,6 +168,7 @@ export default function AboutSection({ competitions }: Props) {
           alt=""
           width={280}
           height={280}
+          sizes="(min-width: 768px) 280px, 96px"
           animate={{ y: [0, -18, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="w-15 h-15 md:w-[280px] md:h-[280px] object-contain"

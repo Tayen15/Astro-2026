@@ -30,7 +30,7 @@ function Block({ value, label, delay }: { value: number; label: string; delay: n
       className="flex flex-col items-center bg-white border border-slate-200 px-3 py-3 md:px-5 md:py-4 min-w-[68px] md:min-w-[88px] shadow-sm"
       style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
     >
-      <span className="text-2xl md:text-4xl font-black text-astro-cyan font-mono tracking-wider tabular-nums leading-none">
+      <span className="text-2xl md:text-4xl font-black text-cyan-700 font-mono tracking-wider tabular-nums leading-none">
         {String(value).padStart(2, '0')}
       </span>
       <span className="text-[9px] md:text-[10px] uppercase text-slate-600 tracking-[0.15em] mt-1.5 font-bold">
@@ -67,7 +67,7 @@ export default function CountdownTimer({ deadline }: { deadline: string }) {
           ) : (
             <div className="flex flex-col items-center bg-white border border-slate-200 px-3 py-3 md:px-5 md:py-4 min-w-[68px] md:min-w-[88px] shadow-sm"
               style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-              <span className="text-2xl md:text-4xl font-black text-astro-cyan/30 font-mono tracking-wider">--</span>
+              <span className="text-2xl md:text-4xl font-black text-cyan-700/40 font-mono tracking-wider">--</span>
               <span className="text-[9px] md:text-[10px] uppercase text-slate-500 tracking-[0.15em] mt-1.5 font-bold">{item.label}</span>
             </div>
           )}
