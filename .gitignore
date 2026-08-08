@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# agent config / skills (local tooling, not app source)
+.agents/
+.claude/
+.commandcode/
+.oxlintrc.json
