@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "motion/react";
+import Image from "next/image";
+import { motion, useReducedMotion } from "motion/react";
 import { Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -87,7 +88,10 @@ const CATEGORIES: { label: string; value: CategoryType | "all" }[] = [
 
 const SKELETON_COUNT = 6;
 
+const MotionImage = motion.create(Image);
+
 export default function PengumumanClient() {
+  const reduce = useReducedMotion();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<
     CategoryType | "all"
@@ -154,9 +158,46 @@ export default function PengumumanClient() {
   };
 
   return (
-    <section className="relative min-h-screen pt-24 md:pt-32 pb-20 overflow-hidden bg-gradient-to-b from-sky-100 via-sky-200 to-white text-slate-900">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-cyan-300/30 rounded-full blur-[150px] pointer-events-none z-0" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-sky-300/30 rounded-full blur-[120px] pointer-events-none z-0" />
+    <section className="relative min-h-screen pt-24 md:pt-32 pb-20 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100 text-slate-900">
+      {/* Floating blobs — seperti hero halaman detail lomba */}
+      <MotionImage
+        src="/assets/blob-round.png" alt="" width={112} height={112}
+        animate={reduce ? undefined : { y: [0, -14, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[6%] -left-[2%] w-14 h-14 md:w-28 md:h-28 object-contain pointer-events-none select-none z-0"
+      />
+      <MotionImage
+        src="/assets/blob-round.png" alt="" width={96} height={96}
+        animate={reduce ? undefined : { y: [0, -12, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }}
+        className="absolute top-[12%] -right-[2%] w-12 h-12 md:w-24 md:h-24 object-contain pointer-events-none select-none z-0"
+      />
+      <MotionImage
+        src="/assets/blob-round.png" alt="" width={80} height={80}
+        animate={reduce ? undefined : { y: [0, -10, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+        className="absolute bottom-[18%] left-[4%] w-10 h-10 md:w-20 md:h-20 object-contain pointer-events-none select-none z-0"
+      />
+      <MotionImage
+        src="/assets/blob-round.png" alt="" width={128} height={128}
+        animate={reduce ? undefined : { y: [0, -16, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }}
+        className="absolute bottom-[8%] right-[3%] w-16 h-16 md:w-32 md:h-32 object-contain pointer-events-none select-none z-0"
+      />
+
+      {/* Floating clouds — seperti hero halaman detail lomba */}
+      <MotionImage
+        src="/assets/awan1.png" alt="" width={160} height={120}
+        animate={reduce ? undefined : { x: [0, 15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[10%] left-[2%] w-16 h-auto md:w-40 md:h-auto object-contain pointer-events-none select-none z-0 opacity-40"
+      />
+      <MotionImage
+        src="/assets/awan2.png" alt="" width={200} height={140}
+        animate={reduce ? undefined : { x: [0, -12, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[30%] right-[3%] w-20 h-auto md:w-48 md:h-auto object-contain pointer-events-none select-none z-0 opacity-35"
+      />
 
       <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
         {/* Header */}
@@ -172,7 +213,9 @@ export default function PengumumanClient() {
           >
             Pengumuman
             <br />
-            <span className="text-astro-cyan">Pemenang</span>
+            <span className="bg-gradient-to-r from-sky-900 via-cyan-800 to-slate-800 bg-clip-text text-transparent">
+              Pemenang
+            </span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
