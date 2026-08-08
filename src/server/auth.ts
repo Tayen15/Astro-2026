@@ -5,6 +5,7 @@ import { emailOTP } from 'better-auth/plugins';
 import { admin } from 'better-auth/plugins';
 import { Resend } from 'resend';
 import { db } from '@/src/db';
+import { users, authSessions, authAccounts, authVerifications } from '@/src/db/schema';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -12,6 +13,12 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
     usePlural: true,
+    schema: {
+      users,
+      sessions: authSessions,
+      accounts: authAccounts,
+      verifications: authVerifications,
+    },
   }),
   emailAndPassword: {
     enabled: true,
@@ -74,5 +81,10 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+  },
+  advanced: {
+    database: {
+      generateId: () => crypto.randomUUID(),
+    },
   },
 });

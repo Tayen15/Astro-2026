@@ -8,6 +8,8 @@ import {
   jsonb,
   serial,
   boolean,
+  index,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 /* ─── Categories ─── */
@@ -29,7 +31,7 @@ export const competitions = pgTable('competitions', {
   title: text('title').notNull(),
   category: text('category')
     .notNull()
-    .references(() => categories.id),
+    .references(() => categories.id, { onDelete: 'restrict' }),
   tagline: text('tagline'),
   description: text('description'),
   fee: integer('fee').notNull().default(0),
@@ -56,7 +58,9 @@ export const competitions = pgTable('competitions', {
   certificateType: text('certificate_type').default('winner'), // 'winner' = juara saja, 'all' = semua peserta
   certificateTemplate: text('certificate_template'), // URL file template sertifikat
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('competitions_category_idx').on(table.category),
+]);
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({
   registrations: many(registrations),
@@ -68,7 +72,7 @@ export const registrations = pgTable('registrations', {
   id: uuid('id').defaultRandom().primaryKey(),
   competitionId: text('competition_id')
     .notNull()
-    .references(() => competitions.id),
+    .references(() => competitions.id, { onDelete: 'restrict' }),
   type: text('type').notNull(), // 'team' | 'individual'
   // Individual fields
   fullName: text('full_name'),
@@ -93,11 +97,14 @@ export const registrations = pgTable('registrations', {
   certificateSent: text('certificate_sent').default('0'), // '0' | '1'
   certificates: jsonb('certificates').$type<{ name: string; url: string }[]>().default([]).notNull(),
   // User link
-  userId: uuid('user_id'),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('registrations_competition_id_idx').on(table.competitionId),
+  index('registrations_user_id_idx').on(table.userId),
+]);
 
 export const registrationsRelations = relations(registrations, ({ one }) => ({
   competition: one(competitions, {
@@ -117,7 +124,9 @@ export const competitionTimeline = pgTable('competition_timeline', {
   desc: text('desc').notNull(),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('competition_timeline_competition_id_idx').on(table.competitionId),
+]);
 
 export const competitionTimelineRelations = relations(competitionTimeline, ({ one }) => ({
   competition: one(competitions, {
@@ -128,7 +137,7 @@ export const competitionTimelineRelations = relations(competitionTimeline, ({ on
 
 /* ─── Users ─── */
 export const users = pgTable('users', {
-  id: uuid('id').primaryKey(),
+  id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
   name: text('name'),
   role: text('role').notNull().default('participant'), // 'admin' | 'participant'
@@ -154,7 +163,9 @@ export const authSessions = pgTable('sessions', {
     .references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('sessions_user_id_idx').on(table.userId),
+]);
 
 /* ─── Better Auth: Accounts (OAuth / linked accounts) ─── */
 export const authAccounts = pgTable('accounts', {
@@ -173,7 +184,10 @@ export const authAccounts = pgTable('accounts', {
   password: text('password'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('accounts_user_id_idx').on(table.userId),
+  unique('accounts_provider_account_unique').on(table.providerId, table.accountId),
+]);
 
 /* ─── Better Auth: Verification tokens / OTP ─── */
 export const authVerifications = pgTable('verifications', {
@@ -254,20 +268,26 @@ export const journeys = pgTable('journeys', {
 export const galleryPhotos = pgTable('gallery_photos', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
-  category: text('category').notNull(), // FK -> gallery_categories.slug
+  category: text('category')
+    .notNull()
+    .references(() => galleryCategories.slug, { onDelete: 'restrict' }),
   imageUrl: text('image_url').notNull(),
   year: text('year').notNull(),
   likesCount: integer('likes_count').default(0),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('gallery_photos_category_idx').on(table.category),
+]);
 
 /* ─── Committee Members ─── */
 export const committeeMembers = pgTable('committee_members', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
   role: text('role').notNull(), // jabatan (e.g. 'Ketua Pelaksana', 'Staf')
-  division: text('division').notNull(), // FK -> committee_divisions.slug
+  division: text('division')
+    .notNull()
+    .references(() => committeeDivisions.slug, { onDelete: 'restrict' }),
   divisionName: text('division_name').notNull(),
   image: text('image').notNull(),
   isLeader: text('is_leader').default('0'), // '0' | '1' — controls tipe (Koordinator/Staf)
@@ -276,4 +296,6 @@ export const committeeMembers = pgTable('committee_members', {
   linkedin: text('linkedin'),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('committee_members_division_idx').on(table.division),
+]);
