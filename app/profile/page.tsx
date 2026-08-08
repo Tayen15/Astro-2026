@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import {
   motion,
-  AnimatePresence,
   useReducedMotion,
 } from "motion/react";
 import {
@@ -16,7 +15,6 @@ import {
   ShieldCheck,
   Eye,
   Target,
-  X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -24,7 +22,10 @@ import CommitteeSection from "@/components/CommitteeSection";
 import EventGallerySection from "@/components/EventGallerySection";
 import SocialMediaSection from "@/components/SocialMediaSection";
 import ProfileHero from "@/components/ProfileHero";
-import { apiHelpers } from "@/src/lib/api";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useJourneys } from "@/src/lib/hooks/use-queries";
 
 const MotionImage = motion.create(Image);
 
@@ -36,25 +37,21 @@ export default function ProfilePage() {
   const [activeJourneyYear, setActiveJourneyYear] = useState<string | null>(
     null,
   );
-  const [journey, setJourney] = useState<any[]>([]);
-
-  useEffect(() => {
-    apiHelpers.journeys.list()
-      .then((data) => {
-        const mapped = (data || []).map((j: any) => ({
-          year: j.id,
-          theme: j.theme,
-          participants: j.participants || 0,
-          universities: j.universities || 0,
-          competitions: j.competitionsCount || 0,
-          achievement: j.achievement || "",
-          description: j.description || "",
-          highlights: j.highlights || [],
-        }));
-        setJourney(mapped);
-      })
-      .catch(() => {});
-  }, []);
+  const { data: journeysData } = useJourneys();
+  const journey = useMemo(
+    () =>
+      (journeysData || []).map((j: any) => ({
+        year: j.id,
+        theme: j.theme,
+        participants: j.participants || 0,
+        universities: j.universities || 0,
+        competitions: j.competitionsCount || 0,
+        achievement: j.achievement || "",
+        description: j.description || "",
+        highlights: j.highlights || [],
+      })),
+    [journeysData],
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -517,163 +514,110 @@ export default function ProfilePage() {
             transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="text-center mt-12 md:mt-16"
           >
-            <button
+            <Button
               onClick={() => setShowAllJourney(true)}
-              className="inline-flex items-center gap-2.5 px-8 py-4 bg-slate-900 text-white font-bold text-xs tracking-wider uppercase transition-all duration-200 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer"
-              style={{
-                clipPath:
-                  "polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)",
-              }}
+              size="lg"
+              className="clip-angled bg-slate-900 text-xs font-bold uppercase tracking-wider text-white hover:-translate-y-0.5 hover:bg-slate-800 active:scale-[0.97]"
             >
-              <Calendar className="w-4 h-4" />
+              <Calendar data-icon="inline-start" />
               <span>Lihat Semua Perjalanan</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
+              <ArrowRight data-icon="inline-end" />
+            </Button>
           </motion.div>
         </div>
       </section>
 
       {/* ═══ JOURNEY FULL OVERLAY ═══ */}
-      <AnimatePresence>
-        {showAllJourney && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/60 backdrop-blur-sm py-10 px-4"
-            onClick={() => setShowAllJourney(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 40, scale: 0.97 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-5xl bg-white shadow-2xl relative overflow-hidden rounded-2xl"
-            >
-              {/* Close button */}
-              <button
-                onClick={() => setShowAllJourney(false)}
-                className="absolute top-4 right-4 z-20 w-10 h-10 bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer"
-                style={{
-                  clipPath:
-                    "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)",
-                }}
-              >
-                <X className="w-4 h-4 text-slate-600" />
-              </button>
+      <Dialog open={showAllJourney} onOpenChange={setShowAllJourney}>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-hidden p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>ASTRO Journey</DialogTitle>
+            <DialogDescription>Jelajahi setiap babak perjalanan ASTRO.</DialogDescription>
+          </DialogHeader>
 
-              {/* Overlay header */}
-              <div className="bg-gradient-to-br from-sky-500 via-cyan-500 to-sky-600 p-8 md:p-12 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 blur-[60px] rounded-full" />
-                <div className="absolute bottom-0 left-0 w-60 h-60 bg-white/5 blur-[80px] rounded-full" />
-                <h2 className="font-masterpiece text-3xl md:text-5xl text-white leading-tight relative z-10">
-                  ASTRO <span className="text-cyan-200">Journey</span>
-                </h2>
-                <p className="text-white/70 text-sm mt-2 max-w-lg relative z-10">
-                  Jelajahi setiap babak perjalanan ASTRO dari awal hingga
-                  sekarang.
-                </p>
-              </div>
+          {/* Overlay header */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-sky-500 via-cyan-500 to-sky-600 p-8 md:p-12">
+            <div className="absolute top-0 right-0 size-40 rounded-full bg-white/10 blur-[60px]" />
+            <div className="absolute bottom-0 left-0 size-60 rounded-full bg-white/5 blur-[80px]" />
+            <h2 className="font-masterpiece relative z-10 text-3xl leading-tight text-white md:text-5xl">
+              ASTRO <span className="text-cyan-200">Journey</span>
+            </h2>
+            <p className="relative z-10 mt-2 max-w-lg text-sm text-white/70">
+              Jelajahi setiap babak perjalanan ASTRO dari awal hingga sekarang.
+            </p>
+          </div>
 
-              {/* Overlay content — all journeys full details */}
-              <div className="p-6 md:p-10 space-y-8 max-h-[70vh] overflow-y-auto">
-                {journey.map((j, idx) => {
-                  const isActive = activeJourneyYear === j.year;
-                  return (
-                    <motion.div
-                      key={j.year}
-                      initial={isActive ? { opacity: 0, y: 20 } : false}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.08, duration: 0.4 }}
-                      className={`border-l-4 pl-5 md:pl-8 py-4 transition-all duration-300 ${
-                        isActive
-                          ? "border-astro-cyan bg-cyan-50/30 -ml-2 pl-7 md:pl-10 pr-4 md:pr-8 rounded-r-xl"
-                          : "border-slate-200"
-                      }`}
-                    >
-                      <div className="flex flex-wrap items-center gap-3 mb-3">
-                        <span
-                          className={`inline-flex items-center justify-center w-12 h-8 text-sm font-black tracking-tight ${
-                            j.year === "2026"
-                              ? "bg-astro-cyan text-white"
-                              : "bg-slate-100 text-slate-700"
-                          }`}
-                          style={{
-                            clipPath:
-                              "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)",
-                          }}
-                        >
-                          {j.year}
-                        </span>
-                        <span className="text-sm font-bold text-slate-800">
-                          {j.theme}
-                        </span>
-                        {j.year === "2026" && (
-                          <span
-                            className="text-[8px] font-bold uppercase tracking-[0.1em] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5"
-                            style={{
-                              clipPath:
-                                "polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)",
-                            }}
-                          >
-                            Latest
-                          </span>
-                        )}
-                      </div>
+          {/* Overlay content — all journeys full details */}
+          <div className="max-h-[70vh] space-y-8 overflow-y-auto p-6 md:p-10">
+            {journey.map((j, idx) => {
+              const isActive = activeJourneyYear === j.year;
+              return (
+                <motion.div
+                  key={j.year}
+                  initial={isActive ? { opacity: 0, y: 20 } : false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.08, duration: 0.4 }}
+                  className={`border-l-4 py-4 pl-5 transition-all duration-300 md:pl-8 ${
+                    isActive
+                      ? "rounded-r-xl border-primary bg-primary/5 -ml-2 pr-4 pl-7 md:pl-10 md:pr-8"
+                      : "border-border"
+                  }`}
+                >
+                  <div className="mb-3 flex flex-wrap items-center gap-3">
+                    <Badge className={j.year === "2026" ? "clip-angled-sm bg-primary text-primary-foreground" : "clip-angled-sm bg-muted text-foreground"}>
+                      {j.year}
+                    </Badge>
+                    <span className="text-sm font-bold text-foreground">
+                      {j.theme}
+                    </span>
+                    {j.year === "2026" && (
+                      <Badge variant="outline" className="clip-angled-sm border-emerald-200 bg-emerald-50 text-[8px] font-bold uppercase tracking-[0.1em] text-emerald-700">
+                        Latest
+                      </Badge>
+                    )}
+                  </div>
 
-                      <p className="text-sm text-slate-600 leading-relaxed mb-4 max-w-3xl">
-                        {j.description}
-                      </p>
+                  <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                    {j.description}
+                  </p>
 
-                      {/* Highlights */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {j.highlights.map((h, i) => (
-                          <span
-                            key={i}
-                            className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1"
-                            style={{
-                              clipPath:
-                                "polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)",
-                            }}
-                          >
-                            {h}
-                          </span>
-                        ))}
-                      </div>
+                  {/* Highlights */}
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {j.highlights.map((h, i) => (
+                      <Badge key={i} variant="secondary" className="clip-angled-sm bg-muted text-[10px] font-semibold text-muted-foreground">
+                        {h}
+                      </Badge>
+                    ))}
+                  </div>
 
-                      {/* Stats row */}
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Users className="w-3.5 h-3.5 text-astro-cyan" />
-                          {j.participants > 0 ? `${j.participants}+` : "-"}{" "}
-                          Peserta
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Award className="w-3.5 h-3.5 text-astro-cyan" />
-                          {j.universities > 0 ? `${j.universities}+` : "-"}{" "}
-                          Universitas
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Target className="w-3.5 h-3.5 text-astro-cyan" />
-                          {j.competitions} Cabang Lomba
-                        </span>
-                        <a
-                          href={`/profile/journey/${j.year}`}
-                          className="inline-flex items-center gap-1 text-astro-cyan font-bold hover:gap-1.5 transition-all ml-auto"
-                        >
-                          Detail <ArrowRight className="w-3 h-3" />
-                        </a>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  {/* Stats row */}
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Users className="size-3.5 text-primary" />
+                      {j.participants > 0 ? `${j.participants}+` : "-"}{" "}
+                      Peserta
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Award className="size-3.5 text-primary" />
+                      {j.universities > 0 ? `${j.universities}+` : "-"}{" "}
+                      Universitas
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Target className="size-3.5 text-primary" />
+                      {j.competitions} Cabang Lomba
+                    </span>
+                    <Button asChild variant="link" size="sm" className="ml-auto gap-1 font-bold text-primary hover:gap-1.5">
+                      <a href={`/profile/journey/${j.year}`}>
+                        Detail <ArrowRight className="size-3" />
+                      </a>
+                    </Button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ════════════ 5. EVENT GALLERY ════════════ */}
       <EventGallerySection />

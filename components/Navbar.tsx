@@ -1,20 +1,32 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'motion/react';
-import {
-  Menu, X, LogIn, ChevronDown, LogOut, LayoutDashboard, User, Search,
-  Trophy, Building2
-} from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { LogIn, ChevronDown, LogOut, LayoutDashboard, Menu, Search, Trophy, Building2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 import { useSession, signOut } from '@/src/lib/auth-client';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -30,24 +42,9 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = isMobileOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [isMobileOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const scrollTo = (href: string) => {
     setIsMobileOpen(false);
-    
+
     // Full route (starts with /) → navigate directly
     if (href.startsWith('/')) {
       router.push(href);
@@ -56,12 +53,10 @@ export default function Navbar() {
 
     // Hash anchor → scroll on current page or navigate first
     if (href.startsWith('#')) {
-      const targetId = href;
-      const element = document.querySelector(targetId);
+      const element = document.querySelector(href);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
-        // If on another page, navigate back to target page with anchor
         const basePath = isProfilePage ? '/profile' : '/';
         router.push(basePath + href);
       }
@@ -70,7 +65,6 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await signOut();
-    setIsDropdownOpen(false);
     router.replace('/login');
   };
 
@@ -102,305 +96,213 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 h-16 md:h-[72px] flex items-center justify-between ${
+        className={cn(
+          'fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between transition-all duration-300 md:h-[72px]',
           isScrolled
-            ? 'bg-white/70 backdrop-blur-xl shadow-lg shadow-black/5 mx-4 md:mx-8 mt-3 rounded-xl border border-white/40'
-            : 'bg-transparent mx-0 mt-0 rounded-none border-transparent'
-        }`}
+            ? 'mx-4 mt-3 rounded-xl border border-white/40 bg-background/70 shadow-lg shadow-black/5 backdrop-blur-xl md:mx-8'
+            : 'mt-0 rounded-none border-transparent bg-transparent'
+        )}
       >
         {/* Left: Logo */}
-        <div className="flex items-center h-full pl-4 md:pl-6">
+        <div className="flex h-full items-center pl-4 md:pl-6">
           <button
             onClick={() => scrollTo(isProfilePage ? '/profile' : '#home')}
-            className="flex items-center gap-3 cursor-pointer group"
+            className="group flex cursor-pointer items-center gap-3"
           >
             <Image
               src="/assets/logo-astro.png"
               alt="ASTRO Logo"
               width={44}
               height={44}
-              className="h-9 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105 md:h-11"
             />
-            <span className={`text-sm md:text-base font-masterpiece tracking-wide transition-colors duration-300 ${
-              isScrolled ? 'text-slate-900' : 'text-slate-900 md:text-white'
-            }`}>
+            <span className={cn('font-masterpiece text-sm tracking-wide transition-colors duration-300 md:text-base', isScrolled ? 'text-foreground' : 'text-foreground md:text-white')}>
               ASTRO 2026
             </span>
           </button>
         </div>
 
-        {/* Middle: Desktop Navigation Links + 1 Single Blue Portal Switcher Pill */}
-        <div className="hidden md:flex items-center h-full gap-2">
-          
-          {/* ── SECTION ANCHOR LINKS (Dynamically rendered based on active page) ── */}
-          <div className="flex items-center gap-1 mx-1">
+        {/* Middle: Desktop Navigation Links + Portal Switcher Pill */}
+        <div className="hidden h-full items-center gap-2 md:flex">
+          <div className="mx-1 flex items-center gap-1">
             {sectionLinks.map((link) => (
               <button
                 key={link.label}
                 onClick={() => scrollTo(link.href)}
-                className={`px-3.5 text-[11px] font-extrabold tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer h-9 flex items-center relative group rounded-lg ${
+                className={cn(
+                  'relative flex h-9 items-center rounded-lg px-3.5 text-[11px] font-extrabold uppercase tracking-[0.12em] transition-all duration-200',
                   isScrolled
-                    ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-100/60'
-                    : 'text-slate-800 md:text-white/90 hover:text-slate-950 md:hover:text-white hover:bg-white/10'
-                }`}
+                    ? 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    : 'text-slate-800 hover:bg-white/10 hover:text-white md:text-white/90'
+                )}
               >
                 {link.label}
               </button>
             ))}
           </div>
 
-          {/* ── 1 SINGLE BLUE PORTAL SWITCHER BUTTON ──
-              - Jika di Company Profile -> Tampil tombol biru "PORTAL LOMBA"
-              - Jika di Halaman Lomba -> Tampil tombol biru "COMPANY PROFILE"
-          */}
-          {isProfilePage ? (
-            <button
-              onClick={() => router.push('/')}
-              className="px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 shadow-md hover:shadow-cyan-500/30 active:scale-95 bg-astro-cyan hover:bg-cyan-400 text-slate-950 border border-cyan-300"
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-              title="Ke Halaman Utama Portal Lomba ASTRO"
-            >
-              <Trophy className="w-3.5 h-3.5 text-slate-950" />
-              <span>PORTAL LOMBA</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/profile')}
-              className="px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 shadow-md hover:shadow-cyan-500/30 active:scale-95 bg-astro-cyan hover:bg-cyan-400 text-slate-950 border border-cyan-300"
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-              title="Ke Halaman Company Profile ASTRO"
-            >
-              <Building2 className="w-3.5 h-3.5 text-slate-950" />
-              <span>COMPANY PROFILE</span>
-            </button>
-          )}
-
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => router.push(isProfilePage ? '/' : '/profile')}
+            className="clip-angled gap-1.5 border border-cyan-300 text-[10px] font-black uppercase tracking-wider shadow-md hover:bg-cyan-400 hover:shadow-cyan-500/30 active:scale-95"
+            title={isProfilePage ? 'Ke Halaman Utama Portal Lomba ASTRO' : 'Ke Halaman Company Profile ASTRO'}
+          >
+            {isProfilePage ? <Trophy className="text-slate-950" /> : <Building2 className="text-slate-950" />}
+            {isProfilePage ? 'PORTAL LOMBA' : 'COMPANY PROFILE'}
+          </Button>
         </div>
 
         {/* Right: CTA + Mobile */}
-        <div className="flex items-center gap-2 pr-4 md:pr-6 h-full">
+        <div className="flex h-full items-center gap-2 pr-4 md:pr-6">
           {isLoggedIn ? (
-            <div className="relative hidden md:block" ref={dropdownRef}>
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer ${
-                  isScrolled
-                    ? 'text-slate-700 hover:text-slate-950'
-                    : 'text-slate-800 md:text-white/80 hover:text-slate-950 md:hover:text-white'
-                }`}
-              >
-                <User className="w-3.5 h-3.5" /> Akun <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              <AnimatePresence>
-                {isDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-44 bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200 shadow-xl overflow-hidden"
-                  >
-                    <button
-                      onClick={() => { router.push('/check-registration'); setIsDropdownOpen(false); }}
-                      className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-slate-700 hover:text-slate-950 hover:bg-sky-50 transition-all duration-200 cursor-pointer text-left"
-                    >
-                      <Search className="w-3.5 h-3.5" /> Cek Pendaftaran
-                    </button>
-                    {userRole === 'admin' && (
-                      <>
-                        <hr className="border-slate-100" />
-                        <button
-                          onClick={() => { router.push('/dashboard'); setIsDropdownOpen(false); }}
-                          className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-slate-700 hover:text-slate-950 hover:bg-sky-50 transition-all duration-200 cursor-pointer text-left"
-                        >
-                          <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
-                        </button>
-                      </>
-                    )}
-                    <hr className="border-slate-100" />
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 cursor-pointer text-left"
-                    >
-                      <LogOut className="w-3.5 h-3.5" /> Logout
-                    </button>
-                  </motion.div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'gap-1.5 text-[10px] font-bold uppercase tracking-wider',
+                    !isScrolled && 'md:text-white/80 md:hover:text-white'
+                  )}
+                >
+                  <LogIn className="size-3.5" /> Akun <ChevronDown className="size-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={() => router.push('/check-registration')}>
+                  <Search /> Cek Pendaftaran
+                </DropdownMenuItem>
+                {userRole === 'admin' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                      <LayoutDashboard /> Dashboard
+                    </DropdownMenuItem>
+                  </>
                 )}
-              </AnimatePresence>
-            </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+                  <LogOut /> Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => router.push('/login')}
-              className={`hidden md:flex items-center gap-1.5 px-3.5 py-2 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all duration-200 cursor-pointer ${
-                isScrolled
-                  ? 'text-slate-700 hover:text-slate-950'
-                  : 'text-slate-800 md:text-white/80 hover:text-slate-950 md:hover:text-white'
-              }`}
+              className={cn(
+                'hidden gap-1.5 text-[10px] font-bold uppercase tracking-wider md:flex',
+                !isScrolled && 'md:text-white/80 md:hover:text-white'
+              )}
             >
-              <LogIn className="w-3 h-3" /> Masuk
-            </button>
+              <LogIn className="size-3" /> Masuk
+            </Button>
           )}
 
-          <button
+          <Button
+            variant="default"
+            size="sm"
             onClick={handleDaftar}
-            className="px-5 py-2 text-[11px] font-black tracking-wider uppercase transition-all duration-200 cursor-pointer bg-astro-cyan hover:bg-cyan-400 text-slate-950 shadow-md active:scale-95"
-            style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+            className="clip-angled text-[11px] font-black uppercase tracking-wider shadow-md active:scale-95"
           >
             Daftar
-          </button>
+          </Button>
 
           {/* Mobile menu trigger */}
-          <button
-            onClick={() => setIsMobileOpen(!isMobileOpen)}
-            className={`md:hidden p-2 rounded-lg transition-colors duration-200 cursor-pointer ${
-              isScrolled ? 'text-slate-800' : 'text-slate-900 md:text-white'
-            }`}
-            aria-label="Menu Navigasi"
-          >
-            {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </header>
-
-      {/* ── MOBILE DRAWER ── */}
-      <AnimatePresence>
-        {isMobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] md:hidden"
-          >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="absolute top-0 right-0 h-full w-80 bg-white/95 backdrop-blur-2xl border-l border-slate-200 flex flex-col shadow-2xl"
-            >
-              {/* Close Button Header */}
-              <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn('md:hidden', !isScrolled && 'text-slate-900 md:text-white')}
+                aria-label="Menu Navigasi"
+              >
+                <Menu />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 bg-background/95 p-0 backdrop-blur-2xl">
+              <SheetHeader className="border-b border-border p-5">
                 <div className="flex items-center gap-2">
-                  <Image
-                    src="/assets/logo-astro.png"
-                    alt="ASTRO Logo"
-                    width={32}
-                    height={32}
-                    className="h-8 w-auto object-contain"
-                  />
-                  <span className="font-masterpiece text-xs text-slate-900">ASTRO 2026</span>
+                  <Image src="/assets/logo-astro.png" alt="ASTRO Logo" width={32} height={32} className="h-8 w-auto object-contain" />
+                  <SheetTitle className="font-masterpiece text-xs">ASTRO 2026</SheetTitle>
                 </div>
-                <button
-                  onClick={() => setIsMobileOpen(false)}
-                  className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-                  aria-label="Tutup Menu"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+                <SheetDescription className="sr-only">Menu navigasi ASTRO 2026</SheetDescription>
+              </SheetHeader>
 
-              <div className="flex flex-col gap-4 p-6 overflow-y-auto flex-grow">
-                {/* ── 1 SINGLE BLUE PORTAL SWITCHER BUTTON FOR MOBILE ── */}
-                <div className="pb-3 border-b border-slate-100">
-                  <p className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-2">Pindah Web Portal</p>
-                  
-                  {isProfilePage ? (
-                    <button
-                      onClick={() => { router.push('/'); setIsMobileOpen(false); }}
-                      className="w-full py-3 px-4 text-xs font-black uppercase tracking-wider flex items-center justify-between bg-astro-cyan hover:bg-cyan-400 text-slate-950 shadow-md transition-all"
-                      style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Trophy className="w-4 h-4 text-slate-950" /> Ke Portal Lomba Acara
-                      </span>
-                      <span className="text-[10px] font-black text-slate-950">↗</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => { router.push('/profile'); setIsMobileOpen(false); }}
-                      className="w-full py-3 px-4 text-xs font-black uppercase tracking-wider flex items-center justify-between bg-astro-cyan hover:bg-cyan-400 text-slate-950 shadow-md transition-all"
-                      style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-slate-950" /> Ke Company Profile
-                      </span>
-                      <span className="text-[10px] font-black text-slate-950">↗</span>
-                    </button>
-                  )}
+              <div className="flex flex-col gap-4 overflow-y-auto p-6">
+                {/* Portal Switcher */}
+                <div className="border-b border-border pb-3">
+                  <p className="mb-2 text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Pindah Web Portal</p>
+                  <Button
+                    variant="default"
+                    className="clip-angled w-full items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-wider shadow-md"
+                    onClick={() => {
+                      router.push(isProfilePage ? '/' : '/profile');
+                      setIsMobileOpen(false);
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      {isProfilePage ? <Trophy className="size-4 text-slate-950" /> : <Building2 className="size-4 text-slate-950" />}
+                      {isProfilePage ? 'Ke Portal Lomba Acara' : 'Ke Company Profile'}
+                    </span>
+                    <span className="text-[10px] font-black text-slate-950">↗</span>
+                  </Button>
                 </div>
 
-                {/* ── SECTION LINKS FOR MOBILE ── */}
-                <div className="space-y-1">
-                  <p className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-2">Navigasi Halaman</p>
+                {/* Section Links */}
+                <div className="flex flex-col gap-1">
+                  <p className="mb-2 text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Navigasi Halaman</p>
                   {sectionLinks.map((link) => (
                     <button
                       key={link.label}
                       onClick={() => scrollTo(link.href)}
-                      className="px-4 py-3 text-xs font-extrabold tracking-wider text-left text-slate-700 hover:text-slate-950 hover:bg-slate-50 rounded-xl transition-all flex items-center justify-between group"
+                      className="group flex items-center justify-between rounded-xl px-4 py-3 text-left text-xs font-extrabold tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
                     >
                       <span>{link.label}</span>
-                      <span className="w-1.5 h-1.5 bg-sky-500 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <span className="size-1.5 rounded-sm bg-primary opacity-0 transition-opacity group-hover:opacity-100" />
                     </button>
                   ))}
                 </div>
 
                 <div className="mt-auto">
-                  <hr className="mb-4 border-slate-100" />
-                  <div className="bg-slate-50/80 rounded-xl p-2 space-y-0.5">
+                  <Separator className="mb-4" />
+                  <div className="flex flex-col gap-0.5 rounded-xl bg-muted/50 p-2">
                     {isLoggedIn ? (
                       <>
-                        <button
-                          onClick={() => { router.push('/check-registration'); setIsMobileOpen(false); }}
-                          className="flex items-center gap-3 w-full px-3.5 py-3 text-xs font-bold tracking-wider text-left text-slate-700 hover:text-sky-700 hover:bg-white rounded-lg transition-all"
-                        >
-                          <Search className="w-4 h-4 text-slate-400" />
-                          Cek Pendaftaran
-                        </button>
+                        <Button variant="ghost" className="justify-start gap-3 px-3.5 py-3 text-xs font-bold tracking-wider" onClick={() => { router.push('/check-registration'); setIsMobileOpen(false); }}>
+                          <Search className="size-4 text-muted-foreground" /> Cek Pendaftaran
+                        </Button>
                         {userRole === 'admin' && (
-                          <button
-                            onClick={() => { router.push('/dashboard'); setIsMobileOpen(false); }}
-                            className="flex items-center gap-3 w-full px-3.5 py-3 text-xs font-bold tracking-wider text-left text-slate-700 hover:text-sky-700 hover:bg-white rounded-lg transition-all"
-                          >
-                            <LayoutDashboard className="w-4 h-4 text-slate-400" />
-                            Dashboard
-                          </button>
+                          <Button variant="ghost" className="justify-start gap-3 px-3.5 py-3 text-xs font-bold tracking-wider" onClick={() => { router.push('/dashboard'); setIsMobileOpen(false); }}>
+                            <LayoutDashboard className="size-4 text-muted-foreground" /> Dashboard
+                          </Button>
                         )}
-                        <button
-                          onClick={async () => {
-                            await signOut();
-                            setIsMobileOpen(false);
-                            router.replace('/login');
-                          }}
-                          className="flex items-center gap-3 w-full px-3.5 py-3 text-xs font-bold tracking-wider text-left text-red-600 hover:text-red-700 hover:bg-white rounded-lg transition-all"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Logout
-                        </button>
+                        <Button variant="ghost" className="justify-start gap-3 px-3.5 py-3 text-xs font-bold tracking-wider text-destructive" onClick={handleLogout}>
+                          <LogOut className="size-4" /> Logout
+                        </Button>
                       </>
                     ) : (
-                      <button
-                        onClick={() => { router.push('/login'); setIsMobileOpen(false); }}
-                        className="flex items-center gap-3 w-full px-3.5 py-3 text-xs font-bold tracking-wider text-left text-slate-700 hover:text-sky-700 hover:bg-white rounded-lg transition-all"
-                      >
-                        <LogIn className="w-4 h-4 text-slate-400" />
-                        Masuk
-                      </button>
+                      <Button variant="ghost" className="justify-start gap-3 px-3.5 py-3 text-xs font-bold tracking-wider" onClick={() => { router.push('/login'); setIsMobileOpen(false); }}>
+                        <LogIn className="size-4 text-muted-foreground" /> Masuk
+                      </Button>
                     )}
                   </div>
 
-                  <button
+                  <Button
+                    variant="default"
+                    className="mt-3 w-full rounded-xl py-3.5 text-xs font-black uppercase tracking-wider shadow-md active:scale-95"
                     onClick={handleDaftar}
-                    className="mt-3 w-full px-5 py-3.5 bg-astro-cyan text-slate-950 font-black text-xs tracking-wider uppercase text-center rounded-xl transition-all shadow-md active:scale-95"
                   >
                     Daftar Sekarang
-                  </button>
+                  </Button>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </header>
     </>
   );
 }

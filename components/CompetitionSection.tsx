@@ -3,6 +3,9 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { Search } from 'lucide-react';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { Competition, CategoryType } from '@/types/astro';
 import CompetitionCard from './CompetitionCard';
 
@@ -73,34 +76,29 @@ export default function CompetitionSection({ competitions }: Props) {
         </motion.div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+        <div className="mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="CARI LOMBA..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-bold tracking-wider text-slate-850 placeholder:text-slate-455 uppercase focus:outline-none focus:border-astro-cyan transition-colors"
-              style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-            />
+            <InputGroup className="clip-angled h-10 border-border bg-background">
+              <InputGroupAddon align="inline-start">
+                <Search className="size-3.5 text-muted-foreground" />
+              </InputGroupAddon>
+              <InputGroupInput
+                placeholder="CARI LOMBA..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="text-xs font-bold tracking-wider uppercase"
+              />
+            </InputGroup>
           </div>
 
           <div className="flex flex-wrap gap-1">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.value}
-                onClick={() => setSelectedCategory(cat.value)}
-                className={`px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer ${
-                  selectedCategory === cat.value
-                    ? 'bg-astro-cyan text-slate-950 shadow-sm'
-                    : 'bg-white border border-slate-200 text-slate-650 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-              >
-                {cat.label}
-              </button>
-            ))}
+            <ToggleGroup type="single" value={selectedCategory} onValueChange={(v) => v && setSelectedCategory(v as CategoryType | 'all')} spacing={1}>
+              {CATEGORIES.map((cat) => (
+                <ToggleGroupItem key={cat.value} value={cat.value} className="clip-angled-sm px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em]">
+                  {cat.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
           </div>
         </div>
 
@@ -109,7 +107,7 @@ export default function CompetitionSection({ competitions }: Props) {
           {filtered.length > 0 ? (
             <motion.div
               key={`${selectedCategory}-${searchQuery}`}
-              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5"
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-5"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -124,11 +122,13 @@ export default function CompetitionSection({ competitions }: Props) {
               key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-20 border border-slate-200 bg-white shadow-sm"
-              style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
             >
-              <p className="text-slate-600 text-lg font-black uppercase tracking-wider">Tidak Ditemukan</p>
-              <p className="text-slate-450 text-sm mt-1">Coba kata kunci atau filter lain.</p>
+              <Empty className="clip-angled-lg border border-border bg-background py-20 shadow-sm">
+                <EmptyHeader>
+                  <EmptyTitle className="text-lg font-black uppercase tracking-wider">Tidak Ditemukan</EmptyTitle>
+                  <EmptyDescription>Coba kata kunci atau filter lain.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             </motion.div>
           )}
         </AnimatePresence>

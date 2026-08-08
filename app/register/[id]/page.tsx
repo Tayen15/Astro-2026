@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FormStep from "./FormStep";
 import PaymentStep from "./PaymentStep";
-import { ArrowLeft, Trophy, Loader2 } from "lucide-react";
+import { ArrowLeft, Trophy } from "lucide-react";
 import Image from "next/image";
-import { api } from "@/src/lib/eden";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useCompetition, useRegistration } from "@/src/lib/hooks/use-queries";
 
 const MotionImage = motion.create(Image);
 
@@ -82,9 +85,7 @@ export default function RegistrationPage({
 }) {
   const reduce = useReducedMotion();
   const [resolvedId, setResolvedId] = useState<string | null>(null);
-  const [competition, setCompetition] = useState<CompetitionData | null>(null);
-  const [fetching, setFetching] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [regIdFromQuery, setRegIdFromQuery] = useState<string | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
@@ -101,90 +102,80 @@ export default function RegistrationPage({
   });
 
   useEffect(() => {
-    params.then(async (p) => {
-      setResolvedId(p.id);
-      try {
-        // Check if there's a regId query param (continue payment flow)
-        const regId = new URLSearchParams(window.location.search).get("regId");
-
-        const compRes = await api.competitions({ id: p.id }).get();
-        const c = compRes.data;
-        if (!c) {
-          setNotFound(true);
-          setFetching(false);
-          return;
-        }
-
-        setCompetition({
-          id: c.id,
-          title: c.title,
-          category: c.category,
-          tagline: c.tagline || "",
-          description: c.description || "",
-          fee: c.fee,
-          maxSlots: c.maxSlots,
-          filledSlots: c.filledSlots,
-          scheduleDate: new Date(
-            c.scheduleDate || c.scheduleDate || "",
-          ).toISOString?.(),
-          location: c.location || "",
-          prizes: c.prizes?.length
-            ? c.prizes
-            : [
-                ...(c.prizesFirst
-                  ? [{ label: "Juara 1", value: c.prizesFirst }]
-                  : []),
-                ...(c.prizesSecond
-                  ? [{ label: "Juara 2", value: c.prizesSecond }]
-                  : []),
-                ...(c.prizesThird
-                  ? [{ label: "Juara 3", value: c.prizesThird }]
-                  : []),
-              ],
-          rulesSummary: c.rulesSummary || [],
-          rulebookUrl: c.rulebookUrl || "",
-          registrationUrl: "",
-          contactPerson: {
-            name: c.contactName || "",
-            whatsapp: c.contactWhatsapp || "",
-          },
-          type: c.type || "individual",
-          maxTeamMembers: c.maxTeamMembers || 1,
-          minTeamMembers: c.minTeamMembers || 1,
-        });
-
-        // If regId provided, fetch existing registration data
-        if (regId) {
-          const regRes = await api.registrations({ id: regId }).get();
-          const r = regRes.data as any;
-          if (r) {
-            setRegistrationId(r.id);
-            setPaymentReference(r.paymentReference);
-            setFormData({
-              fullName: r.fullName || "",
-              teamName: r.teamName || "",
-              institution: r.institution || "",
-              identityNumber: r.identityNumber || "",
-              leaderName: r.leaderName || "",
-              leaderIdentity: r.leaderIdentity || "",
-              email: r.email || "",
-              whatsapp: r.whatsapp || "",
-              members: r.members || "",
-            });
-            setStep(1); // Stay on form step with pre-filled data
-          }
-        }
-      } catch {
-        setNotFound(true);
-      }
-      setFetching(false);
-    });
+    params.then((p) => setResolvedId(p.id));
+    setRegIdFromQuery(new URLSearchParams(window.location.search).get("regId"));
   }, [params]);
 
-  if (fetching || !resolvedId) {
+  const { data: c, isLoading: compLoading, isError: compError } = useCompetition(resolvedId ?? "");
+  const { data: existingReg } = useRegistration(regIdFromQuery ?? "");
+
+  const competition: CompetitionData | null = useMemo(() => {
+    if (!c) return null;
+    return {
+      id: c.id,
+      title: c.title,
+      category: c.category,
+      tagline: c.tagline || "",
+      description: c.description || "",
+      fee: c.fee,
+      maxSlots: c.maxSlots,
+      filledSlots: c.filledSlots,
+      scheduleDate: new Date(
+        c.scheduleDate || c.scheduleDate || "",
+      ).toISOString?.(),
+      location: c.location || "",
+      prizes: c.prizes?.length
+        ? c.prizes
+        : [
+            ...(c.prizesFirst
+              ? [{ label: "Juara 1", value: c.prizesFirst }]
+              : []),
+            ...(c.prizesSecond
+              ? [{ label: "Juara 2", value: c.prizesSecond }]
+              : []),
+            ...(c.prizesThird
+              ? [{ label: "Juara 3", value: c.prizesThird }]
+              : []),
+          ],
+      rulesSummary: c.rulesSummary || [],
+      rulebookUrl: c.rulebookUrl || "",
+      registrationUrl: "",
+      contactPerson: {
+        name: c.contactName || "",
+        whatsapp: c.contactWhatsapp || "",
+      },
+      type: c.type || "individual",
+      maxTeamMembers: c.maxTeamMembers || 1,
+      minTeamMembers: c.minTeamMembers || 1,
+    };
+  }, [c]);
+
+  useEffect(() => {
+    if (!existingReg) return;
+    const r = existingReg as any;
+    setRegistrationId(r.id);
+    setPaymentReference(r.paymentReference);
+    setFormData({
+      fullName: r.fullName || "",
+      teamName: r.teamName || "",
+      institution: r.institution || "",
+      identityNumber: r.identityNumber || "",
+      leaderName: r.leaderName || "",
+      leaderIdentity: r.leaderIdentity || "",
+      email: r.email || "",
+      whatsapp: r.whatsapp || "",
+      members: r.members || "",
+    });
+    setStep(1); // Stay on form step with pre-filled data
+  }, [existingReg]);
+
+  const fetching = compLoading || !resolvedId;
+  const notFound = compError || (!fetching && !competition);
+
+  if (fetching) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="w-6 h-6 animate-spin text-astro-cyan" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Spinner className="size-6 text-primary" />
       </div>
     );
   }
@@ -193,20 +184,15 @@ export default function RegistrationPage({
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center bg-white">
-          <div className="text-center space-y-4">
-            <h1 className="text-display text-slate-900">404</h1>
-            <p className="text-slate-500">Lomba tidak ditemukan.</p>
-            <Link
-              href="/#competitions"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-astro-cyan text-slate-950 font-black text-xs tracking-wider uppercase transition-all duration-200"
-              style={{
-                clipPath:
-                  "polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)",
-              }}
-            >
-              <ArrowLeft className="w-4 h-4" /> Kembali ke Lomba
-            </Link>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="space-y-4 text-center">
+            <h1 className="text-display text-foreground">404</h1>
+            <p className="text-muted-foreground">Lomba tidak ditemukan.</p>
+            <Button asChild className="clip-angled text-xs font-black uppercase tracking-wider">
+              <Link href="/#competitions">
+                <ArrowLeft data-icon="inline-start" /> Kembali ke Lomba
+              </Link>
+            </Button>
           </div>
         </div>
         <Footer />
@@ -341,13 +327,11 @@ export default function RegistrationPage({
                 variants={fadeUp}
                 className="mb-6"
               >
-                <Link
-                  href={`/competitions/${competition.id}`}
-                  className="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-slate-500 hover:text-cyan-600 transition-colors group"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-1" />
-                  Kembali ke Detail Lomba
-                </Link>
+                <Button asChild variant="link" className="mb-6 gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-primary">
+                  <Link href={`/competitions/${competition.id}`}>
+                    <ArrowLeft data-icon="inline-start" /> Kembali ke Detail Lomba
+                  </Link>
+                </Button>
               </motion.div>
 
               {/* Category badge */}
@@ -357,15 +341,12 @@ export default function RegistrationPage({
                 variants={fadeUp}
                 className="mb-4"
               >
-                <span
-                  className={`inline-flex items-center px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase ${cat.bg} ${cat.color} ${cat.border} border`}
-                  style={{
-                    clipPath:
-                      "polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)",
-                  }}
+                <Badge
+                  variant="outline"
+                  className={`clip-angled-sm border px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase ${cat.bg} ${cat.color} ${cat.border}`}
                 >
                   {cat.label}
-                </span>
+                </Badge>
               </motion.div>
 
               <motion.h1

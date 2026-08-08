@@ -3,10 +3,17 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
-import { Loader2, Plus, Pencil, X, Check, Trash2, Star, Share2 } from 'lucide-react';
+import { Plus, Pencil, Check, Trash2, Star, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSponsors, useMediaPartners, queryKeys } from '@/src/lib/hooks/use-queries';
 import { apiHelpers } from '@/src/lib/api';
 
@@ -140,130 +147,134 @@ export default function SponsorPage() {
   const spPaginated = sponsors.slice((spPage - 1) * PAGE_SIZE, spPage * PAGE_SIZE);
   const mpPaginated = mediaPartners.slice((mpPage - 1) * PAGE_SIZE, mpPage * PAGE_SIZE);
 
-  const tabBtn = (active: boolean) =>
-    `flex items-center gap-2 px-5 py-2.5 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
-      active ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-    }`;
-
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><Spinner className="size-6 text-primary" /></div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Sponsor &amp; Media Partner</h1>
+      <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Sponsor &amp; Media Partner</h1>
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        <button onClick={() => { setTab('sponsor'); setShowSpAdd(false); }} className={tabBtn(tab === 'sponsor')}
-          style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-          <Star className="w-3.5 h-3.5" /> Sponsor ({sponsors.length})
-        </button>
-        <button onClick={() => { setTab('media-partner'); setShowMpAdd(false); }} className={tabBtn(tab === 'media-partner')}
-          style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-          <Share2 className="w-3.5 h-3.5" /> Media Partner ({mediaPartners.length})
-        </button>
-      </div>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as 'sponsor' | 'media-partner'); setShowSpAdd(false); setShowMpAdd(false); }}>
+        <TabsList className="bg-muted">
+          <TabsTrigger value="sponsor" className="clip-angled-sm gap-2">
+            <Star className="size-3.5" /> Sponsor ({sponsors.length})
+          </TabsTrigger>
+          <TabsTrigger value="media-partner" className="clip-angled-sm gap-2">
+            <Share2 className="size-3.5" /> Media Partner ({mediaPartners.length})
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Sponsor Tab */}
       {tab === 'sponsor' && (
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-slate-500">{sponsors.length} sponsor</p>
-            <button onClick={() => { setShowSpAdd(!showSpAdd); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '', logo: '' }); }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
-              style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-              <Plus className="w-3.5 h-3.5" /> Tambah Sponsor
-            </button>
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">{sponsors.length} sponsor</p>
+            <Button
+              onClick={() => { setShowSpAdd(!showSpAdd); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '', logo: '' }); }}
+              className="clip-angled text-xs font-bold uppercase tracking-wider"
+            >
+              <Plus data-icon="inline-start" /> Tambah Sponsor
+            </Button>
           </div>
 
           {showSpAdd && (
-            <div className="bg-white border border-slate-200 relative p-5 space-y-4 mb-5"
-              style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}>
-              <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{spEditingId ? 'Edit' : 'Tambah'} Sponsor</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama <span className="text-slate-400 font-normal normal-case">(opsional, untuk alt text)</span></label>
-                  <input value={spForm.name} onChange={(e) => setSpForm({ ...spForm, name: e.target.value })}
-                    placeholder="Nama sponsor" className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
-                    style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website <span className="text-slate-400 font-normal normal-case">(opsional)</span></label>
-                  <input value={spForm.website} onChange={(e) => setSpForm({ ...spForm, website: e.target.value })}
-                    placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
-                    style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  Logo <span className="text-slate-400 font-normal normal-case">(upload gambar, opsional jika ada teks nama)</span>
-                </label>
-                <div className="flex items-center gap-3 mt-1">
-                  <label className="cursor-pointer">
-                    <div className="px-4 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors text-xs font-bold text-slate-700 uppercase tracking-wider"
-                      style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                    >
-                      Pilih File
+            <Card className="clip-angled relative mb-5 border-border">
+              <div className="absolute -top-px -left-px size-8 bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+              <CardContent className="space-y-4 p-5">
+                <h2 className="text-sm font-black uppercase tracking-tight text-foreground">{spEditingId ? 'Edit' : 'Tambah'} Sponsor</h2>
+                <FieldGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel>Nama <span className="font-normal normal-case text-muted-foreground">(opsional, untuk alt text)</span></FieldLabel>
+                    <Input value={spForm.name} onChange={(e) => setSpForm({ ...spForm, name: e.target.value })} placeholder="Nama sponsor" />
+                  </Field>
+                  <Field>
+                    <FieldLabel>Website <span className="font-normal normal-case text-muted-foreground">(opsional)</span></FieldLabel>
+                    <Input value={spForm.website} onChange={(e) => setSpForm({ ...spForm, website: e.target.value })} placeholder="https://..." />
+                  </Field>
+                  <Field>
+                    <FieldLabel>Tier</FieldLabel>
+                    <Select value={spForm.tier} onValueChange={(v) => setSpForm({ ...spForm, tier: v })}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="gold">Gold</SelectItem>
+                          <SelectItem value="silver">Silver</SelectItem>
+                          <SelectItem value="bronze">Bronze</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel>Logo <span className="font-normal normal-case text-muted-foreground">(upload gambar, opsional jika ada teks nama)</span></FieldLabel>
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer">
+                        <span className="clip-angled-sm inline-block border border-border bg-muted px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent">
+                          Pilih File
+                        </span>
+                        <input type="file" accept="image/*" className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const uploadRes = await apiHelpers.upload(file);
+                              const url = (uploadRes as any)?.url;
+                              if (url) setSpForm({ ...spForm, logo: url });
+                            } catch { console.error('Upload failed'); }
+                          }}
+                        />
+                      </label>
+                      {spForm.logo && (
+                        <span className="text-xs font-semibold text-emerald-600">File terpilih</span>
+                      )}
                     </div>
-                    <input type="file" accept="image/*" className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        try {
-                          const uploadRes = await apiHelpers.upload(file);
-                          const url = (uploadRes as any)?.url;
-                          if (url) setMpForm({ ...mpForm, logo: url });
-                        } catch { console.error('Upload failed'); }
-                      }}
-                    />
-                  </label>
-                  {spForm.logo && (
-                    <span className="text-xs text-emerald-600 font-semibold">File terpilih</span>
-                  )}
+                  </Field>
+                </FieldGroup>
+
+                {spForm.logo && (
+                  <div className="clip-angled-sm flex items-center gap-3 border border-border bg-muted/50 p-3">
+                    <Image src={spForm.logo} alt="Preview" width={40} height={40} unoptimized className="size-10 rounded object-contain" />
+                    <span className="text-xs text-muted-foreground">Preview logo</span>
+                    <Button variant="ghost" size="sm" onClick={() => setSpForm({ ...spForm, logo: '' })} className="ml-auto text-xs text-destructive hover:text-destructive">
+                      Hapus
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={handleSpSave} disabled={spSaving} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+                    {spSaving ? <Spinner data-icon="inline-start" /> : <Check data-icon="inline-start" />} Simpan
+                  </Button>
+                  <Button variant="outline" className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider"
+                    onClick={() => { setShowSpAdd(false); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '', logo: '' }); }}>
+                    Batal
+                  </Button>
                 </div>
-              </div>
-              {spForm.logo && (
-                <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
-                  style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-                  <Image src={spForm.logo} alt="Preview" width={40} height={40} unoptimized className="w-10 h-10 object-contain rounded" />
-                  <span className="text-xs text-slate-500">Preview logo</span>
-                  <button onClick={() => setSpForm({ ...spForm, logo: '' })}
-                    className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
-                </div>
-              )}
-              <div className="flex gap-2 pt-2">
-                <button onClick={handleSpSave} disabled={spSaving}
-                  className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                  {spSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
-                </button>
-                <button onClick={() => { setShowSpAdd(false); setSpEditingId(null); setSpForm({ name: '', tier: 'gold', website: '', logo: '' }); }}
-                  className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                  <X className="w-3 h-3" /> Batal
-                </button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
 
           <div className="grid grid-cols-1 gap-3">
             {spPaginated.map((s) => (
-              <div key={s.id} className="bg-white border border-slate-200 relative p-4 flex items-center justify-between group"
-                style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
-                <div className="flex items-center gap-3">
-                  {s.logo ? (
-                    <Image src={s.logo} alt="" width={32} height={32} unoptimized className="w-8 h-8 object-contain rounded" />
-                  ) : null}
-                  <span className="text-sm font-bold text-slate-900">{s.name || '(tanpa nama)'}</span>
-                  {s.website && <span className="text-[11px] text-slate-400 hidden sm:block">{s.website.replace(/https?:\/\//, '')}</span>}
-                </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => handleSpEdit(s)} className="p-1.5 text-slate-400 hover:text-astro-cyan cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => handleSpDelete(s.id, s.name)} className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              </div>
+              <Card key={s.id} className="clip-angled group relative border-border p-4">
+                <CardContent className="flex items-center justify-between gap-4 p-0">
+                  <div className="flex items-center gap-3">
+                    {s.logo ? (
+                      <Image src={s.logo} alt="" width={32} height={32} unoptimized className="size-8 rounded object-contain" />
+                    ) : null}
+                    <span className="text-sm font-bold text-foreground">{s.name || '(tanpa nama)'}</span>
+                    {s.website && <span className="hidden text-[11px] text-muted-foreground sm:block">{s.website.replace(/https?:\/\//, '')}</span>}
+                  </div>
+                  <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Button variant="ghost" size="icon-sm" onClick={() => handleSpEdit(s)} aria-label="Edit"><Pencil /></Button>
+                    <Button variant="ghost" size="icon-sm" onClick={() => handleSpDelete(s.id, s.name)} aria-label="Hapus" className="text-muted-foreground hover:text-destructive"><Trash2 /></Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
-            {sponsors.length === 0 && <p className="text-sm text-slate-400 italic py-4 text-center">Belum ada sponsor.</p>}
+            {sponsors.length === 0 && <p className="py-4 text-center text-sm italic text-muted-foreground">Belum ada sponsor.</p>}
           </div>
           <Pagination currentPage={spPage} totalItems={sponsors.length} pageSize={PAGE_SIZE} onPageChange={setSpPage} />
         </div>
@@ -272,104 +283,98 @@ export default function SponsorPage() {
       {/* Media Partner Tab */}
       {tab === 'media-partner' && (
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-slate-500">{mediaPartners.length} media partner</p>
-            <button onClick={() => { setShowMpAdd(!showMpAdd); setMpEditingId(null); setMpForm({ name: '', website: '', logo: '' }); }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
-              style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-              <Plus className="w-3.5 h-3.5" /> Tambah Media Partner
-            </button>
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">{mediaPartners.length} media partner</p>
+            <Button
+              onClick={() => { setShowMpAdd(!showMpAdd); setMpEditingId(null); setMpForm({ name: '', website: '', logo: '' }); }}
+              className="clip-angled text-xs font-bold uppercase tracking-wider"
+            >
+              <Plus data-icon="inline-start" /> Tambah Media Partner
+            </Button>
           </div>
 
           {showMpAdd && (
-            <div className="bg-white border border-slate-200 relative p-5 space-y-4 mb-5"
-              style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}>
-              <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{mpEditingId ? 'Edit' : 'Tambah'} Media Partner</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama <span className="text-slate-400 font-normal normal-case">(opsional, untuk alt text)</span></label>
-                  <input value={mpForm.name} onChange={(e) => setMpForm({ ...mpForm, name: e.target.value })}
-                    placeholder="Nama" className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
-                    style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website <span className="text-slate-400 font-normal normal-case">(opsional)</span></label>
-                  <input value={mpForm.website} onChange={(e) => setMpForm({ ...mpForm, website: e.target.value })}
-                    placeholder="https://..." className="w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan"
-                    style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  Logo <span className="text-slate-400 font-normal normal-case">(upload gambar, opsional jika ada teks nama)</span>
-                </label>
-                <div className="flex items-center gap-3 mt-1">
-                  <label className="cursor-pointer">
-                    <div className="px-4 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors text-xs font-bold text-slate-700 uppercase tracking-wider"
-                      style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                    >
-                      Pilih File
+            <Card className="clip-angled relative mb-5 border-border">
+              <div className="absolute -top-px -left-px size-8 bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+              <CardContent className="space-y-4 p-5">
+                <h2 className="text-sm font-black uppercase tracking-tight text-foreground">{mpEditingId ? 'Edit' : 'Tambah'} Media Partner</h2>
+                <FieldGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel>Nama <span className="font-normal normal-case text-muted-foreground">(opsional, untuk alt text)</span></FieldLabel>
+                    <Input value={mpForm.name} onChange={(e) => setMpForm({ ...mpForm, name: e.target.value })} placeholder="Nama" />
+                  </Field>
+                  <Field>
+                    <FieldLabel>Website <span className="font-normal normal-case text-muted-foreground">(opsional)</span></FieldLabel>
+                    <Input value={mpForm.website} onChange={(e) => setMpForm({ ...mpForm, website: e.target.value })} placeholder="https://..." />
+                  </Field>
+                  <Field>
+                    <FieldLabel>Logo <span className="font-normal normal-case text-muted-foreground">(upload gambar, opsional jika ada teks nama)</span></FieldLabel>
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer">
+                        <span className="clip-angled-sm inline-block border border-border bg-muted px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent">
+                          Pilih File
+                        </span>
+                        <input type="file" accept="image/*" className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const uploadRes = await apiHelpers.upload(file);
+                              const url = (uploadRes as any)?.url;
+                              if (url) setMpForm({ ...mpForm, logo: url });
+                            } catch { console.error('Upload failed'); }
+                          }}
+                        />
+                      </label>
+                      {mpForm.logo && (
+                        <span className="text-xs font-semibold text-emerald-600">File terpilih</span>
+                      )}
                     </div>
-                    <input type="file" accept="image/*" className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        try {
-                          const uploadRes = await apiHelpers.upload(file);
-                          const url = (uploadRes as any)?.url;
-                          if (url) setMpForm({ ...mpForm, logo: url });
-                        } catch { console.error('Upload failed'); }
-                      }}
-                    />
-                  </label>
-                  {mpForm.logo && (
-                    <span className="text-xs text-emerald-600 font-semibold">File terpilih</span>
-                  )}
+                  </Field>
+                </FieldGroup>
+
+                {mpForm.logo && (
+                  <div className="clip-angled-sm flex items-center gap-3 border border-border bg-muted/50 p-3">
+                    <Image src={mpForm.logo} alt="Preview" width={40} height={40} unoptimized className="size-10 rounded object-contain" />
+                    <span className="text-xs text-muted-foreground">Preview logo</span>
+                    <Button variant="ghost" size="sm" onClick={() => setMpForm({ ...mpForm, logo: '' })} className="ml-auto text-xs text-destructive hover:text-destructive">
+                      Hapus
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={handleMpSave} disabled={mpSaving} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+                    {mpSaving ? <Spinner data-icon="inline-start" /> : <Check data-icon="inline-start" />} Simpan
+                  </Button>
+                  <Button variant="outline" className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider"
+                    onClick={() => { setShowMpAdd(false); setMpEditingId(null); setMpForm({ name: '', website: '', logo: '' }); }}>
+                    Batal
+                  </Button>
                 </div>
-              </div>
-              {mpForm.logo && (
-                <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
-                  style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-                  <Image src={mpForm.logo} alt="Preview" width={40} height={40} unoptimized className="w-10 h-10 object-contain rounded" />
-                  <span className="text-xs text-slate-500">Preview logo</span>
-                  <button onClick={() => setMpForm({ ...mpForm, logo: '' })}
-                    className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
-                </div>
-              )}
-              <div className="flex gap-2 pt-2">
-                <button onClick={handleMpSave} disabled={mpSaving}
-                  className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                  {mpSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
-                </button>
-                <button onClick={() => { setShowMpAdd(false); setMpEditingId(null); setMpForm({ name: '', website: '', logo: '' }); }}
-                  className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                  <X className="w-3 h-3" /> Batal
-                </button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
 
           <div className="grid grid-cols-1 gap-3">
             {mpPaginated.map((m) => (
-              <div key={m.id} className="bg-white border border-slate-200 relative p-4 flex items-center justify-between group"
-                style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
-                <div className="flex items-center gap-3">
-                  {m.logo ? (
-                    <Image src={m.logo} alt="" width={32} height={32} unoptimized className="w-8 h-8 object-contain rounded" />
-                  ) : null}
-                  <span className="text-sm font-bold text-slate-900">{m.name || '(tanpa nama)'}</span>
-                  {m.website && <span className="text-[11px] text-slate-400 hidden sm:block">{m.website.replace(/https?:\/\//, '')}</span>}
-                </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => handleMpEdit(m)} className="p-1.5 text-slate-400 hover:text-astro-cyan cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => handleMpDelete(m.id, m.name)} className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              </div>
+              <Card key={m.id} className="clip-angled group relative border-border p-4">
+                <CardContent className="flex items-center justify-between gap-4 p-0">
+                  <div className="flex items-center gap-3">
+                    {m.logo ? (
+                      <Image src={m.logo} alt="" width={32} height={32} unoptimized className="size-8 rounded object-contain" />
+                    ) : null}
+                    <span className="text-sm font-bold text-foreground">{m.name || '(tanpa nama)'}</span>
+                    {m.website && <span className="hidden text-[11px] text-muted-foreground sm:block">{m.website.replace(/https?:\/\//, '')}</span>}
+                  </div>
+                  <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Button variant="ghost" size="icon-sm" onClick={() => handleMpEdit(m)} aria-label="Edit"><Pencil /></Button>
+                    <Button variant="ghost" size="icon-sm" onClick={() => handleMpDelete(m.id, m.name)} aria-label="Hapus" className="text-muted-foreground hover:text-destructive"><Trash2 /></Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
-            {mediaPartners.length === 0 && <p className="text-sm text-slate-400 italic py-4 text-center">Belum ada media partner.</p>}
+            {mediaPartners.length === 0 && <p className="py-4 text-center text-sm italic text-muted-foreground">Belum ada media partner.</p>}
           </div>
           <Pagination currentPage={mpPage} totalItems={mediaPartners.length} pageSize={PAGE_SIZE} onPageChange={setMpPage} />
         </div>

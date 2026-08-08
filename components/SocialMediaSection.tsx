@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const MotionImage = motion.create(Image);
 
@@ -68,10 +70,10 @@ export default function SocialMediaSection() {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="mb-4"
           >
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/80 backdrop-blur-md rounded-full text-xs font-semibold text-slate-700 tracking-wide border border-slate-200 shadow-sm">
-              <InstagramIcon className="w-3.5 h-3.5 text-slate-800" />
+            <Badge variant="outline" className="gap-2 border-slate-200 bg-white/80 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur-md">
+              <InstagramIcon className="size-3.5 text-slate-800" />
               @astrosttnf
-            </span>
+            </Badge>
           </motion.div>
 
           <motion.h2
@@ -204,15 +206,15 @@ export default function SocialMediaSection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-12 md:mt-16 text-center z-20"
         >
-          <a
-            href="https://instagram.com/astrosttnf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2.5 px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-full shadow-lg shadow-slate-900/10 hover:shadow-slate-900/20 transition-all duration-300 active:scale-95"
+          <Button
+            asChild
+            className="group gap-2.5 rounded-full bg-slate-900 px-6 py-3.5 text-xs font-semibold text-white shadow-lg shadow-slate-900/10 transition-all duration-300 hover:bg-slate-800 hover:shadow-slate-900/20 active:scale-95"
           >
-            <span>Ikuti @astrosttnf di Instagram</span>
-            <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
-          </a>
+            <a href="https://instagram.com/astrosttnf" target="_blank" rel="noopener noreferrer">
+              <span>Ikuti @astrosttnf di Instagram</span>
+              <ArrowUpRight className="size-4 text-slate-400 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-white" />
+            </a>
+          </Button>
         </motion.div>
 
       </div>

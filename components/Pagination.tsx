@@ -1,6 +1,13 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Pagination as PaginationRoot,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+} from '@/components/ui/pagination';
 
 interface Props {
   currentPage: number;
@@ -21,45 +28,50 @@ export default function Pagination({ currentPage, totalItems, pageSize, onPageCh
   if (end < totalPages - 1) pages.push('...', totalPages);
   else if (end < totalPages) pages.push(totalPages);
 
-  const btn = (active: boolean) =>
-    `px-3 py-1.5 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
-      active
-        ? 'bg-astro-cyan text-slate-950'
-        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-    }`;
-
   return (
-    <div className="flex items-center justify-center gap-1.5 pt-4">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage <= 1}
-        className={btn(false) + ' disabled:opacity-30 disabled:cursor-not-allowed'}
-        style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-      >
-        <ChevronLeft className="w-3.5 h-3.5" />
-      </button>
-      {pages.map((p, i) =>
-        p === '...' ? (
-          <span key={`ellipsis-${i}`} className="px-2 text-xs text-slate-400">...</span>
-        ) : (
-          <button
-            key={p}
-            onClick={() => onPageChange(p)}
-            className={btn(p === currentPage)}
-            style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+    <PaginationRoot className="pt-4">
+      <PaginationContent>
+        <PaginationItem>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+            aria-label="Halaman sebelumnya"
           >
-            {p}
-          </button>
-        )
-      )}
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage >= totalPages}
-        className={btn(false) + ' disabled:opacity-30 disabled:cursor-not-allowed'}
-        style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-      >
-        <ChevronRight className="w-3.5 h-3.5" />
-      </button>
-    </div>
+            <ChevronLeft />
+          </Button>
+        </PaginationItem>
+        {pages.map((p, i) =>
+          p === '...' ? (
+            <PaginationItem key={`ellipsis-${i}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={p}>
+              <Button
+                variant={p === currentPage ? 'default' : 'outline'}
+                size="icon-sm"
+                onClick={() => onPageChange(p)}
+                aria-current={p === currentPage ? 'page' : undefined}
+              >
+                {p}
+              </Button>
+            </PaginationItem>
+          )
+        )}
+        <PaginationItem>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+            aria-label="Halaman berikutnya"
+          >
+            <ChevronRight />
+          </Button>
+        </PaginationItem>
+      </PaginationContent>
+    </PaginationRoot>
   );
 }

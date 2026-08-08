@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
 import { Heart, Camera, PlayCircle, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Footer() {
   const reduce = useReducedMotion();
@@ -83,16 +84,18 @@ export default function Footer() {
               {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
-                  <a
+                  <Button
                     key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    asChild
+                    variant="outline"
+                    size="icon"
                     aria-label={social.label}
-                    className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-650 hover:bg-cyan-50 hover:border-cyan-200 hover:text-cyan-600 transition-all duration-200 ease-in-out"
+                    className="rounded-xl border-slate-200 text-slate-600 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-600"
                   >
-                    <Icon className="w-4 h-4" />
-                  </a>
+                    <a href={social.href} target="_blank" rel="noopener noreferrer">
+                      <Icon />
+                    </a>
+                  </Button>
                 );
               })}
             </div>

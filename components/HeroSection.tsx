@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
+import { Button } from '@/components/ui/button';
 import type { EventConfig } from '@/types/astro';
 
 const MotionImage = motion.create(Image);
@@ -203,20 +204,22 @@ export default function HeroSection({ eventConfig }: Props) {
 
         {/* CTA - Solid Parallelogram Buttons */}
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
+          <Button
             onClick={() => document.querySelector('#competitions')?.scrollIntoView({ behavior: 'smooth' })}
-            className="group px-8 py-4 bg-sky-600 border-2 border-sky-300 text-white font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out shadow-[0_8px_30px_rgba(2,132,199,0.4)] hover:bg-sky-500 hover:shadow-[0_12px_40px_rgba(2,132,199,0.5)] hover:-translate-y-0.5 active:scale-95 cursor-pointer skew-x-[-8deg] rounded-none"
+            size="lg"
+            className="skew-x-[-8deg] rounded-none border-2 border-sky-300 bg-sky-600 px-8 py-4 text-sm font-black uppercase tracking-wider text-white shadow-[0_8px_30px_rgba(2,132,199,0.4)] hover:-translate-y-0.5 hover:bg-sky-500 hover:shadow-[0_12px_40px_rgba(2,132,199,0.5)] active:scale-95"
           >
             <span className="block skew-x-[8deg]">Lihat Lomba & Daftar</span>
-          </button>
-          <a
-            href={eventConfig.generalJuknisUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group px-8 py-4 bg-slate-700 border-2 border-slate-400 text-white font-bold text-sm tracking-wider uppercase transition-all duration-200 ease-in-out shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:bg-slate-600 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] hover:-translate-y-0.5 cursor-pointer skew-x-[-8deg] rounded-none"
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            className="skew-x-[-8deg] rounded-none border-2 border-slate-400 bg-slate-700 px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 hover:bg-slate-600 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] active:scale-95"
           >
-            <span className="block skew-x-[8deg]">Unduh Juknis</span>
-          </a>
+            <a href={eventConfig.generalJuknisUrl} target="_blank" rel="noopener noreferrer">
+              <span className="block skew-x-[8deg]">Unduh Juknis</span>
+            </a>
+          </Button>
         </motion.div>
       </motion.div>
 

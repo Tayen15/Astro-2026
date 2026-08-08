@@ -1,11 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import Image from 'next/image';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Search } from 'lucide-react';
-import type { Competition, CategoryType } from '@/types/astro';
-import CompetitionCard from './CompetitionCard';
+import { useState, useMemo } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { Search } from "lucide-react";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import type { Competition, CategoryType } from "@/types/astro";
+import CompetitionCard from "./CompetitionCard";
 
 const MotionImage = motion.create(Image);
 
@@ -15,9 +27,13 @@ interface Props {
 
 export default function AboutSection({ competitions }: Props) {
   const reduce = useReducedMotion();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
-  const [selectedOrigin, setSelectedOrigin] = useState<'all' | 'internal' | 'external'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<
+    CategoryType | "all"
+  >("all");
+  const [selectedOrigin, setSelectedOrigin] = useState<
+    "all" | "internal" | "external"
+  >("all");
 
   // Derive categories dynamically from competition data
   const categoryMap = useMemo(() => {
@@ -32,35 +48,50 @@ export default function AboutSection({ competitions }: Props) {
     return map;
   }, [competitions]);
 
-  const CATEGORIES: { label: string; value: CategoryType | 'all' }[] = useMemo(
+  const CATEGORIES: { label: string; value: CategoryType | "all" }[] = useMemo(
     () => [
-      { label: 'SEMUA', value: 'all' as const },
-      ...Array.from(categoryMap.entries()).map(([value, label]) => ({ label, value })),
+      { label: "SEMUA", value: "all" as const },
+      ...Array.from(categoryMap.entries()).map(([value, label]) => ({
+        label,
+        value,
+      })),
     ],
-    [categoryMap]
+    [categoryMap],
   );
 
-  const categoryOrder = useMemo(() => Array.from(categoryMap.keys()), [categoryMap]);
+  const categoryOrder = useMemo(
+    () => Array.from(categoryMap.keys()),
+    [categoryMap],
+  );
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     return competitions
       .filter((c) => {
-        const matchCat = selectedCategory === 'all' || c.category === selectedCategory;
-        const matchOrigin = selectedOrigin === 'all' || c.origin === selectedOrigin;
-        const matchQ = !q || c.title.toLowerCase().includes(q) || c.tagline.toLowerCase().includes(q);
+        const matchCat =
+          selectedCategory === "all" || c.category === selectedCategory;
+        const matchOrigin =
+          selectedOrigin === "all" || c.origin === selectedOrigin;
+        const matchQ =
+          !q ||
+          c.title.toLowerCase().includes(q) ||
+          c.tagline.toLowerCase().includes(q);
         return matchCat && matchOrigin && matchQ;
       })
       .sort((a, b) => {
-        const catDiff = categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
+        const catDiff =
+          categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
         if (catDiff !== 0) return catDiff;
         return a.title.localeCompare(b.title);
       });
-      // oxlint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [competitions, selectedCategory, selectedOrigin, searchQuery]);
 
   return (
-    <section id="competitions" className="relative py-20 md:py-28 overflow-hidden">
+    <section
+      id="competitions"
+      className="relative py-20 md:py-28 overflow-hidden"
+    >
       {/* Background — seamless transition from Hero's sky fade */}
       <div className="absolute inset-0 bg-gradient-to-b from-sky-100/80 via-white to-white -z-10" />
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-cyan-500/2 blur-[120px] rounded-full pointer-events-none" />
@@ -138,7 +169,7 @@ export default function AboutSection({ competitions }: Props) {
           width={280}
           height={280}
           animate={{ y: [0, -18, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="w-15 h-15 md:w-[280px] md:h-[280px] object-contain"
         />
       </motion.div>
@@ -157,7 +188,7 @@ export default function AboutSection({ competitions }: Props) {
           width={160}
           height={160}
           animate={{ x: [0, 15, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
           className="w-10 h-10 md:w-[160px] md:h-[160px] object-contain"
         />
       </motion.div>
@@ -175,7 +206,7 @@ export default function AboutSection({ competitions }: Props) {
           width={200}
           height={200}
           animate={{ x: [0, -12, 0] }}
-          transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
           className="w-10 h-10 md:w-[200px] md:h-[200px] object-contain"
         />
       </motion.div>
@@ -193,84 +224,131 @@ export default function AboutSection({ competitions }: Props) {
             >
               <div className="accent-line mb-3" />
               <h2 className="font-masterpiece text-4xl md:text-5xl lg:text-6xl text-slate-900 leading-tight">
-                Pilih<br />
+                Pilih
+                <br />
                 <span className="text-astro-cyan">Lombamu</span>
               </h2>
-              <p className="text-sm text-slate-600 mt-2">Tersedia berbagai cabang lomba seru dari tiga kategori berbeda.</p>
+              <p className="text-sm text-slate-600 mt-2">
+                Tersedia berbagai cabang lomba seru dari tiga kategori berbeda.
+              </p>
             </motion.div>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col gap-3 mb-6">
+          <div className="mb-6 flex flex-col gap-3">
             {/* Row 1: Search + Origin */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1 sm:max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="CARI LOMBA..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-bold tracking-wider text-slate-850 placeholder:text-slate-455 uppercase focus:outline-none focus:border-astro-cyan transition-colors"
-                  style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-                />
+                <InputGroup className="clip-angled h-10 border-border bg-background">
+                  <InputGroupAddon align="inline-start">
+                    <Search className="size-3.5 text-muted-foreground" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    placeholder="CARI LOMBA..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="text-xs font-bold tracking-wider uppercase"
+                  />
+                </InputGroup>
               </div>
               {/* Origin filter — compact segmented control */}
-              <div className="flex items-center gap-1 bg-white border border-slate-200 self-start sm:self-auto"
-                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+              <div
+                className="self-start border border-border bg-background sm:self-auto"
+                style={{
+                  clipPath:
+                    "polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)",
+                }}
               >
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase pl-3 pr-1">Asal</span>
-                {[
-                  { label: 'Semua', value: 'all' as const },
-                  { label: 'Internal', value: 'internal' as const },
-                  { label: 'Eksternal', value: 'external' as const },
-                ].map((opt) => (
-                  <button key={opt.value} onClick={() => setSelectedOrigin(opt.value)}
-                    className={`px-3 py-2 text-[10px] font-bold tracking-[0.1em] uppercase transition-all duration-200 cursor-pointer ${
-                      selectedOrigin === opt.value
-                        ? 'bg-astro-cyan text-slate-950'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
+                <div className="flex items-center gap-1">
+                  <span className="px-3 pr-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Asal
+                  </span>
+                  <ToggleGroup
+                    type="single"
+                    value={selectedOrigin}
+                    onValueChange={(v) =>
+                      v &&
+                      setSelectedOrigin(
+                        v as "all" | "internal" | "external",
+                      )
+                    }
+                    spacing={0}
                   >
-                    {opt.label}
-                  </button>
-                ))}
+                    {[
+                      { label: "Semua", value: "all" as const },
+                      { label: "Internal", value: "internal" as const },
+                      { label: "Eksternal", value: "external" as const },
+                    ].map((opt) => (
+                      <ToggleGroupItem
+                        key={opt.value}
+                        value={opt.value}
+                        className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
+                      >
+                        {opt.label}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
               </div>
             </div>
 
             {/* Row 2: Category buttons */}
             <div className="flex flex-wrap items-center gap-1">
-              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mr-1">Kategori</span>
-              {CATEGORIES.map((cat) => (
-                <button key={cat.value} onClick={() => setSelectedCategory(cat.value)}
-                  className={`px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer ${
-                    selectedCategory === cat.value ? 'bg-astro-cyan text-slate-950 shadow-sm' : 'bg-white border border-slate-200 text-slate-650 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                >
-                  {cat.label}
-                </button>
-              ))}
+              <span className="mr-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Kategori
+              </span>
+              <ToggleGroup
+                type="single"
+                value={selectedCategory}
+                onValueChange={(v) =>
+                  v && setSelectedCategory(v as CategoryType | "all")
+                }
+                spacing={1}
+              >
+                {CATEGORIES.map((cat) => (
+                  <ToggleGroupItem
+                    key={cat.value}
+                    value={cat.value}
+                    className="clip-angled-sm px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=on]:shadow-sm data-[state=off]:border data-[state=off]:border-border data-[state=off]:bg-white data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
+                  >
+                    {cat.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </div>
           </div>
 
           {/* Competition Grid */}
           <AnimatePresence mode="wait">
             {filtered.length > 0 ? (
-              <motion.div key={`${selectedCategory}-${searchQuery}`}
-                className="grid sm:grid-cols-2 md:grid-cols-3 gap-4"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+              <motion.div
+                key={`${selectedCategory}-${searchQuery}`}
+                className="grid gap-4 sm:grid-cols-2 md:grid-cols-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
               >
                 {filtered.map((c, i) => (
                   <CompetitionCard key={c.id} competition={c} index={i} />
                 ))}
               </motion.div>
             ) : (
-              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="text-center py-16 border border-slate-200 bg-white shadow-sm rounded-2xl"
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
-                <p className="text-slate-600 text-base font-black uppercase tracking-wider">Tidak Ditemukan</p>
-                <p className="text-slate-450 text-sm mt-1">Coba kata kunci atau filter lain.</p>
+                <Empty className="clip-angled-lg border border-border bg-white py-16 shadow-sm">
+                  <EmptyHeader>
+                    <EmptyTitle className="text-base font-black uppercase tracking-wider">
+                      Tidak Ditemukan
+                    </EmptyTitle>
+                    <EmptyDescription>
+                      Coba kata kunci atau filter lain.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </motion.div>
             )}
           </AnimatePresence>

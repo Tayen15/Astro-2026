@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Trophy, Heart, FileText, ExternalLink, Medal, Download, ChevronRight } from 'lucide-react';
+import { Trophy, Heart, FileText, ExternalLink, Medal, Download, ChevronRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { ResponsiveModal } from '@/components/responsive-modal';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 
 interface CertItem {
   name: string;
@@ -31,6 +34,7 @@ interface Props {
   winners: RegistrationWinner[];
   certHolders: RegistrationWinner[];
   prizes: { label: string; value: string }[];
+  loading?: boolean;
 }
 
 function CertModal({
@@ -41,73 +45,57 @@ function CertModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.94, y: 25 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94, y: 25 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl z-[210] max-h-[80vh] overflow-y-auto"
-      >
-        <button onClick={onClose}
-          className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full transition-all cursor-pointer">
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="p-6 sm:p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center">
-              <Download className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Sertifikat</h3>
-              <p className="text-[11px] text-slate-500">Unduh sertifikat peserta lomba ini.</p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {allCerts.map((group, gi) => (
-              <div key={gi}>
-                {group.rank && (
-                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
-                    {group.rank}
-                  </div>
-                )}
-                <div className="text-xs font-bold text-slate-800 mb-1.5">{group.name}</div>
-                <div className="space-y-1.5 pl-2">
-                  {group.certs.map((c, ci) => (
-                    <a key={ci} href={c.url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-slate-50 border border-slate-200 hover:border-astro-cyan hover:bg-cyan-50/30 transition-all rounded-xl group/cert"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <FileText className="w-4 h-4 text-slate-400 group-hover/cert:text-astro-cyan flex-shrink-0" />
-                        <span className="text-[12px] font-bold text-slate-700 group-hover/cert:text-slate-900 truncate">
-                          {c.name}
-                        </span>
-                      </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover/cert:text-astro-cyan flex-shrink-0" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {allCerts.length === 0 && (
-            <div className="text-center py-10 text-sm text-slate-400 italic">
-              Belum ada sertifikat yang diupload.
-            </div>
-          )}
+    <ResponsiveModal
+      open
+      onOpenChange={(next) => !next && onClose()}
+      title="Sertifikat"
+      description="Unduh sertifikat peserta lomba ini."
+      contentClassName="max-w-lg"
+    >
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Download />
         </div>
-      </motion.div>
-    </div>
+        <div>
+          <span className="block text-sm font-black uppercase tracking-tight text-foreground">Sertifikat</span>
+          <span className="text-[11px] text-muted-foreground">Unduh sertifikat peserta lomba ini.</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {allCerts.map((group, gi) => (
+          <div key={gi}>
+            {group.rank && (
+              <div className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                {group.rank}
+              </div>
+            )}
+            <div className="mb-1.5 text-xs font-bold text-foreground">{group.name}</div>
+            <div className="flex flex-col gap-1.5 pl-2">
+              {group.certs.map((c, ci) => (
+                <a key={ci} href={c.url} target="_blank" rel="noopener noreferrer"
+                  className="group/cert flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/50 px-3.5 py-2.5 transition-all hover:border-primary hover:bg-primary/5"
+                >
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <FileText className="size-4 flex-shrink-0 text-muted-foreground transition-colors group-hover/cert:text-primary" />
+                    <span className="truncate text-[12px] font-bold text-muted-foreground transition-colors group-hover/cert:text-foreground">
+                      {c.name}
+                    </span>
+                  </div>
+                  <ExternalLink className="size-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover/cert:text-primary" />
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {allCerts.length === 0 && (
+        <div className="py-10 text-center text-sm italic text-muted-foreground">
+          Belum ada sertifikat yang diupload.
+        </div>
+      )}
+    </ResponsiveModal>
   );
 }
 
@@ -119,6 +107,7 @@ export default function WinnersModal({
   winners,
   certHolders,
   prizes = [],
+  loading = false,
 }: Props) {
   const [showCertModal, setShowCertModal] = useState(false);
 
@@ -194,198 +183,176 @@ export default function WinnersModal({
 
   return (
     <>
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center pt-20 sm:pt-24 pb-8 px-4 sm:px-6 overflow-y-auto">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="fixed inset-0 bg-slate-950/65 backdrop-blur-md"
-              onClick={onClose}
-            />
+      <ResponsiveModal
+        open={isOpen}
+        onOpenChange={(next) => !next && onClose()}
+        title="Pengumuman Juara"
+        description={competitionTitle}
+        titleClassName="sr-only"
+        descriptionClassName="sr-only"
+        contentClassName="max-w-5xl gap-0 border border-border bg-gradient-to-b from-blue-50/50 via-white to-white p-6 sm:p-8 md:p-10"
+      >
+        {loading ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+            <Spinner className="size-8 text-primary" />
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Memuat data pemenang...
+            </p>
+          </div>
+        ) : (
+          <>
+        {/* Header & Trophy */}
+        <div className="mb-6 flex flex-col items-center justify-between gap-6 md:flex-row">
+          <div className="flex-1 text-left">
+            <Badge variant="outline" className="mb-3 gap-2 border-blue-100 bg-blue-50 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-blue-600">
+              <span className="text-sm">📢</span> PENGUMUMAN JUARA
+            </Badge>
+            <h2 className="text-3xl font-black leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl">
+              Selamat kepada <br className="hidden sm:inline" />
+              <span className="text-blue-600">Para Pemenang!</span>
+            </h2>
+            <p className="mt-2.5 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:text-base">
+              Terima kasih kepada seluruh peserta yang telah berpartisipasi dan menunjukkan karya terbaiknya.
+            </p>
+          </div>
+          <div className="relative flex flex-shrink-0 items-center justify-center pt-2 md:pt-0">
+            <div className="absolute size-44 rounded-full bg-amber-300/30 blur-2xl" />
+            <div className="relative size-36 sm:size-44 md:size-52">
+              <Image src="/assets/piala.png" alt="Piala Pemenang" fill className="object-contain drop-shadow-xl" priority />
+            </div>
+          </div>
+        </div>
 
-            {/* Modal Container */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 25 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 25 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden z-[105] my-auto border border-slate-100 flex flex-col max-h-[calc(100vh-120px)] overflow-y-auto"
-            >
-              {/* Close Button */}
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 z-30 w-9 h-9 flex items-center justify-center bg-slate-100/90 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-full transition-all cursor-pointer shadow-sm"
-                aria-label="Tutup modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
+        {/* Info Bar */}
+        <div className="mb-8 grid grid-cols-1 gap-3 rounded-2xl border border-blue-100/60 bg-blue-50/40 p-3.5 sm:grid-cols-2 md:p-4">
+          <div className="flex items-center gap-3 px-2">
+            <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100/80 text-blue-600 shadow-xs">
+              <Trophy />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nama Lomba</span>
+              <span className="block truncate text-xs font-extrabold text-foreground sm:text-sm">{competitionTitle}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 px-2">
+            <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100/80 text-blue-600 shadow-xs">
+              <Medal />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Kategori</span>
+              <span className="block truncate text-xs font-extrabold text-foreground sm:text-sm">{categoryFormatted}</span>
+            </div>
+          </div>
+        </div>
 
-              {/* Content */}
-              <div className="p-6 sm:p-8 md:p-10 relative bg-gradient-to-b from-blue-50/50 via-white to-white">
-
-                {/* Header & Trophy */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
-                  <div className="flex-1 text-left">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 border border-blue-100 text-blue-600 rounded-full text-xs font-black uppercase tracking-wider mb-3">
-                      <span className="text-sm">📢</span> PENGUMUMAN JUARA
-                    </div>
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 leading-[1.1] tracking-tight">
-                      Selamat kepada <br className="hidden sm:inline" />
-                      <span className="text-blue-600">Para Pemenang!</span>
-                    </h2>
-                    <p className="text-xs sm:text-sm md:text-base text-slate-500 mt-2.5 max-w-xl leading-relaxed">
-                      Terima kasih kepada seluruh peserta yang telah berpartisipasi dan menunjukkan karya terbaiknya.
-                    </p>
-                  </div>
-                  <div className="relative flex-shrink-0 flex items-center justify-center pt-2 md:pt-0">
-                    <div className="absolute w-44 h-44 bg-amber-300/30 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-52 md:h-52">
-                      <Image src="/assets/piala.png" alt="Piala Pemenang" fill className="object-contain drop-shadow-xl" priority />
-                    </div>
-                  </div>
+        {/* Podium Cards */}
+        {winners.length > 0 && (
+          <div className="mb-6 grid grid-cols-1 items-end gap-6 pt-4 md:grid-cols-3 md:gap-4">
+            {grouped['2'].length > 0 && (
+              <div className="relative flex h-full min-h-[200px] flex-col justify-between rounded-2xl border border-blue-100/80 bg-muted/40 px-4 pt-10 pb-5 text-center shadow-xs">
+                <div className="absolute -top-7 left-1/2 size-14 -translate-x-1/2 drop-shadow-md">
+                  <Image src="/assets/medali2.png" alt="Medali Juara 2" fill className="object-contain" />
                 </div>
-
-                {/* Info Bar */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-blue-50/40 border border-blue-100/60 rounded-2xl p-3.5 md:p-4 mb-8">
-                  <div className="flex items-center gap-3 px-2">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100/80 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-xs">
-                      <Trophy className="w-5 h-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nama Lomba</span>
-                      <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate block">{competitionTitle}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 px-2">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100/80 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-xs">
-                      <Medal className="w-5 h-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Kategori</span>
-                      <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate block">{categoryFormatted}</span>
-                    </div>
-                  </div>
+                <div>
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Juara 2</span>
+                  {grouped['2'].map((w) => (
+                    <h3 key={w.id} className="text-base font-black leading-snug text-foreground sm:text-lg">{getWinnerName(w)}</h3>
+                  ))}
                 </div>
-
-                {/* Podium Cards — No certificate links inside */}
-                {winners.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-end mb-6 pt-4">
-                    {/* Juara 2 */}
-                    {grouped['2'].length > 0 && (
-                      <div className="relative bg-slate-50/70 border border-blue-100/80 rounded-2xl pt-10 pb-5 px-4 text-center flex flex-col justify-between h-full min-h-[200px] shadow-xs">
-                        <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 drop-shadow-md">
-                          <Image src="/assets/medali2.png" alt="Medali Juara 2" fill className="object-contain" />
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Juara 2</span>
-                          {grouped['2'].map((w) => (
-                            <h3 key={w.id} className="text-base sm:text-lg font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
-                          ))}
-                        </div>
-                        {prizes.find((p) => p.label.toLowerCase().includes('2') || p.label === 'Juara 2') && (
-                          <div className="mt-3 pt-3 border-t border-slate-200/60">
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Hadiah</span>
-                            <span className="text-xs font-black text-blue-600">
-                              {prizes.find((p) => p.label.toLowerCase().includes('2') || p.label === 'Juara 2')?.value}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Juara 1 */}
-                    {grouped['1'].length > 0 && (
-                      <div className="relative bg-gradient-to-b from-amber-50/80 to-amber-100/40 border-2 border-amber-300 rounded-2xl pt-11 pb-6 px-4 text-center flex flex-col justify-between h-full min-h-[220px] shadow-md ring-4 ring-amber-400/10 md:-translate-y-1">
-                        <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-16 h-16 drop-shadow-lg">
-                          <Image src="/assets/medali1.png" alt="Medali Juara 1" fill className="object-contain" />
-                        </div>
-                        <div>
-                          <span className="text-xs font-black text-amber-700 uppercase tracking-widest block mb-1">Juara 1</span>
-                          {grouped['1'].map((w) => (
-                            <h3 key={w.id} className="text-lg sm:text-xl font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
-                          ))}
-                        </div>
-                        {prizes.find((p) => p.label.toLowerCase().includes('1') || p.label === 'Juara 1') && (
-                          <div className="mt-3 pt-3 border-t border-amber-200/80">
-                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Hadiah</span>
-                            <span className="text-sm font-black text-amber-700">
-                              {prizes.find((p) => p.label.toLowerCase().includes('1') || p.label === 'Juara 1')?.value}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Juara 3 */}
-                    {grouped['3'].length > 0 && (
-                      <div className="relative bg-orange-50/30 border border-orange-200/80 rounded-2xl pt-10 pb-5 px-4 text-center flex flex-col justify-between h-full min-h-[200px] shadow-xs">
-                        <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 drop-shadow-md">
-                          <Image src="/assets/medali3.png" alt="Medali Juara 3" fill className="object-contain" />
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-amber-900/70 uppercase tracking-wider block mb-1">Juara 3</span>
-                          {grouped['3'].map((w) => (
-                            <h3 key={w.id} className="text-base sm:text-lg font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
-                          ))}
-                        </div>
-                        {prizes.find((p) => p.label.toLowerCase().includes('3') || p.label === 'Juara 3') && (
-                          <div className="mt-3 pt-3 border-t border-orange-200/60">
-                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Hadiah</span>
-                            <span className="text-xs font-black text-amber-800">
-                              {prizes.find((p) => p.label.toLowerCase().includes('3') || p.label === 'Juara 3')?.value}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                {prizes.find((p) => p.label.toLowerCase().includes('2') || p.label === 'Juara 2') && (
+                  <div className="mt-3 border-t border-slate-200/60 pt-3">
+                    <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Hadiah</span>
+                    <span className="text-xs font-black text-blue-600">
+                      {prizes.find((p) => p.label.toLowerCase().includes('2') || p.label === 'Juara 2')?.value}
+                    </span>
                   </div>
                 )}
-
-                {/* Tombol Dapatkan Sertifikat — di paling bawah */}
-                {totalCerts > 0 && (
-                  <div className="pt-4 pb-2 border-t border-slate-200">
-                    <button
-                      onClick={() => setShowCertModal(true)}
-                      className="w-full group flex items-center justify-between px-6 py-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-200/60 hover:border-cyan-300 rounded-xl transition-all cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center group-hover:bg-cyan-200 transition-colors">
-                          <Download className="w-5 h-5" />
-                        </div>
-                        <div className="text-left">
-                          <span className="text-sm font-black text-slate-900 uppercase tracking-tight block">Dapatkan Sertifikat</span>
-                          <span className="text-[11px] text-slate-500">{totalCerts} sertifikat tersedia</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-astro-cyan group-hover:translate-x-0.5 transition-all" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="text-center pt-4 text-xs sm:text-sm font-semibold text-slate-500 flex items-center justify-center gap-1.5">
-                  <Heart className="w-4 h-4 text-blue-500 fill-blue-500" />
-                  <span>Teruslah berkarya dan sampai jumpa di kompetisi berikutnya!</span>
-                </div>
               </div>
-            </motion.div>
+            )}
+
+            {grouped['1'].length > 0 && (
+              <div className="relative flex h-full min-h-[220px] flex-col justify-between rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-amber-50/80 to-amber-100/40 px-4 pt-11 pb-6 text-center shadow-md ring-4 ring-amber-400/10 md:-translate-y-1">
+                <div className="absolute -top-9 left-1/2 size-16 -translate-x-1/2 drop-shadow-lg">
+                  <Image src="/assets/medali1.png" alt="Medali Juara 1" fill className="object-contain" />
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-black uppercase tracking-widest text-amber-700">Juara 1</span>
+                  {grouped['1'].map((w) => (
+                    <h3 key={w.id} className="text-lg font-black leading-snug text-foreground sm:text-xl">{getWinnerName(w)}</h3>
+                  ))}
+                </div>
+                {prizes.find((p) => p.label.toLowerCase().includes('1') || p.label === 'Juara 1') && (
+                  <div className="mt-3 border-t border-amber-200/80 pt-3">
+                    <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Hadiah</span>
+                    <span className="text-sm font-black text-amber-700">
+                      {prizes.find((p) => p.label.toLowerCase().includes('1') || p.label === 'Juara 1')?.value}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {grouped['3'].length > 0 && (
+              <div className="relative flex h-full min-h-[200px] flex-col justify-between rounded-2xl border border-orange-200/80 bg-orange-50/30 px-4 pt-10 pb-5 text-center shadow-xs">
+                <div className="absolute -top-7 left-1/2 size-14 -translate-x-1/2 drop-shadow-md">
+                  <Image src="/assets/medali3.png" alt="Medali Juara 3" fill className="object-contain" />
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-amber-900/70">Juara 3</span>
+                  {grouped['3'].map((w) => (
+                    <h3 key={w.id} className="text-base font-black leading-snug text-foreground sm:text-lg">{getWinnerName(w)}</h3>
+                  ))}
+                </div>
+                {prizes.find((p) => p.label.toLowerCase().includes('3') || p.label === 'Juara 3') && (
+                  <div className="mt-3 border-t border-orange-200/60 pt-3">
+                    <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Hadiah</span>
+                    <span className="text-xs font-black text-amber-800">
+                      {prizes.find((p) => p.label.toLowerCase().includes('3') || p.label === 'Juara 3')?.value}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
-      </AnimatePresence>
+
+        {/* Tombol Dapatkan Sertifikat */}
+        {totalCerts > 0 && (
+          <div className="border-t border-border pt-4 pb-2">
+            <Button
+              onClick={() => setShowCertModal(true)}
+              className="group w-full justify-between gap-3 border border-cyan-200/60 bg-gradient-to-r from-primary/10 to-blue-500/10 px-6 py-4 hover:border-cyan-300"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <Download />
+                </div>
+                <div className="text-left">
+                  <span className="block text-sm font-black uppercase tracking-tight text-foreground">Dapatkan Sertifikat</span>
+                  <span className="text-[11px] text-muted-foreground">{totalCerts} sertifikat tersedia</span>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
+            </Button>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-center gap-1.5 pt-4 text-xs font-semibold text-muted-foreground sm:text-sm">
+          <Heart className="size-4 fill-blue-500 text-blue-500" />
+          <span>Teruslah berkarya dan sampai jumpa di kompetisi berikutnya!</span>
+        </div>
+          </>
+        )}
+      </ResponsiveModal>
 
       {/* Sub-modal Sertifikat */}
-      <AnimatePresence>
-        {showCertModal && (
-          <CertModal
-            allCerts={allCertGroups}
-            onClose={() => setShowCertModal(false)}
-          />
-        )}
-      </AnimatePresence>
+      {showCertModal && (
+        <CertModal
+          allCerts={allCertGroups}
+          onClose={() => setShowCertModal(false)}
+        />
+      )}
     </>
   );
 }

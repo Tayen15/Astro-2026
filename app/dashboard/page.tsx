@@ -2,6 +2,16 @@ import { db } from '@/src/db';
 import { competitions, registrations } from '@/src/db/schema';
 import { count, sql, eq } from 'drizzle-orm';
 import { Users, Trophy, Banknote, CheckCircle2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import OverviewCharts from '@/components/OverviewCharts';
 
 export default async function DashboardOverview() {
@@ -57,35 +67,30 @@ export default async function DashboardOverview() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Overview</h1>
-        <p className="text-sm text-slate-500 font-light mt-1">
+        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Overview</h1>
+        <p className="mt-1 text-sm font-light text-muted-foreground">
           Ringkasan data pendaftaran ASTRO 2026
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div
-              key={stat.label}
-              className="bg-white border border-slate-200 p-5 flex items-start gap-4"
-              style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
-            >
-              <div
-                className={`p-3 border ${stat.color}`}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-              >
-                <Icon className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">
-                  {stat.label}
-                </p>
-                <p className="text-2xl font-black text-slate-900 mt-1">{stat.value}</p>
-              </div>
-            </div>
+            <Card key={stat.label} className="clip-angled border-border">
+              <CardContent className="flex items-start gap-4 p-5">
+                <div className={cn('border p-3', stat.color)} style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>
+                  <Icon className="size-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 text-2xl font-black text-foreground">{stat.value}</p>
+                </div>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
@@ -94,45 +99,43 @@ export default async function DashboardOverview() {
       <OverviewCharts />
 
       {/* Per Competition Table */}
-      <div className="bg-white border border-slate-200"
-        style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-      >
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+      <Card className="clip-angled-lg border-border">
+        <CardHeader>
+          <CardTitle className="text-sm font-black uppercase tracking-tight">
             Pendaftar Per Lomba
-          </h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="text-left px-5 py-3">Lomba</th>
-                <th className="text-left px-5 py-3">Kategori</th>
-                <th className="text-right px-5 py-3">Jumlah Pendaftar</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <TableHead className="px-5">Lomba</TableHead>
+                <TableHead className="px-5">Kategori</TableHead>
+                <TableHead className="px-5 text-right">Jumlah Pendaftar</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-border">
               {perCompetition.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-5 py-8 text-center text-slate-400 text-sm">
+                <TableRow>
+                  <TableCell colSpan={3} className="px-5 py-8 text-center text-sm text-muted-foreground">
                     Belum ada data pendaftaran.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 perCompetition.map((row) => (
-                  <tr key={row.name} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3.5 font-medium text-slate-900">{row.name}</td>
-                    <td className="px-5 py-3.5 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                  <TableRow key={row.name} className="hover:bg-muted/50">
+                    <TableCell className="px-5 font-medium text-foreground">{row.name}</TableCell>
+                    <TableCell className="px-5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       {row.category}
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-black text-slate-900">{row.count}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="px-5 text-right font-black text-foreground">{row.count}</TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

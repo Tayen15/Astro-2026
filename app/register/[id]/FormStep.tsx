@@ -1,10 +1,23 @@
-'use client';
+"use client";
 
-import { useForm } from '@tanstack/react-form';
-import { Loader2, ChevronRight } from 'lucide-react';
-import type { Competition } from '@/types/astro';
-import { useRegistrationApi } from '@/src/lib/hooks/use-registration';
-import { registrationFormSchema, type RegistrationFormValues } from '@/src/lib/forms/registration';
+import { useForm } from "@tanstack/react-form";
+import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import type { Competition } from "@/types/astro";
+import { useRegistrationApi } from "@/src/lib/hooks/use-registration";
+import {
+  registrationFormSchema,
+  type RegistrationFormValues,
+} from "@/src/lib/forms/registration";
 
 interface Props {
   competition: Competition;
@@ -42,15 +55,17 @@ export default function FormStep({
 
       if (existingRegId) {
         const reg = await update(existingRegId, value);
-        if (reg) onContinue(existingRegId, existingRef || '');
+        if (reg) onContinue(existingRegId, existingRef || "");
       } else {
-        const reg = await create(competition.id, isTeam ? 'team' : 'individual', value);
-        if (reg) onContinue(reg.id, reg.paymentReference ?? '');
+        const reg = await create(
+          competition.id,
+          isTeam ? "team" : "individual",
+          value,
+        );
+        if (reg) onContinue(reg.id, reg.paymentReference ?? "");
       }
     },
   });
-
-  const labelClass = 'block text-[10px] font-bold text-slate-700 uppercase tracking-[0.15em] mb-1.5';
 
   const renderField = (
     name: keyof RegistrationFormValues,
@@ -62,29 +77,32 @@ export default function FormStep({
     <form.Field
       name={name}
       children={(field) => {
-        const err = field.state.meta.errors?.[0] as { message?: string } | undefined;
+        const err = field.state.meta.errors?.[0] as
+          | { message?: string }
+          | undefined;
+        const fieldId = `field-${String(name)}`;
         return (
-          <div className="space-y-1.5">
-            <label className={labelClass}>{label}</label>
-            <input
+          <Field data-invalid={!!err}>
+            <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
+            <Input
+              id={fieldId}
               type={type}
-              value={field.state.value ?? ''}
+              value={field.state.value ?? ""}
               onBlur={field.handleBlur}
               onChange={(e) =>
                 field.handleChange(
-                  opts?.sanitize ? opts.sanitize(e.target.value) : e.target.value,
+                  opts?.sanitize
+                    ? opts.sanitize(e.target.value)
+                    : e.target.value,
                 )
               }
-              className={`w-full px-4 py-3 bg-white border text-sm focus:outline-none focus:bg-white transition-colors ${
-                err ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-              }`}
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
               placeholder={placeholder}
+              aria-invalid={!!err}
             />
             {err ? (
-              <span className="text-[11px] text-red-500 font-medium">{err.message ?? 'Field wajib diisi'}</span>
+              <FieldError>{err.message ?? "Field wajib diisi"}</FieldError>
             ) : null}
-          </div>
+          </Field>
         );
       }}
     />
@@ -101,98 +119,140 @@ export default function FormStep({
     >
       {/* Section title */}
       <div>
-        <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
+        <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
           Data Pendaftaran
         </h2>
-        <p className="text-xs text-slate-500 mt-1 font-light">
-          Isi data dengan benar untuk pendaftaran lomba <strong>{competition.title}</strong>.
+        <p className="mt-1 text-xs font-light text-muted-foreground">
+          Isi data dengan benar untuk pendaftaran lomba{" "}
+          <strong>{competition.title}</strong>.
         </p>
       </div>
 
-      <div className="bg-white border border-slate-200 relative"
-        style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
-      >
+      <Card className="clip-angled relative border-border">
         <div
-          className="absolute -top-px -left-px w-8 h-8 bg-astro-cyan"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+          className="absolute -top-px -left-px size-8 bg-primary"
+          style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
         />
 
-        <div className="p-6 md:p-8 space-y-5">
-          {isTeam ? (
-            <>
-              {renderField('teamName', 'Nama Tim', 'text', 'Masukkan nama tim Anda')}
-              {renderField('leaderName', 'Nama Ketua Tim', 'text', 'Nama lengkap ketua tim')}
-              {renderField('leaderIdentity', 'Nomor Identitas Ketua (NISN / KTP / Kartu Pelajar)', 'text', 'Nomor identitas ketua', { sanitize: (v) => v.replace(/\D/g, '') })}
-            </>
-          ) : (
-            <>
-              {renderField('fullName', 'Nama Lengkap', 'text', 'Nama lengkap pendaftar')}
-              {renderField('identityNumber', 'Nomor Identitas (NISN / KTP / Kartu Pelajar)', 'text', 'Nomor identitas pendaftar', { sanitize: (v) => v.replace(/\D/g, '') })}
-            </>
-          )}
+        <CardContent className="space-y-5 p-6 md:p-8">
+          <FieldGroup className="gap-5">
+            {isTeam ? (
+              <>
+                {renderField(
+                  "teamName",
+                  "Nama Tim",
+                  "text",
+                  "Masukkan nama tim Anda",
+                )}
+                {renderField(
+                  "leaderName",
+                  "Nama Ketua Tim",
+                  "text",
+                  "Nama lengkap ketua tim",
+                )}
+                {renderField(
+                  "leaderIdentity",
+                  "Nomor Identitas Ketua (NISN / KTP / Kartu Pelajar)",
+                  "text",
+                  "Nomor identitas ketua",
+                  { sanitize: (v) => v.replace(/\D/g, "") },
+                )}
+              </>
+            ) : (
+              <>
+                {renderField(
+                  "fullName",
+                  "Nama Lengkap",
+                  "text",
+                  "Nama lengkap pendaftar",
+                )}
+                {renderField(
+                  "identityNumber",
+                  "Nomor Identitas (NISN / KTP / Kartu Pelajar)",
+                  "text",
+                  "Nomor identitas pendaftar",
+                  { sanitize: (v) => v.replace(/\D/g, "") },
+                )}
+              </>
+            )}
 
-          {renderField('institution', 'Sekolah / Instansi', 'text', 'Asal sekolah atau instansi')}
+            {renderField(
+              "institution",
+              "Sekolah / Instansi",
+              "text",
+              "Asal sekolah atau instansi",
+            )}
 
-          {renderField('email', `Alamat Email${isTeam ? ' Ketua' : ''}`, 'email', 'contoh@email.com')}
+            {renderField(
+              "email",
+              `Alamat Email${isTeam ? " Ketua" : ""}`,
+              "email",
+              "contoh@email.com",
+            )}
 
-          {renderField('whatsapp', `Nomor WhatsApp${isTeam ? ' Ketua' : ''}`, 'tel', '62812XXXXXXXX', { sanitize: (v) => v.replace(/\D/g, '') })}
+            {renderField(
+              "whatsapp",
+              `Nomor WhatsApp${isTeam ? " Ketua" : ""}`,
+              "tel",
+              "62812XXXXXXXX",
+              { sanitize: (v) => v.replace(/\D/g, "") },
+            )}
+          </FieldGroup>
 
           {/* Anggota Tim (team only) */}
           {isTeam && (
-            <div className="space-y-3">
-              <label className={labelClass}>
-                Anggota Tim (Min. {minTeamMembers})
-              </label>
+            <Field>
+              <FieldLabel>Anggota Tim (Min. {minTeamMembers})</FieldLabel>
               {Array.from({ length: maxTeamMembers }, (_, i) => (
                 <form.Field
                   key={i}
                   name="members"
                   children={(field) => {
-                    const arr = (field.state.value ?? '').split('\n').filter(Boolean);
+                    const arr = (field.state.value ?? "")
+                      .split("\n")
+                      .filter(Boolean);
                     return (
-                      <input
+                      <Input
                         type="text"
-                        value={arr[i] || ''}
+                        value={arr[i] || ""}
                         onBlur={field.handleBlur}
                         onChange={(e) => {
                           arr[i] = e.target.value;
-                          field.handleChange(arr.filter(Boolean).join('\n'));
+                          field.handleChange(arr.filter(Boolean).join("\n"));
                         }}
-                        className="w-full px-4 py-3 bg-white border text-sm focus:outline-none focus:bg-white transition-colors border-slate-200 focus:border-astro-cyan"
-                        style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                        placeholder={`Anggota ${i + 1}${i < minTeamMembers ? ' (wajib)' : ' (opsional)'}`}
+                        placeholder={`Anggota ${i + 1}${i < minTeamMembers ? " (wajib)" : " (opsional)"}`}
                       />
                     );
                   }}
                 />
               ))}
-            </div>
+            </Field>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Submit button */}
       <form.Subscribe
         selector={(s) => ({ isSubmitting: s.isSubmitting })}
         children={({ isSubmitting }) => (
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-astro-cyan hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 text-slate-950 font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out active:scale-95 cursor-pointer disabled:cursor-not-allowed"
-            style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
+            size="lg"
+            className="clip-angled w-full text-sm font-black uppercase tracking-wider active:scale-95"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Spinner data-icon="inline-start" />
                 Memproses Pendaftaran...
               </>
             ) : (
               <>
                 Lanjut ke Pembayaran
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight data-icon="inline-end" />
               </>
             )}
-          </button>
+          </Button>
         )}
       />
     </form>

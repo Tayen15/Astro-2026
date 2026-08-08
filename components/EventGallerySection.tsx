@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Camera, X, ChevronLeft, ChevronRight, Heart, ZoomIn } from 'lucide-react';
-import { apiHelpers } from '@/src/lib/api';
+import { motion, useReducedMotion } from 'motion/react';
+import { Camera, ChevronLeft, ChevronRight, Heart, X, ZoomIn } from 'lucide-react';
+import { ResponsiveModal } from '@/components/responsive-modal';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { cn } from '@/lib/utils';
+import { useGalleryPhotos, useGalleryCategories } from '@/src/lib/hooks/use-queries';
 
 const MotionImage = motion.create(Image);
 
@@ -29,19 +35,11 @@ export default function EventGallerySection() {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [likedPhotos, setLikedPhotos] = useState<Record<string, boolean>>({});
   const [isMarqueeHovered, setIsMarqueeHovered] = useState(false);
-  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
-  const [categories, setCategories] = useState<GalleryCategory[]>([]);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  useEffect(() => {
-    Promise.all([
-      apiHelpers.galleryPhotos.list({ page: 1, pageSize: 100 }),
-      apiHelpers.galleryCategories.list(),
-    ]).then(([gData, cData]) => {
-      const list = Array.isArray(gData) ? gData : (gData as any)?.data ?? [];
-      setPhotos(list);
-      setCategories(cData);
-    }).catch(() => {});
-  }, []);
+  const { data: gData } = useGalleryPhotos({ page: 1, pageSize: 100 });
+  const { data: categories = [] } = useGalleryCategories() as { data: GalleryCategory[] };
+  const photos: GalleryPhoto[] = Array.isArray(gData) ? gData : (gData as any)?.data ?? [];
 
   const filteredPhotos = activeCategory === 'ALL'
     ? photos
@@ -66,23 +64,17 @@ export default function EventGallerySection() {
     setLikedPhotos((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Keyboard navigation for lightbox
+  const photo = selectedPhotoIndex !== null ? filteredPhotos[selectedPhotoIndex] : null;
+
+  // Reset skeleton state when the lightbox photo changes
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedPhotoIndex === null) return;
-      if (e.key === 'ArrowLeft') handlePrevPhoto();
-      if (e.key === 'ArrowRight') handleNextPhoto();
-      if (e.key === 'Escape') setSelectedPhotoIndex(null);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPhotoIndex]);
+    setImageLoaded(false);
+  }, [photo?.imageUrl]);
 
   return (
-    <section id="gallery" className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-sky-100 text-slate-900">
+    <section id="gallery" className="relative overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-sky-100 py-24 text-slate-900 md:py-32">
       {/* ─── SKY BACKGROUND GLOWS ─── */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[850px] bg-cyan-300/25 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="pointer-events-none absolute top-1/2 left-1/2 z-0 size-[850px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300/25 blur-[140px]" />
 
       {/* ─── FLOATING DECORATIVE CLOUDS & BLOBS ─── */}
       <MotionImage
@@ -92,7 +84,7 @@ export default function EventGallerySection() {
         height={220}
         animate={reduce ? undefined : { x: [0, 20, 0] }}
         transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-[6%] -left-12 w-72 md:w-96 h-auto opacity-75 pointer-events-none select-none z-0"
+        className="pointer-events-none absolute top-[6%] -left-12 z-0 h-auto w-72 opacity-75 select-none md:w-96"
       />
       <MotionImage
         src="/assets/cloud.png"
@@ -101,7 +93,7 @@ export default function EventGallerySection() {
         height={240}
         animate={reduce ? undefined : { x: [0, -20, 0] }}
         transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-[14%] -right-16 w-80 md:w-[420px] h-auto opacity-70 pointer-events-none select-none z-0"
+        className="pointer-events-none absolute top-[14%] -right-16 z-0 h-auto w-80 opacity-70 select-none md:w-[420px]"
       />
       <MotionImage
         src="/assets/blob-round.png"
@@ -110,311 +102,203 @@ export default function EventGallerySection() {
         height={112}
         animate={reduce ? undefined : { y: [0, -18, 0] }}
         transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-[10%] right-[12%] w-16 h-16 md:w-28 md:h-28 object-contain pointer-events-none select-none z-0 opacity-80"
+        className="pointer-events-none absolute top-[10%] right-[12%] z-0 size-16 object-contain opacity-80 select-none md:size-28"
       />
 
       <div className="relative z-10 w-full">
-        
         {/* ── Section Header ── */}
-        <div className="text-center mb-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-          <div className="flex justify-center mb-3">
+        <div className="mx-auto mb-10 flex max-w-7xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
+          <div className="mb-3 flex justify-center">
             <div className="accent-line" />
           </div>
-          <h2 className="font-masterpiece text-4xl sm:text-5xl md:text-6xl text-slate-900 leading-tight tracking-tight mb-3">
+          <h2 className="font-masterpiece mb-3 text-4xl leading-tight tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
             EVENT <span className="text-astro-cyan">GALLERY</span>
           </h2>
-          <p className="text-xs md:text-sm text-slate-700 font-bold max-w-xl mx-auto leading-relaxed mb-6">
+          <p className="mx-auto mb-6 max-w-xl text-xs font-bold leading-relaxed text-slate-700 md:text-sm">
             Kumpulan momen berharga, dokumentasi keseruan lomba, seminar, dan perayaan kemenangan ASTRO dari masa ke masa.
           </p>
 
-          {/* ── Frosted Glass Category Filter Pills ── */}
-          <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-2 pt-1 px-2 no-scrollbar max-w-full">
-            {[{ name: 'All', slug: 'ALL' } as any, ...categories].map((cat: any) => {
-              const isActive = activeCategory === cat.slug;
-              return (
-                <button
+          {/* ── Category Filter Pills ── */}
+          <div className="max-w-full overflow-x-auto px-2 pb-2 pt-1 no-scrollbar">
+            <ToggleGroup
+              type="single"
+              value={activeCategory}
+              onValueChange={(v) => v && setActiveCategory(v)}
+              spacing={2}
+            >
+              {[{ name: 'All', slug: 'ALL' } as any, ...categories].map((cat: any) => (
+                <ToggleGroupItem
                   key={cat.slug}
-                  onClick={() => setActiveCategory(cat.slug)}
-                  className={`px-4 md:px-5 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 cursor-pointer select-none whitespace-nowrap backdrop-blur-xl ${
-                    isActive
-                      ? 'bg-astro-cyan text-slate-950 shadow-md border border-cyan-200 scale-105 z-10'
-                      : 'bg-white/40 text-slate-800 border border-white/80 hover:bg-white/70 hover:text-slate-950 shadow-sm'
-                  }`}
-                  style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
+                  value={cat.slug}
+                  className="clip-angled gap-2 border border-white/80 bg-white/40 px-4 py-2 text-xs font-black uppercase tracking-wider backdrop-blur-xl data-[state=on]:border-cyan-200 data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=on]:shadow-md"
                 >
-                  <div className="flex items-center gap-2">
-                    <Camera className={`w-3.5 h-3.5 ${isActive ? 'text-slate-950' : 'text-cyan-700'}`} />
-                    <span>{cat.name}</span>
-                  </div>
-                </button>
-              );
-            })}
+                  <Camera className="size-3.5" />
+                  {cat.name}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
           </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════
-            NARROW EDGE GRADIENT MASKS + RELAXED SLOW MARQUEE SPEED
-           ════════════════════════════════════════════════════════════ */}
-        <div 
+        {/* ═══ MARQUEE ROWS ═══ */}
+        <div
           className="relative w-full overflow-hidden py-4"
           onMouseEnter={() => setIsMarqueeHovered(true)}
           onMouseLeave={() => setIsMarqueeHovered(false)}
         >
-          {/* ── NARROW LEFT FADE OVERLAY MASK (Hanya di Ujung Luar) ── */}
-          <div 
-            className="absolute top-0 bottom-0 left-0 w-12 sm:w-16 md:w-24 bg-gradient-to-r from-sky-100 via-sky-100/60 to-transparent z-30 pointer-events-none"
-          />
-
-          {/* ── NARROW RIGHT FADE OVERLAY MASK (Hanya di Ujung Luar) ── */}
-          <div 
-            className="absolute top-0 bottom-0 right-0 w-12 sm:w-16 md:w-24 bg-gradient-to-l from-sky-100 via-sky-100/60 to-transparent z-30 pointer-events-none"
-          />
+          {/* Narrow edge fade masks */}
+          <div className="pointer-events-none absolute top-0 bottom-0 left-0 z-30 w-12 bg-gradient-to-r from-sky-100 via-sky-100/60 to-transparent sm:w-16 md:w-24" />
+          <div className="pointer-events-none absolute top-0 right-0 bottom-0 z-30 w-12 bg-gradient-to-l from-sky-100 via-sky-100/60 to-transparent sm:w-16 md:w-24" />
 
           <div className="space-y-6">
-            {/* ── Marquee Row 1 - Slow Smooth Slide Left (Duration 90s) ── */}
-            <div className="relative w-full overflow-hidden flex">
-              <motion.div
-                animate={isMarqueeHovered ? false : { x: ['0%', '-50%'] }}
-                transition={{
-                  x: {
-                    repeat: Infinity,
-                    repeatType: 'loop',
-                    duration: 90,
-                    ease: 'linear',
-                  },
-                }}
-                className="flex items-center gap-6 shrink-0"
-              >
-                {marqueeRow1.map((photo, idx) => (
-                  <div
-                    key={`r1-${photo.id}-${idx}`}
-                    onClick={() => setSelectedPhotoIndex(idx % filteredPhotos.length)}
-                    className="group relative w-[280px] sm:w-[330px] md:w-[380px] aspect-[4/3] shrink-0 bg-white/50 backdrop-blur-2xl border-2 border-white/80 shadow-md hover:shadow-2xl hover:border-white transition-all duration-500 cursor-pointer overflow-hidden p-3"
-                    style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-                  >
-                    {/* Glass Refraction Highlight */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-white/35 to-transparent pointer-events-none z-10" />
-
-                    <div 
-                      className="relative w-full h-full overflow-hidden bg-slate-900 border border-white/60 group-hover:border-astro-cyan transition-colors"
-                      style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
+            {[marqueeRow1, marqueeRow2].map((row, rowIdx) => (
+              <div key={rowIdx} className="relative flex w-full overflow-hidden">
+                <motion.div
+                  animate={isMarqueeHovered ? false : { x: rowIdx === 0 ? ['0%', '-50%'] : ['-50%', '0%'] }}
+                  transition={{
+                    x: { repeat: Infinity, repeatType: 'loop', duration: rowIdx === 0 ? 90 : 100, ease: 'linear' },
+                  }}
+                  className="flex shrink-0 items-center gap-6"
+                >
+                  {row.map((photoItem, idx) => (
+                    <div
+                      key={`r${rowIdx}-${photoItem.id}-${idx}`}
+                      onClick={() => setSelectedPhotoIndex(idx % filteredPhotos.length)}
+                      className="group relative aspect-[4/3] w-[280px] shrink-0 cursor-pointer overflow-hidden border-2 border-white/80 bg-white/50 p-3 shadow-md backdrop-blur-2xl transition-all duration-500 hover:border-white hover:shadow-2xl sm:w-[330px] md:w-[380px]"
+                      style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
                     >
-                      <Image
-                        src={photo.imageUrl}
-                        alt={photo.title}
-                        fill
-                        className="object-cover transition-all duration-700 ease-out group-hover:scale-115 group-hover:rotate-1 group-hover:brightness-105"
-                        sizes="380px"
-                      />
+                      {/* Glass Refraction Highlight */}
+                      <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-tr from-white/10 via-white/35 to-transparent" />
 
-                      {/* Dark Gradient Legibility Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300" />
+                      <div
+                        className="relative h-full w-full overflow-hidden border border-white/60 bg-slate-900 transition-colors group-hover:border-astro-cyan"
+                        style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
+                      >
+                        <Image
+                          src={photoItem.imageUrl}
+                          alt={photoItem.title}
+                          fill
+                          className="object-cover transition-all duration-700 ease-out group-hover:scale-115 group-hover:rotate-1 group-hover:brightness-105"
+                          sizes="380px"
+                        />
 
-                      {/* Year Badge */}
-                      <div className="absolute top-3 left-3 flex items-center gap-2 z-20">
-                        <span 
-                          className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 bg-astro-cyan text-slate-950 shadow-md"
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                        >
-                          {photo.year}
-                        </span>
-                      </div>
+                        {/* Dark Gradient Legibility Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-90" />
 
-                      {/* Photo Title Overlay */}
-                      <div className="absolute bottom-3 left-3 right-3 text-white z-20">
-                        <h4 className="text-sm md:text-base font-black text-white group-hover:text-astro-cyan transition-colors leading-tight">
-                          {photo.title}
-                        </h4>
-                        <p className="text-[11px] text-slate-300 font-semibold mt-0.5 opacity-80">
-                          {photo.category}
-                        </p>
+                        {/* Year Badge */}
+                        <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
+                          <Badge className="clip-angled-sm bg-astro-cyan text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-md">
+                            {photoItem.year}
+                          </Badge>
+                        </div>
+
+                        {/* Photo Title Overlay */}
+                        <div className="absolute right-3 bottom-3 left-3 z-20 text-white">
+                          <h4 className="text-sm font-black leading-tight text-white transition-colors group-hover:text-astro-cyan md:text-base">
+                            {photoItem.title}
+                          </h4>
+                          <p className="mt-0.5 text-[11px] font-semibold text-slate-300 opacity-80">
+                            {photoItem.category}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* ── Marquee Row 2 - Slow Smooth Slide Right (Duration 100s) ── */}
-            <div className="relative w-full overflow-hidden flex">
-              <motion.div
-                animate={isMarqueeHovered ? false : { x: ['-50%', '0%'] }}
-                transition={{
-                  x: {
-                    repeat: Infinity,
-                    repeatType: 'loop',
-                    duration: 100,
-                    ease: 'linear',
-                  },
-                }}
-                className="flex items-center gap-6 shrink-0"
-              >
-                {marqueeRow2.map((photo, idx) => (
-                  <div
-                    key={`r2-${photo.id}-${idx}`}
-                    onClick={() => setSelectedPhotoIndex(idx % filteredPhotos.length)}
-                    className="group relative w-[280px] sm:w-[330px] md:w-[380px] aspect-[4/3] shrink-0 bg-white/50 backdrop-blur-2xl border-2 border-white/80 shadow-md hover:shadow-2xl hover:border-white transition-all duration-500 cursor-pointer overflow-hidden p-3"
-                    style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-                  >
-                    {/* Glass Refraction Highlight */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-white/35 to-transparent pointer-events-none z-10" />
-
-                    <div 
-                      className="relative w-full h-full overflow-hidden bg-slate-900 border border-white/60 group-hover:border-astro-cyan transition-colors"
-                      style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
-                    >
-                      <Image
-                        src={photo.imageUrl}
-                        alt={photo.title}
-                        fill
-                        className="object-cover transition-all duration-700 ease-out group-hover:scale-115 group-hover:rotate-1 group-hover:brightness-105"
-                        sizes="380px"
-                      />
-
-                      {/* Dark Gradient Legibility Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300" />
-
-                      {/* Year Badge */}
-                      <div className="absolute top-3 left-3 flex items-center gap-2 z-20">
-                        <span 
-                          className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 bg-astro-cyan text-slate-950 shadow-md"
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                        >
-                          {photo.year}
-                        </span>
-                      </div>
-
-                      {/* Photo Title Overlay */}
-                      <div className="absolute bottom-3 left-3 right-3 text-white z-20">
-                        <h4 className="text-sm md:text-base font-black text-white group-hover:text-astro-cyan transition-colors leading-tight">
-                          {photo.title}
-                        </h4>
-                        <p className="text-[11px] text-slate-300 font-semibold mt-0.5 opacity-80">
-                          {photo.category}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
+                  ))}
+                </motion.div>
+              </div>
+            ))}
           </div>
         </div>
-
       </div>
 
-      {/* ════════════════════════════════════════════════════════════
-          LIGHTBOX MODAL FOR FULLSCREEN IMAGE VIEW
-         ════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {selectedPhotoIndex !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-slate-950/85 backdrop-blur-2xl"
-            onClick={() => setSelectedPhotoIndex(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-5xl bg-white/95 backdrop-blur-2xl border-2 border-white/80 shadow-2xl overflow-hidden p-4 md:p-6 text-slate-900"
-              style={{ clipPath: 'polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%)' }}
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
-                <div className="flex items-center gap-3">
-                  <span 
-                    className="px-3 py-1 bg-astro-cyan text-slate-950 font-black text-[11px] uppercase tracking-wider shadow-sm"
-                    style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                  >
-                    {filteredPhotos[selectedPhotoIndex].year}
-                  </span>
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                    {filteredPhotos[selectedPhotoIndex].category}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => toggleLike(filteredPhotos[selectedPhotoIndex].id, e)}
-                    className={`p-2.5 rounded-full border transition-all cursor-pointer ${
-                      likedPhotos[filteredPhotos[selectedPhotoIndex].id]
-                        ? 'bg-rose-500 text-white border-rose-500 scale-110 shadow-md'
-                        : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${likedPhotos[filteredPhotos[selectedPhotoIndex].id] ? 'fill-current' : ''}`} />
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedPhotoIndex(null)}
-                    className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full border border-slate-200 transition-all cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+      {/* ═══ LIGHTBOX ═══ */}
+      <ResponsiveModal
+        open={selectedPhotoIndex !== null}
+        onOpenChange={(next) => !next && setSelectedPhotoIndex(null)}
+        title={photo?.title}
+        titleClassName="sr-only"
+        contentClassName="max-w-5xl overflow-hidden p-4 md:p-6"
+      >
+        {photo && (
+          <>
+            {/* Modal Header */}
+            <div className="mb-4 flex items-center justify-between border-b border-border pb-4">
+              <div className="flex items-center gap-3">
+                <Badge className="clip-angled-sm bg-astro-cyan text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-sm">
+                  {photo.year}
+                </Badge>
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {photo.category}
+                </span>
               </div>
 
-              {/* Main Lightbox Image View */}
-              <div className="relative w-full aspect-[16/9] sm:aspect-[16/10] bg-slate-200 overflow-hidden border border-slate-200">
-                {/* Skeleton shimmer while loading */}
-                <div className="absolute inset-0 bg-slate-200 z-10">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full animate-[shimmer_1.2s_ease-in-out_infinite]" />
-                </div>
-
-                <Image
-                  key={filteredPhotos[selectedPhotoIndex].imageUrl}
-                  src={filteredPhotos[selectedPhotoIndex].imageUrl}
-                  alt={filteredPhotos[selectedPhotoIndex].title}
-                  fill
-                  className="object-cover relative z-20"
-                  priority
-                  sizes="(max-width: 1280px) 100vw, 1200px"
-                  onLoad={(e) => {
-                    const img = e.currentTarget;
-                    const skeleton = img.parentElement?.querySelector('div:first-child');
-                    if (skeleton) (skeleton as HTMLElement).style.display = 'none';
-                  }}
-                />
-
-                {/* Left/Right Lightbox Navigation Arrows */}
-                <button
-                  onClick={handlePrevPhoto}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-3 bg-slate-950/70 hover:bg-astro-cyan hover:text-slate-950 text-white border border-white/20 transition-all rounded-full shadow-lg cursor-pointer z-30"
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={likedPhotos[photo.id] ? 'default' : 'outline'}
+                  size="icon"
+                  onClick={(e) => toggleLike(photo.id, e)}
+                  className={cn(likedPhotos[photo.id] && 'scale-110 border-rose-500 bg-rose-500 text-white shadow-md hover:bg-rose-500')}
+                  aria-label="Suka foto ini"
                 >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={handleNextPhoto}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-slate-950/70 hover:bg-astro-cyan hover:text-slate-950 text-white border border-white/20 transition-all rounded-full shadow-lg cursor-pointer z-30"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
+                  <Heart className={cn(likedPhotos[photo.id] && 'fill-current')} />
+                </Button>
+                <Button variant="outline" size="icon" aria-label="Tutup" onClick={() => setSelectedPhotoIndex(null)}>
+                  <X />
+                </Button>
+              </div>
+            </div>
+
+            {/* Main Lightbox Image View */}
+            <div className="relative aspect-[16/9] w-full overflow-hidden border border-border bg-muted sm:aspect-[16/10]">
+              {!imageLoaded && <Skeleton className="absolute inset-0 z-10" />}
+              <Image
+                key={photo.imageUrl}
+                src={photo.imageUrl}
+                alt={photo.title}
+                fill
+                className="relative z-20 object-cover"
+                priority
+                sizes="(max-width: 1280px) 100vw, 1200px"
+                onLoad={() => setImageLoaded(true)}
+              />
+
+              {/* Lightbox Navigation Arrows */}
+              <Button
+                variant="ghost"
+                size="icon-lg"
+                onClick={handlePrevPhoto}
+                className="absolute top-1/2 left-3 z-30 -translate-y-1/2 border border-white/20 bg-slate-950/70 text-white shadow-lg hover:bg-astro-cyan hover:text-slate-950"
+                aria-label="Foto sebelumnya"
+              >
+                <ChevronLeft />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-lg"
+                onClick={handleNextPhoto}
+                className="absolute top-1/2 right-3 z-30 -translate-y-1/2 border border-white/20 bg-slate-950/70 text-white shadow-lg hover:bg-astro-cyan hover:text-slate-950"
+                aria-label="Foto berikutnya"
+              >
+                <ChevronRight />
+              </Button>
+            </div>
+
+            {/* Lightbox Footer Info */}
+            <div className="flex items-center justify-between pt-4">
+              <div>
+                <h3 className="text-lg font-black text-foreground md:text-xl">{photo.title}</h3>
+                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+                  Foto {selectedPhotoIndex! + 1} dari {filteredPhotos.length} dokumentasi resmi
+                </p>
               </div>
 
-              {/* Lightbox Footer Info */}
-              <div className="pt-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg md:text-xl font-black text-slate-900">
-                    {filteredPhotos[selectedPhotoIndex].title}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                    Foto {selectedPhotoIndex + 1} dari {filteredPhotos.length} dokumentasi resmi
-                  </p>
-                </div>
-
-                <div className="text-xs font-bold text-slate-600 flex items-center gap-1.5 bg-sky-50 border border-sky-200 px-3 py-1.5">
-                  <ZoomIn className="w-3.5 h-3.5 text-astro-cyan" /> HD Documentation
-                </div>
+              <div className="flex items-center gap-1.5 border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-slate-600">
+                <ZoomIn className="size-3.5 text-astro-cyan" /> HD Documentation
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </>
         )}
-      </AnimatePresence>
+      </ResponsiveModal>
     </section>
   );
 }

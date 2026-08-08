@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,7 +20,12 @@ import {
   FileText,
   MessageCircle,
 } from 'lucide-react';
-import { apiHelpers } from '@/src/lib/api';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import { useCompetition, useCompetitionTimeline } from '@/src/lib/hooks/use-queries';
 
 const MotionImage = motion.create(Image);
 
@@ -121,31 +126,16 @@ export default function CompetitionDetailPage() {
   const reduce = useReducedMotion();
   const params = useParams();
   const id = params.id as string;
-  const [competition, setCompetition] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [timeline, setTimeline] = useState<any[]>([]);
-
-  useEffect(() => {
-    apiHelpers.competitions.get(id)
-      .then((data) => {
-        if (!data) {
-          notFound();
-        } else {
-          setCompetition(toCompetition(data));
-        }
-      })
-      .catch(() => notFound())
-      .finally(() => setLoading(false));
-
-    // Fetch timeline dari API
-    apiHelpers.competitions.timeline(id)
-      .then(setTimeline)
-      .catch(() => {});
-  }, [id]);
+  const { data: rawCompetition, isLoading: loading, isError } = useCompetition(id);
+  const { data: timeline = [] } = useCompetitionTimeline(id);
+  const competition = useMemo(
+    () => (rawCompetition ? toCompetition(rawCompetition) : null),
+    [rawCompetition],
+  );
 
   if (loading) return <DetailSkeleton />;
 
-  if (!competition) {
+  if (isError || !competition) {
     notFound();
   }
 
@@ -270,13 +260,11 @@ export default function CompetitionDetailPage() {
                   viewport={{ once: true }}
                   className="mb-8"
                 >
-                  <Link
-                    href="/#competitions"
-                    className="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-slate-500 hover:text-cyan-600 transition-colors group"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-1" />
-                    Kembali ke Lomba
-                  </Link>
+                  <Button asChild variant="link" className="mb-8 gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-primary">
+                    <Link href="/#competitions">
+                      <ArrowLeft data-icon="inline-start" /> Kembali ke Lomba
+                    </Link>
+                  </Button>
                 </motion.div>
 
                 {/* Category badge + origin/free badges */}
@@ -286,36 +274,21 @@ export default function CompetitionDetailPage() {
                   whileInView="visible"
                   viewport={{ once: true }}
                   transition={{ delay: 0.05 }}
-                  className="flex flex-wrap items-center gap-1.5 mb-5"
+                  className="mb-5 flex flex-wrap items-center gap-1.5"
                 >
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 text-[10px] font-bold tracking-[0.15em] uppercase ${cat.bg} ${cat.color} ${cat.border} border`}
-                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                  >
+                  <Badge variant="outline" className={cn('clip-angled-sm border px-2.5 py-1 text-[10px] font-bold tracking-[0.15em] uppercase', cat.bg, cat.color, cat.border)}>
                     {cat.label}
-                  </span>
-                  <span
-                    className="inline-flex items-center px-2.5 py-1 text-[9px] font-bold tracking-[0.1em] uppercase border bg-sky-50 text-sky-700 border-sky-200"
-                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                  >
+                  </Badge>
+                  <Badge variant="outline" className="clip-angled-sm border-sky-200 bg-sky-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-sky-700">
                     {competition.origin === 'external' ? 'Eksternal' : 'Internal'}
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 text-[9px] font-bold tracking-[0.1em] uppercase border ${
-                      competition.isFree
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    }`}
-                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                  >
+                  </Badge>
+                  <Badge variant="outline" className={cn('clip-angled-sm border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em]',
+                    competition.isFree ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700')}>
                     {competition.isFree ? 'Gratis' : 'Berbayar'}
-                  </span>
-                  <span
-                    className="inline-flex items-center px-2.5 py-1 text-[9px] font-bold tracking-[0.1em] uppercase border bg-purple-50 text-purple-700 border-purple-200"
-                    style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                  >
+                  </Badge>
+                  <Badge variant="outline" className="clip-angled-sm border-purple-200 bg-purple-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-purple-700">
                     {competition.type === 'team' ? 'Tim' : 'Individu'}
-                  </span>
+                  </Badge>
                 </motion.div>
 
                 {/* Title */}
@@ -438,17 +411,12 @@ export default function CompetitionDetailPage() {
                           {/* Slot bar + sub text for Kuota card */}
                           {card.sub !== undefined && (
                             <>
-                              <div className="w-full h-1 bg-slate-100 mt-2">
-                                <div
-                                  className={`h-full ${cat.accent} transition-all duration-700`}
-                                  style={{ width: `${card.ratio}%` }}
-                                />
-                              </div>
+                              <Progress value={card.ratio} className={cn('mt-2 h-1 bg-slate-100', cat.accent === 'bg-emerald-500' && '[&>div]:bg-emerald-500', cat.accent === 'bg-orange-500' && '[&>div]:bg-orange-500', cat.accent === 'bg-cyan-500' && '[&>div]:bg-cyan-500')} />
                               <span
                                 className={`block text-[10px] font-bold uppercase tracking-wider mt-1 ${
                                   card.isLow
-                                    ? 'text-red-600'
-                                    : 'text-slate-500'
+                                    ? 'text-destructive'
+                                    : 'text-muted-foreground'
                                 }`}
                               >
                                 {card.sub}
@@ -652,31 +620,17 @@ export default function CompetitionDetailPage() {
               >
                 <RegisterSection competition={competition} />
 
-                <div className="flex flex-col sm:flex-row gap-3 w-full justify-center max-w-md">
-                  <a
-                    href={competition.rulebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-5 py-3.5 border border-slate-300 hover:border-astro-cyan text-slate-700 hover:text-cyan-700 hover:bg-white font-bold text-xs tracking-wider uppercase transition-all duration-200 w-full sm:w-1/2 cursor-pointer"
-                    style={{
-                      clipPath:
-                        'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)',
-                    }}
-                  >
-                    <FileText className="w-4 h-4" /> Baca Rulebook
-                  </a>
-                  <a
-                    href={`https://wa.me/${competition.contactPerson.whatsapp}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-5 py-3.5 border border-slate-300 hover:border-emerald-500 text-slate-700 hover:text-emerald-700 hover:bg-white font-bold text-xs tracking-wider uppercase transition-all duration-200 w-full sm:w-1/2 cursor-pointer"
-                    style={{
-                      clipPath:
-                        'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)',
-                    }}
-                  >
-                    <MessageCircle className="w-4 h-4" /> Hubungi CP
-                  </a>
+                <div className="flex w-full max-w-md flex-col justify-center gap-3 sm:flex-row">
+                  <Button asChild variant="outline" className="clip-angled w-full text-xs font-bold uppercase tracking-wider sm:w-1/2">
+                    <a href={competition.rulebookUrl} target="_blank" rel="noopener noreferrer">
+                      <FileText data-icon="inline-start" /> Baca Rulebook
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" className="clip-angled w-full text-xs font-bold uppercase tracking-wider hover:border-emerald-500 hover:text-emerald-700 sm:w-1/2">
+                    <a href={`https://wa.me/${competition.contactPerson.whatsapp}`} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle data-icon="inline-start" /> Hubungi CP
+                    </a>
+                  </Button>
                 </div>
               </motion.div>
             </div>
@@ -711,21 +665,21 @@ function DetailSkeleton() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen flex flex-col justify-between bg-white">
+      <div className="flex min-h-screen flex-col justify-between bg-background">
         <main className="flex-grow">
           {/* Skeleton Hero */}
-          <section className="relative pt-36 pb-20 bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100 md:pt-40 md:pb-28 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="lg:w-10/12 xl:w-3/4 animate-pulse space-y-6">
-                <div className="h-3 w-32 bg-white/40 rounded" />
-                <div className="h-4 w-24 bg-white/40" style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }} />
-                <div className="h-12 w-3/4 bg-white/30 rounded-lg" />
-                <div className="h-4 w-1/2 bg-white/30 rounded" />
-                <div className="h-0.5 w-10 bg-white/30" />
+          <section className="relative overflow-hidden bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100 pt-36 pb-20 md:pt-40 md:pb-28">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="space-y-6 lg:w-10/12 xl:w-3/4">
+                <Skeleton className="h-3 w-32 bg-white/40" />
+                <Skeleton className="clip-angled-sm h-4 w-24 bg-white/40" />
+                <Skeleton className="h-12 w-3/4 bg-white/30" />
+                <Skeleton className="h-4 w-1/2 bg-white/30" />
+                <Skeleton className="h-0.5 w-10 bg-white/30" />
                 <div className="space-y-2">
-                  <div className="h-3 w-full bg-white/20 rounded" />
-                  <div className="h-3 w-5/6 bg-white/20 rounded" />
-                  <div className="h-3 w-2/3 bg-white/20 rounded" />
+                  <Skeleton className="h-3 w-full bg-white/20" />
+                  <Skeleton className="h-3 w-5/6 bg-white/20" />
+                  <Skeleton className="h-3 w-2/3 bg-white/20" />
                 </div>
               </div>
             </div>
@@ -733,41 +687,31 @@ function DetailSkeleton() {
 
           {/* Skeleton Details */}
           <section className="bg-gradient-to-b from-sky-100 via-sky-50 to-white py-12 md:py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-                <div className="lg:col-span-7 space-y-12">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+                <div className="space-y-12 lg:col-span-7">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="bg-white/60 border border-slate-200/50 p-5 flex items-start gap-4"
-                        style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
-                      >
-                        <div className="p-3 bg-slate-100 border border-slate-200"
-                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-                        >
-                          <div className="w-5 h-5 bg-slate-200 rounded" />
-                        </div>
+                      <div key={i} className="clip-angled flex items-start gap-4 border border-border/50 bg-background/60 p-5">
+                        <Skeleton className="clip-angled-sm size-11 border border-border bg-muted" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-3 w-20 bg-slate-200 rounded" />
-                          <div className="h-5 w-32 bg-slate-200 rounded" />
+                          <Skeleton className="h-3 w-20" />
+                          <Skeleton className="h-5 w-32" />
                         </div>
                       </div>
                     ))}
                   </div>
                   <div className="space-y-4">
-                    <div className="h-5 w-40 bg-slate-200 rounded" />
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <Skeleton className="h-5 w-40" />
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-white/60 border border-slate-200/50 p-5"
-                          style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
-                        >
-                          <div className="h-1 w-8 bg-slate-200 mb-4" />
+                        <div key={i} className="clip-angled border border-border/50 bg-background/60 p-5">
+                          <Skeleton className="mb-4 h-1 w-8" />
                           <div className="flex items-center gap-3">
-                            <div className="p-2 border border-slate-200 bg-slate-50 rounded">
-                              <div className="w-4 h-4 bg-slate-200" />
-                            </div>
+                            <Skeleton className="clip-angled-sm size-8 border border-border bg-muted" />
                             <div className="space-y-1">
-                              <div className="h-3 w-12 bg-slate-200 rounded" />
-                              <div className="h-4 w-28 bg-slate-200 rounded" />
+                              <Skeleton className="h-3 w-12" />
+                              <Skeleton className="h-4 w-28" />
                             </div>
                           </div>
                         </div>
@@ -775,15 +719,13 @@ function DetailSkeleton() {
                     </div>
                   </div>
                 </div>
-                <div className="lg:col-span-5 space-y-4 lg:border-l lg:border-slate-200 lg:pl-10">
-                  <div className="h-5 w-36 bg-slate-200 rounded" />
+                <div className="space-y-4 lg:col-span-5 lg:border-l lg:border-border lg:pl-10">
+                  <Skeleton className="h-5 w-36" />
                   <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <div key={i} className="flex items-start gap-4">
-                        <div className="w-7 h-7 bg-slate-200"
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                        />
-                        <div className="flex-1 h-4 bg-slate-200 rounded" />
+                        <Skeleton className="clip-angled-sm size-7" />
+                        <Skeleton className="h-4 flex-1" />
                       </div>
                     ))}
                   </div>
@@ -794,23 +736,17 @@ function DetailSkeleton() {
 
           {/* Skeleton CTA */}
           <section className="bg-gradient-to-b from-white via-sky-50 to-slate-50 py-16 md:py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse text-center space-y-6">
-              <div className="max-w-xl mx-auto space-y-4">
-                <div className="h-8 w-72 bg-slate-200 rounded mx-auto" />
-                <div className="h-4 w-96 bg-slate-200 rounded mx-auto" />
-                <div className="flex justify-center"><div className="h-0.5 w-10 bg-slate-200" /></div>
+            <div className="mx-auto max-w-7xl space-y-6 px-4 text-center sm:px-6 lg:px-8">
+              <div className="mx-auto max-w-xl space-y-4">
+                <Skeleton className="mx-auto h-8 w-72" />
+                <Skeleton className="mx-auto h-4 w-96" />
+                <div className="flex justify-center"><Skeleton className="h-0.5 w-10" /></div>
               </div>
               <div className="flex flex-col items-center gap-4">
-                <div className="h-12 w-64 bg-slate-200 rounded"
-                  style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
-                />
-                <div className="flex gap-3 max-w-md w-full justify-center">
-                  <div className="h-10 w-1/2 bg-slate-200 rounded"
-                    style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
-                  />
-                  <div className="h-10 w-1/2 bg-slate-200 rounded"
-                    style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
-                  />
+                <Skeleton className="clip-angled h-12 w-64" />
+                <div className="flex w-full max-w-md justify-center gap-3">
+                  <Skeleton className="clip-angled h-10 w-1/2" />
+                  <Skeleton className="clip-angled h-10 w-1/2" />
                 </div>
               </div>
             </div>

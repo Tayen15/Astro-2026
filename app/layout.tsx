@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk, Geist } from "next/font/google";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Providers } from "@/src/lib/providers";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -70,10 +74,12 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} ${masterpiece.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", plusJakartaSans.variable, spaceGrotesk.variable, masterpiece.variable, "font-sans", geist.variable)}
     >
-      <body className="min-h-full flex flex-col bg-white text-slate-700">
-        <Providers>{children}</Providers>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <TooltipProvider>
+          <Providers>{children}</Providers>
+        </TooltipProvider>
         <Toaster position="top-right" richColors closeButton />
       </body>
     </html>

@@ -2,18 +2,24 @@
 
 import { useState } from 'react';
 import { authClient } from '@/src/lib/auth-client';
-import { ClipboardList, Loader2 } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Pagination from '@/components/Pagination';
 import { useRegistrations } from '@/src/lib/hooks/use-queries';
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  detecting: 'bg-blue-50 text-blue-700 border-blue-200',
-  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  failed: 'bg-red-50 text-red-700 border-red-200',
+  pending: 'border-amber-200 bg-amber-50 text-amber-700',
+  detecting: 'border-blue-200 bg-blue-50 text-blue-700',
+  paid: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  failed: 'border-red-200 bg-red-50 text-red-700',
 };
 
 export default function MyRegistrationsPage() {
@@ -32,7 +38,7 @@ export default function MyRegistrationsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-astro-cyan" />
+        <Spinner className="size-6 text-primary" />
       </div>
     );
   }
@@ -40,58 +46,55 @@ export default function MyRegistrationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Pendaftaran Saya</h1>
-        <p className="text-sm text-slate-500 font-light mt-1">
+        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Pendaftaran Saya</h1>
+        <p className="mt-1 text-sm font-light text-muted-foreground">
           {userEmail} — {registrations.length} pendaftaran
         </p>
       </div>
 
       {registrations.length === 0 ? (
-        <div className="bg-white border border-slate-200 p-12 text-center"
-          style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-        >
-          <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">Belum ada pendaftaran.</p>
-          <Link href="/#competitions" className="inline-block mt-3 text-xs font-bold text-astro-cyan hover:underline uppercase tracking-wider">
-            Lihat Lomba →
-          </Link>
-        </div>
+        <Empty className="clip-angled-lg border border-border bg-background p-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><ClipboardList /></EmptyMedia>
+            <EmptyTitle className="text-sm">Belum ada pendaftaran.</EmptyTitle>
+            <EmptyDescription>
+              <Button asChild variant="link" className="text-xs font-bold uppercase tracking-wider text-primary">
+                <Link href="/#competitions">Lihat Lomba →</Link>
+              </Button>
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
-        <div className="bg-white border border-slate-200"
-          style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-        >
+        <div className="clip-angled-lg overflow-hidden border border-border bg-background">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="text-left px-5 py-3">Lomba</th>
-                  <th className="text-left px-5 py-3 hidden sm:table-cell">Referensi</th>
-                  <th className="text-left px-5 py-3">Status</th>
-                  <th className="text-right px-5 py-3">Tanggal</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <TableHead className="px-5">Lomba</TableHead>
+                  <TableHead className="hidden px-5 sm:table-cell">Referensi</TableHead>
+                  <TableHead className="px-5">Status</TableHead>
+                  <TableHead className="px-5 text-right">Tanggal</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-border">
                 {paginated.map((reg: any) => (
-                  <tr key={reg.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3.5 font-medium text-slate-900">{reg.competitionName}</td>
-                    <td className="px-5 py-3.5 hidden sm:table-cell">
-                      <code className="text-xs font-mono text-slate-600">{reg.paymentReference || '—'}</code>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${statusColors[reg.paymentStatus] || 'bg-slate-50 text-slate-600 border-slate-200'}`}
-                        style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                      >
+                  <TableRow key={reg.id} className="hover:bg-muted/50">
+                    <TableCell className="px-5 py-3.5 font-medium text-foreground">{reg.competitionName}</TableCell>
+                    <TableCell className="hidden px-5 py-3.5 sm:table-cell">
+                      <code className="font-mono text-xs text-muted-foreground">{reg.paymentReference || '—'}</code>
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5">
+                      <Badge variant="outline" className={cn('clip-angled-sm border text-[10px] font-bold uppercase tracking-wider', statusColors[reg.paymentStatus] || 'border-slate-200 bg-muted text-muted-foreground')}>
                         {reg.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right text-xs text-slate-500">
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5 text-right text-xs text-muted-foreground">
                       {reg.createdAt ? new Date(reg.createdAt).toLocaleDateString('id-ID') : '—'}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
-import { apiHelpers } from '@/src/lib/api';
+import { Badge } from '@/components/ui/badge';
+import { useSponsors, useMediaPartners } from '@/src/lib/hooks/use-queries';
 
 const MotionImage = motion.create(Image);
 
@@ -24,17 +24,8 @@ interface MediaPartnerItem {
 
 export default function SponsorSection() {
   const reduce = useReducedMotion();
-  const [sponsors, setSponsors] = useState<SponsorItem[]>([]);
-  const [mediaPartners, setMediaPartners] = useState<MediaPartnerItem[]>([]);
-
-  useEffect(() => {
-    apiHelpers.sponsors.list()
-      .then(setSponsors)
-      .catch(() => {});
-    apiHelpers.mediaPartners.list()
-      .then(setMediaPartners)
-      .catch(() => {});
-  }, []);
+  const { data: sponsors = [] } = useSponsors() as { data: SponsorItem[] };
+  const { data: mediaPartners = [] } = useMediaPartners() as { data: MediaPartnerItem[] };
 
   // All sponsors shown equally, no tier grouping
 
@@ -91,10 +82,10 @@ export default function SponsorSection() {
         {/* Sponsors */}
         {sponsors.length > 0 ? (
           <div className="mb-14 md:mb-16">
-            <div className="flex justify-center mb-8">
-              <span className="bg-white/80 backdrop-blur-md px-5 py-1.5 border border-sky-300/60 rounded-full text-[11px] sm:text-xs font-bold text-sky-800 uppercase tracking-[0.2em] shadow-sm">
+            <div className="mb-8 flex justify-center">
+              <Badge variant="secondary" className="border border-sky-300/60 bg-white/80 px-5 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-sky-800 shadow-sm backdrop-blur-md sm:text-xs">
                 Sponsor Resmi
-              </span>
+              </Badge>
             </div>
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 16 }}
@@ -120,9 +111,9 @@ export default function SponsorSection() {
                 <div className="w-full border-t border-sky-300/60" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-sky-200/90 backdrop-blur-md px-5 py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 uppercase tracking-[0.25em] rounded-full border border-sky-300/70 shadow-sm">
+                <Badge variant="secondary" className="border border-sky-300/70 bg-sky-200/90 px-5 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-700 shadow-sm backdrop-blur-md sm:text-xs">
                   Media Partner
-                </span>
+                </Badge>
               </div>
             </div>
 

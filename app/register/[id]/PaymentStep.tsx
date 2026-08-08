@@ -14,8 +14,12 @@ import {
   Clock,
   Smartphone,
   AlertCircle,
-  Loader2,
 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Spinner } from '@/components/ui/spinner';
 import type { Competition } from '@/types/astro';
 
 interface Props {
@@ -171,14 +175,14 @@ export default function PaymentStep({ competition, paymentReference, onBack }: P
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <button
+              <Button
                 onClick={() => router.push('/check-registration')}
-                className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-astro-cyan hover:bg-cyan-400 text-slate-950 font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
-                style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
+                size="lg"
+                className="clip-angled w-full text-sm font-black uppercase tracking-wider active:scale-95"
               >
-                <CheckCircle2 className="w-5 h-5" />
+                <CheckCircle2 data-icon="inline-start" />
                 Lihat Status Pendaftaran
-              </button>
+              </Button>
             </motion.div>
           </motion.div>
         ) : (
@@ -282,46 +286,35 @@ export default function PaymentStep({ competition, paymentReference, onBack }: P
                     <div className="w-full space-y-3">
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                         <span className={
-                          paymentStatus === 'detecting' ? 'text-amber-600' : 'text-slate-400'
+                          paymentStatus === 'detecting' ? 'text-amber-600' : 'text-muted-foreground'
                         }>
                           {paymentStatus === 'detecting' ? (
                             <span className="flex items-center gap-1.5">
-                              <Loader2 className="w-3 h-3 animate-spin" />
+                              <Spinner className="size-3" />
                               Mendeteksi Pembayaran...
                             </span>
                           ) : (
                             <span className="flex items-center gap-1.5">
-                              <Clock className="w-3 h-3" />
+                              <Clock className="size-3" />
                               Menunggu Pembayaran
                             </span>
                           )}
                         </span>
-                        <span className="text-slate-400">
+                        <span className="text-muted-foreground">
                           {remaining > 0 ? `${remaining}s` : '—'}
                         </span>
                       </div>
 
                       {/* Progress bar */}
-                      <div className="w-full h-1.5 bg-slate-100 overflow-hidden">
-                        <motion.div
-                          className={`h-full transition-colors duration-500 ${
-                            paymentStatus === 'detecting' ? 'bg-amber-400' : 'bg-astro-cyan'
-                          }`}
-                          layout
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
+                      <Progress value={progress} className={paymentStatus === 'detecting' ? 'h-1.5 bg-muted [&>div]:bg-amber-400' : 'h-1.5 bg-muted'} />
 
                       {paymentStatus === 'detecting' && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 text-center"
-                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-                        >
-                          <AlertCircle className="w-3 h-3 inline mr-1 -mt-0.5" />
-                          Pembayaran terdeteksi, menunggu konfirmasi...
-                        </motion.p>
+                        <Alert className="clip-angled border-amber-200 bg-amber-50/40 text-amber-800">
+                          <AlertDescription className="flex items-center gap-1.5 text-[11px] font-medium">
+                            <AlertCircle className="size-3.5" />
+                            Pembayaran terdeteksi, menunggu konfirmasi...
+                          </AlertDescription>
+                        </Alert>
                       )}
                     </div>
                   </div>
@@ -361,26 +354,24 @@ export default function PaymentStep({ competition, paymentReference, onBack }: P
 
                     {/* Nomor Rekening */}
                     <div>
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nomor Rekening</span>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-xl text-slate-900 font-mono font-black tracking-[0.1em]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nomor Rekening</span>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className="font-mono text-xl font-black tracking-[0.1em] text-foreground">
                           {bankInfo.accountNumber}
                         </span>
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="icon-sm"
                           onClick={handleCopy}
-                          className="p-2 border border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700 transition-all duration-200 cursor-pointer bg-white"
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
                           aria-label="Salin nomor rekening"
                         >
-                          {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                        </button>
+                          {copied ? <Check className="text-emerald-500" /> : <Copy />}
+                        </Button>
                         {copied && (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5"
-                            style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                          >
+                          <Badge variant="outline" className="clip-angled-sm border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-600">
                             Tersalin
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -408,14 +399,15 @@ export default function PaymentStep({ competition, paymentReference, onBack }: P
             </div>
 
             {/* Back button */}
-            <button
+            <Button
+              variant="outline"
+              size="lg"
               onClick={onBack}
-              className="flex items-center justify-center gap-2 w-full px-8 py-3.5 border border-slate-300 hover:border-astro-cyan text-slate-700 hover:text-astro-cyan font-bold text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer bg-white"
-              style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
+              className="clip-angled w-full text-xs font-bold uppercase tracking-wider"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft data-icon="inline-start" />
               Kembali ke Form Pendaftaran
-            </button>
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>

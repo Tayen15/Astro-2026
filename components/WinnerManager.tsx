@@ -1,13 +1,21 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Loader2, Trophy, Award, Check, X, Send, Users, Mail,
+  Trophy, Award, Check, X, Send, Users, Mail,
   Upload, ExternalLink, Save, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Pagination from '@/components/Pagination';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { apiHelpers } from '@/src/lib/api';
+import { useRegistrations } from '@/src/lib/hooks/use-queries';
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 5;
 
@@ -41,43 +49,40 @@ interface WinnerManagerProps {
 }
 
 export default function WinnerManager({ competitionId }: WinnerManagerProps) {
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [page, setPage] = useState(1);
-  const [saving, setSaving] = useState(false);
 
   const [draftChanges, setDraftChanges] = useState<Record<string, DraftEntry>>({});
 
   // New cert input per reg (before save)
   const [newCert, setNewCert] = useState<Record<string, { name: string; uploading: boolean }>>({});
 
-  const fetchRegistrations = useCallback(async () => {
-    try {
-      const res = await apiHelpers.registrations.list({ competitionId, pageSize: 100 });
-      const list = Array.isArray(res) ? res : (res as any)?.data ?? [];
-      const data: Registration[] = list;
-      const seen = new Set<string>();
-      const paid = data.filter((r) => {
-        if (r.paymentStatus !== 'paid') return false;
-        if (seen.has(r.id)) return false;
-        seen.add(r.id);
-        return true;
-      });
-      setRegistrations(paid);
-    } catch (err) {
-      console.error('Failed to fetch registrations', err);
-    }
-  }, [competitionId]);
+  const { data: regsRaw, isLoading: loading } = useRegistrations({ competitionId, pageSize: 100 });
 
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await fetchRegistrations();
-      setDraftChanges({});
-      setLoading(false);
-    };
-    init();
-  }, [competitionId, fetchRegistrations]);
+  const registrations: Registration[] = useMemo(() => {
+    const list = Array.isArray(regsRaw) ? regsRaw : (regsRaw as any)?.data ?? [];
+    const seen = new Set<string>();
+    return list.filter((r: Registration) => {
+      if (r.paymentStatus !== 'paid') return false;
+      if (seen.has(r.id)) return false;
+      seen.add(r.id);
+      return true;
+    });
+  }, [regsRaw]);
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['registrations'] });
+
+  const updateRegistrationMutation = useMutation({
+    mutationFn: ({ regId, body }: { regId: string; body: unknown }) =>
+      apiHelpers.registrations.update(regId, body),
+    onSuccess: invalidate,
+  });
+
+  const sendCertMutation = useMutation({
+    mutationFn: (body: { registrationId: string; competitionId: string }) =>
+      apiHelpers.certificates.send(body),
+    onSuccess: invalidate,
+  });
 
   // ─── Multi Upload per Peserta ───
   const handleUploadCert = async (e: React.ChangeEvent<HTMLInputElement>, regId: string) => {
@@ -100,10 +105,8 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
       const current = reg?.certificates || [];
       const updated = [...current, { name, url }];
 
-      // Save to server immediately
-      await apiHelpers.registrations.update(regId, { certificates: updated });
+      await updateRegistrationMutation.mutateAsync({ regId, body: { certificates: updated } });
       toast.success(`Sertifikat untuk "${name}" berhasil ditambahkan`);
-      await fetchRegistrations();
       setNewCert((prev) => {
         const next = { ...prev };
         delete next[regId];
@@ -120,9 +123,8 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
     if (!reg) return;
     const updated = reg.certificates.filter((c) => c.url !== certUrl);
     try {
-      await apiHelpers.registrations.update(regId, { certificates: updated });
+      await updateRegistrationMutation.mutateAsync({ regId, body: { certificates: updated } });
       toast.success('Sertifikat dihapus');
-      await fetchRegistrations();
     } catch {
       toast.error('Gagal menghapus');
     }
@@ -148,6 +150,7 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
 
   // ─── Bulk Save ───
   const hasChanges = Object.keys(draftChanges).length > 0;
+  const [saving, setSaving] = useState(false);
 
   const handleSaveAll = async () => {
     if (!hasChanges) return;
@@ -159,9 +162,9 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
       try {
         // Sequential PATCHes keep the success/fail count deterministic
         // oxlint-disable-next-line no-await-in-loop
-        await apiHelpers.registrations.update(regId, {
-          isWinner: change.isWinner,
-          winnerRank: change.winnerRank,
+        await updateRegistrationMutation.mutateAsync({
+          regId,
+          body: { isWinner: change.isWinner, winnerRank: change.winnerRank },
         });
         success++;
       } catch { fail++; }
@@ -169,16 +172,14 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
     if (fail === 0) toast.success(`Semua ${success} perubahan berhasil disimpan`);
     else toast.warning(`${success} berhasil, ${fail} gagal`);
     setDraftChanges({});
-    await fetchRegistrations();
     setSaving(false);
   };
 
   // ─── Send Certificate Email ───
   const sendCertificate = async (reg: Registration) => {
     try {
-      await apiHelpers.certificates.send({ registrationId: reg.id, competitionId });
+      await sendCertMutation.mutateAsync({ registrationId: reg.id, competitionId });
       toast.success('Sertifikat berhasil dikirim ke ' + reg.email);
-      await fetchRegistrations();
     } catch {
       toast.error('Gagal mengirim sertifikat');
     }
@@ -187,19 +188,17 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
   const paginated = registrations.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
-    return <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-astro-cyan" /></div>;
+    return <div className="flex justify-center py-8"><Spinner className="size-5 text-primary" /></div>;
   }
 
-  const inp = `w-full px-3 py-2 border border-slate-200 text-xs focus:outline-none focus:border-astro-cyan`;
-
   return (
-    <div className="space-y-5 text-slate-800 text-left">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+    <div className="space-y-5 text-left text-foreground">
+      <div className="flex flex-col justify-between gap-3 border-b border-border pb-3 md:flex-row md:items-center">
         <div>
-          <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-            <Award className="w-4 h-4 text-astro-cyan" /> Kelola Juara & Sertifikat
+          <h4 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-foreground">
+            <Award className="size-4 text-primary" /> Kelola Juara & Sertifikat
           </h4>
-          <p className="text-[10px] text-slate-500 mt-0.5">
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
             Tentukan juara dan upload sertifikat per anggota tim/peserta.
           </p>
         </div>
@@ -229,58 +228,54 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
                 style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
               >
                 {/* Info Baris Atas */}
-                <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="mb-2 flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-black text-slate-900 uppercase tracking-tight">{name}</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-black uppercase tracking-tight text-foreground">{name}</span>
                       {reg.type === 'team' && (
-                        <span className="text-[8px] bg-slate-200 text-slate-700 px-1.5 py-0.5 font-bold uppercase tracking-wider rounded">Tim</span>
+                        <Badge variant="secondary" className="rounded bg-muted text-[8px] font-bold uppercase tracking-wider text-muted-foreground">Tim</Badge>
                       )}
                       {isWinner && (
-                        <span className={`text-[9px] px-1.5 py-0.5 font-bold uppercase tracking-wider flex items-center gap-0.5 border ${
-                          isDraft ? 'bg-amber-200 text-amber-900 border-amber-300' : 'bg-amber-100 text-amber-800 border-amber-200'
-                        }`} style={{ clipPath: 'polygon(2px 0, 100% 0, calc(100% - 2px) 100%, 0 100%)' }}>
-                          <Trophy className="w-2.5 h-2.5" /> Juara {eff.winnerRank}
+                        <Badge variant="outline" className={cn('clip-angled-sm gap-0.5 border text-[9px] font-bold uppercase tracking-wider',
+                          isDraft ? 'border-amber-300 bg-amber-200 text-amber-900' : 'border-amber-200 bg-amber-100 text-amber-800')}>
+                          <Trophy className="size-2.5" /> Juara {eff.winnerRank}
                           {isDraft && <span className="ml-0.5 text-[7px] opacity-60">(draft)</span>}
-                        </span>
+                        </Badge>
                       )}
                       {isSent && (
-                        <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 font-bold uppercase tracking-wider flex items-center gap-0.5"
-                          style={{ clipPath: 'polygon(2px 0, 100% 0, calc(100% - 2px) 100%, 0 100%)' }}>
-                          <Check className="w-2.5 h-2.5" /> Terkirim
-                        </span>
+                        <Badge variant="outline" className="clip-angled-sm gap-0.5 border border-emerald-200 bg-emerald-100 text-[9px] font-bold uppercase tracking-wider text-emerald-800">
+                          <Check className="size-2.5" /> Terkirim
+                        </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500">
-                      <Mail className="w-3 h-3 text-slate-400" /> {reg.email}
+                    <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <Mail className="size-3 text-muted-foreground" /> {reg.email}
                       <span>•</span>
                       <span>{reg.institution}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div className="flex flex-shrink-0 items-center gap-1.5">
                     {/* Winner Buttons */}
-                    <div className="flex items-center gap-0.5 bg-white border border-slate-200 p-0.5"
-                      style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}>
+                    <ToggleGroup type="single" value={isWinner && eff.winnerRank ? eff.winnerRank : ''} onValueChange={(v) => v && handleToggleWinner(reg.id, v)} spacing={0} className="border border-border bg-background p-0.5">
                       {['1', '2', '3'].map((rank) => {
                         const active = isWinner && eff.winnerRank === rank;
                         return (
-                          <button key={rank} onClick={() => handleToggleWinner(reg.id, rank)}
-                            className={`w-7 h-7 text-[10px] font-black transition-all cursor-pointer ${
-                              active ? 'bg-amber-400 text-amber-950 shadow-sm' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
-                            }`} style={{ clipPath: 'polygon(2px 0, 100% 0, calc(100% - 2px) 100%, 0 100%)' }}
-                            title={active ? `Batalkan Juara ${rank}` : `Tandai Juara ${rank}`}>{rank}</button>
+                          <ToggleGroupItem key={rank} value={rank}
+                            className={cn('size-7 text-[10px] font-black text-muted-foreground hover:bg-muted hover:text-muted-foreground',
+                              active && 'bg-amber-400 text-amber-950 shadow-sm hover:bg-amber-400 hover:text-amber-950')}
+                            title={active ? `Batalkan Juara ${rank}` : `Tandai Juara ${rank}`}>
+                            {rank}
+                          </ToggleGroupItem>
                         );
                       })}
-                    </div>
+                    </ToggleGroup>
 
                     {/* Send button */}
-                    <button onClick={() => sendCertificate(reg)} disabled={saving}
-                      className={`px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer ${
-                        isSent ? 'bg-slate-200 text-slate-400 hover:bg-slate-300' : 'bg-astro-cyan text-slate-950 hover:bg-cyan-400'
-                      }`} style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}>
-                      <Send className="w-2.5 h-2.5" /> {isSent ? 'Kirim Ulang' : 'Kirim'}
-                    </button>
+                    <Button onClick={() => sendCertificate(reg)} disabled={saving} size="sm"
+                      className={cn('clip-angled-sm gap-1 text-[9px] font-bold uppercase tracking-wider', isSent && 'bg-muted text-muted-foreground hover:bg-muted')}>
+                      <Send data-icon="inline-start" className="size-2.5" /> {isSent ? 'Kirim Ulang' : 'Kirim'}
+                    </Button>
                   </div>
                 </div>
 
@@ -309,26 +304,21 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
                 )}
 
                 {/* ─── Upload Sertifikat Baru ─── */}
-                <div className="border-t border-slate-100 pt-2 mt-2 flex items-center gap-2">
-                  <input
+                <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
+                  <Input
                     value={newCert[reg.id]?.name || ''}
                     onChange={(e) => setNewCert((prev) => ({ ...prev, [reg.id]: { name: e.target.value, uploading: prev[reg.id]?.uploading || false } }))}
                     placeholder="Nama anggota..."
-                    className={`${inp} flex-1 min-w-0 bg-white`}
-                    style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                    className="min-w-0 flex-1 bg-background"
                   />
-                  <label className="cursor-pointer flex-shrink-0">
-                    <div className={`px-3 py-2 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors ${
-                      newCert[reg.id]?.uploading
-                        ? 'bg-slate-200 text-slate-400'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`} style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}>
-                      {newCert[reg.id]?.uploading
-                        ? <Loader2 className="w-3 h-3 animate-spin" />
-                        : <Upload className="w-3 h-3" />
-                      }
-                      Upload
-                    </div>
+                  <label className="flex-shrink-0 cursor-pointer">
+                    <Button asChild size="sm" variant="outline" disabled={newCert[reg.id]?.uploading}
+                      className="clip-angled-sm gap-1 text-[9px] font-bold uppercase tracking-wider">
+                      <span>
+                        {newCert[reg.id]?.uploading ? <Spinner className="size-3" /> : <Upload className="size-3" />}
+                        Upload
+                      </span>
+                    </Button>
                     <input type="file" accept="image/*,.pdf" className="hidden"
                       disabled={newCert[reg.id]?.uploading}
                       onChange={(e) => handleUploadCert(e, reg.id)} />
@@ -352,28 +342,24 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
 
       {/* Sticky Bottom Bulk Save */}
       {hasChanges && (
-        <div className="sticky bottom-0 bg-white border-t-2 border-amber-300 p-4 -mx-1 -mb-1 shadow-lg"
-          style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}>
+        <div className="clip-angled sticky bottom-0 -mx-1 -mb-1 border-t-2 border-amber-300 bg-background p-4 shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-black text-slate-900 uppercase tracking-tight">
+              <p className="text-xs font-black uppercase tracking-tight text-foreground">
                 {hasChanges} perubahan belum disimpan
               </p>
-              <p className="text-[10px] text-slate-500 mt-0.5">Klik simpan untuk mengirim perubahan juara ke server.</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">Klik simpan untuk mengirim perubahan juara ke server.</p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => { setDraftChanges({}); toast.info('Perubahan dibatalkan'); }}
-                disabled={saving}
-                className="px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer disabled:opacity-50"
-                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                <X className="w-3.5 h-3.5 inline mr-1" /> Batal
-              </button>
-              <button onClick={handleSaveAll} disabled={saving}
-                className="flex items-center gap-1.5 px-6 py-2 bg-amber-500 text-amber-950 font-black text-xs tracking-wider uppercase hover:bg-amber-400 transition-all cursor-pointer disabled:opacity-50"
-                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              <Button variant="outline" onClick={() => { setDraftChanges({}); toast.info('Perubahan dibatalkan'); }}
+                disabled={saving} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+                <X data-icon="inline-start" className="size-3.5" /> Batal
+              </Button>
+              <Button onClick={handleSaveAll} disabled={saving}
+                className="clip-angled-sm gap-1.5 bg-amber-500 text-xs font-black uppercase tracking-wider text-amber-950 hover:bg-amber-400">
+                {saving ? <Spinner data-icon="inline-start" className="size-3.5" /> : <Save data-icon="inline-start" className="size-3.5" />}
                 {saving ? 'Menyimpan...' : 'Simpan Semua'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

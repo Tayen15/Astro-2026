@@ -3,16 +3,26 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Loader2, Pencil, X, Check, Search, Plus, Trophy,
+  Pencil, X, Check, Search, Plus, Trophy,
   Coins, Users, MapPin, Calendar, Phone, User, Tag,
   Trash2, EyeOff, Eye, Clock, Award,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import WinnerManager from '@/components/WinnerManager';
 import { useCompetitions, useCategories, queryKeys } from '@/src/lib/hooks/use-queries';
 import { apiHelpers } from '@/src/lib/api';
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
 
@@ -73,150 +83,101 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
     }
     setForm(updated);
   };
-  const inp = (_field: string) =>
-    `w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan`;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {isAdd && (
-        <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ID (slug)</label>
-          <input value={form.id} readOnly
-            className={`${inp('id')} bg-slate-50 text-slate-400 cursor-not-allowed`}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          />
-        </div>
+        <Field>
+          <FieldLabel>ID (slug)</FieldLabel>
+          <Input value={form.id} readOnly className="cursor-not-allowed bg-muted text-muted-foreground" />
+        </Field>
       )}
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Judul</label>
-        <input value={form.title} onChange={(e) => update('title', e.target.value)}
-          className={inp('title')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Tag className="w-3 h-3" /> Kategori</label>
-        <div className="flex gap-2 mt-1">
-          <select value={form.category} onChange={(e) => update('category', e.target.value)}
-            className={`${inp('category')} cursor-pointer flex-1`}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          >
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> Tipe</label>
-        <div className="flex gap-2 mt-1">
-          <button type="button" onClick={() => update('type', 'individual')}
-            className={`flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
-              form.type === 'individual' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          >
-            Individu
-          </button>
-          <button type="button" onClick={() => update('type', 'team')}
-            className={`flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
-              form.type === 'team' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          >
-            Tim
-          </button>
-        </div>
-      </div>
+      <Field>
+        <FieldLabel>Judul</FieldLabel>
+        <Input value={form.title} onChange={(e) => update('title', e.target.value)} />
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><Tag className="size-3" /> Kategori</FieldLabel>
+        <Select value={form.category} onValueChange={(v) => update('category', v)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><Users className="size-3" /> Tipe</FieldLabel>
+        <ToggleGroup type="single" value={form.type} onValueChange={(v) => v && update('type', v)} spacing={2} className="w-full">
+          <ToggleGroupItem value="individual" className="flex-1 text-xs font-bold uppercase tracking-wider">Individu</ToggleGroupItem>
+          <ToggleGroupItem value="team" className="flex-1 text-xs font-bold uppercase tracking-wider">Tim</ToggleGroupItem>
+        </ToggleGroup>
+      </Field>
       {form.type === 'team' && (
-        <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> Maksimal Anggota per Tim</label>
-          <input type="number" min={1} value={form.maxTeamMembers} onChange={(e) => update('maxTeamMembers', parseInt(e.target.value) || 1)}
-            className={inp('maxTeamMembers')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          />
-        </div>
+        <Field>
+          <FieldLabel className="gap-1"><Users className="size-3" /> Maksimal Anggota per Tim</FieldLabel>
+          <Input type="number" min={1} value={form.maxTeamMembers} onChange={(e) => update('maxTeamMembers', parseInt(e.target.value) || 1)} />
+        </Field>
       )}
       {form.type === 'team' && (
-        <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> Minimal Anggota per Tim (wajib diisi)</label>
-          <input type="number" min={1} max={form.maxTeamMembers} value={form.minTeamMembers} onChange={(e) => update('minTeamMembers', parseInt(e.target.value) || 1)}
-            className={inp('minTeamMembers')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          />
-        </div>
+        <Field>
+          <FieldLabel className="gap-1"><Users className="size-3" /> Minimal Anggota per Tim (wajib diisi)</FieldLabel>
+          <Input type="number" min={1} max={form.maxTeamMembers} value={form.minTeamMembers} onChange={(e) => update('minTeamMembers', parseInt(e.target.value) || 1)} />
+        </Field>
       )}
-      <div className="sm:col-span-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tagline</label>
-        <input value={form.tagline} onChange={(e) => update('tagline', e.target.value)}
-          className={inp('tagline')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div className="sm:col-span-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Deskripsi</label>
-        <textarea value={form.description} onChange={(e) => update('description', e.target.value)}
-          rows={3} className={inp('description')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Tag className="w-3 h-3" /> Tipe Lomba</label>
-        <div className="flex gap-2 mt-1">
-          <button type="button" onClick={() => update('origin', 'internal')}
-            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (form.origin === 'internal' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Internal</button>
-          <button type="button" onClick={() => update('origin', 'external')}
-            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (form.origin === 'external' ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Eksternal</button>
-        </div>
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Coins className="w-3 h-3" /> Biaya</label>
-        <div className="flex gap-2 mt-1">
-          <button type="button" onClick={() => update('isFree', false)}
-            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (!form.isFree ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Berbayar</button>
-          <button type="button" onClick={() => update('isFree', true)}
-            className={'flex-1 px-3 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ' + (form.isFree ? 'bg-astro-cyan text-slate-950' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')}
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>Gratis</button>
-        </div>
+      <Field className="sm:col-span-2">
+        <FieldLabel>Tagline</FieldLabel>
+        <Input value={form.tagline} onChange={(e) => update('tagline', e.target.value)} />
+      </Field>
+      <Field className="sm:col-span-2">
+        <FieldLabel>Deskripsi</FieldLabel>
+        <Textarea value={form.description} onChange={(e) => update('description', e.target.value)} rows={3} />
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><Tag className="size-3" /> Tipe Lomba</FieldLabel>
+        <ToggleGroup type="single" value={form.origin} onValueChange={(v) => v && update('origin', v)} spacing={2} className="w-full">
+          <ToggleGroupItem value="internal" className="flex-1 text-xs font-bold uppercase tracking-wider">Internal</ToggleGroupItem>
+          <ToggleGroupItem value="external" className="flex-1 text-xs font-bold uppercase tracking-wider">Eksternal</ToggleGroupItem>
+        </ToggleGroup>
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><Coins className="size-3" /> Biaya</FieldLabel>
+        <ToggleGroup type="single" value={form.isFree ? 'free' : 'paid'} onValueChange={(v) => v && update('isFree', v === 'free')} spacing={2} className="w-full">
+          <ToggleGroupItem value="paid" className="flex-1 text-xs font-bold uppercase tracking-wider">Berbayar</ToggleGroupItem>
+          <ToggleGroupItem value="free" className="flex-1 text-xs font-bold uppercase tracking-wider">Gratis</ToggleGroupItem>
+        </ToggleGroup>
         {!form.isFree && (
-          <div className="relative mt-2">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">Rp</span>
-            <input type="text" inputMode="numeric" value={form.feeDisplay || formatRupiah(String(form.fee))} onChange={(e) => { update('feeDisplay', formatRupiah(e.target.value)); update('fee', parseRupiah(e.target.value)); }}
-              className={inp('fee') + ' pl-10'} style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
-          </div>
+          <InputGroup className="clip-angled-sm mt-2 h-10 border-border bg-background">
+            <InputGroupAddon align="inline-start"><span className="text-sm font-bold text-muted-foreground">Rp</span></InputGroupAddon>
+            <InputGroupInput type="text" inputMode="numeric" value={form.feeDisplay || formatRupiah(String(form.fee))}
+              onChange={(e) => { update('feeDisplay', formatRupiah(e.target.value)); update('fee', parseRupiah(e.target.value)); }} />
+          </InputGroup>
         )}
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Users className="w-3 h-3" /> {form.type === 'team' ? 'Kuota Tim' : 'Kuota Peserta'}</label>
-        <input type="number" value={form.maxSlots} onChange={(e) => update('maxSlots', e.target.value)}
-          className={inp('maxSlots')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Calendar className="w-3 h-3" /> Tanggal</label>
-        <input type="date" value={form.scheduleDate} onChange={(e) => update('scheduleDate', e.target.value)}
-          className={inp('scheduleDate')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><MapPin className="w-3 h-3" /> Lokasi</label>
-        <input value={form.location} onChange={(e) => update('location', e.target.value)}
-          className={inp('location')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div className="sm:col-span-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Trophy className="w-3 h-3" /> Hadiah</label>
-        <div className="space-y-2 mt-1">
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><Users className="size-3" /> {form.type === 'team' ? 'Kuota Tim' : 'Kuota Peserta'}</FieldLabel>
+        <Input type="number" value={form.maxSlots} onChange={(e) => update('maxSlots', e.target.value)} />
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><Calendar className="size-3" /> Tanggal</FieldLabel>
+        <Input type="date" value={form.scheduleDate} onChange={(e) => update('scheduleDate', e.target.value)} />
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><MapPin className="size-3" /> Lokasi</FieldLabel>
+        <Input value={form.location} onChange={(e) => update('location', e.target.value)} />
+      </Field>
+      <Field className="sm:col-span-2">
+        <FieldLabel className="gap-1"><Trophy className="size-3" /> Hadiah</FieldLabel>
+        <FieldGroup className="gap-2">
           {form.prizes.map((p: { label: string; value: string }, i: number) => (
             <div key={i} className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-400 w-5 flex-shrink-0">#{i + 1}</span>
-              <input
+              <span className="w-5 flex-shrink-0 text-[10px] font-bold text-muted-foreground">#{i + 1}</span>
+              <Input
                 value={p.label}
                 onChange={(e) => {
                   const next = [...form.prizes];
@@ -224,10 +185,9 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
                   update('prizes', next);
                 }}
                 placeholder="Label (Juara 1, Top Score, ...)"
-                className={`${inp('prizesLabel')} flex-1 min-w-0`}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                className="min-w-0 flex-1"
               />
-              <input
+              <Input
                 value={p.value}
                 onChange={(e) => {
                   const next = [...form.prizes];
@@ -235,52 +195,45 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
                   update('prizes', next);
                 }}
                 placeholder="Hadiah"
-                className={`${inp('prizesValue')} flex-[2] min-w-0`}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+                className="min-w-0 flex-[2]"
               />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => update('prizes', form.prizes.filter((_: any, j: number) => j !== i))}
-                className="p-1.5 text-slate-400 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0"
+                className="flex-shrink-0 text-muted-foreground hover:text-destructive"
                 title="Hapus"
+                aria-label="Hapus hadiah"
               >
-                <X className="w-3.5 h-3.5" />
-              </button>
+                <X />
+              </Button>
             </div>
           ))}
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => update('prizes', [...form.prizes, { label: `Juara ${form.prizes.length + 1}`, value: '' }])}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider border border-dashed border-slate-300 hover:border-astro-cyan hover:text-astro-cyan transition-colors cursor-pointer"
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+            className="clip-angled-sm gap-1.5 self-start border-dashed text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-primary"
           >
-            <Plus className="w-3 h-3" /> Tambah Hadiah
-          </button>
-        </div>
-      </div>
-      <div className="sm:col-span-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Aturan (1 baris = 1 aturan)</label>
-        <textarea value={form.rulesSummary} onChange={(e) => update('rulesSummary', e.target.value)}
-          rows={3} className={inp('rulesSummary')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><User className="w-3 h-3" /> Kontak (Nama)</label>
-        <input value={form.contactName} onChange={(e) => update('contactName', e.target.value)}
-          className={inp('contactName')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-        />
-      </div>
-      <div>
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Phone className="w-3 h-3" /> Kontak (WhatsApp)</label>
-        <input type="tel" inputMode="numeric" value={form.contactWhatsapp} onChange={(e) => update('contactWhatsapp', e.target.value.replace(/\D/g, ''))}
-          className={inp('contactWhatsapp')}
-          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-          placeholder="62812XXXXXXXX"
-        />
-      </div>
-    </div>
+            <Plus data-icon="inline-start" className="size-3" /> Tambah Hadiah
+          </Button>
+        </FieldGroup>
+      </Field>
+      <Field className="sm:col-span-2">
+        <FieldLabel>Aturan (1 baris = 1 aturan)</FieldLabel>
+        <Textarea value={form.rulesSummary} onChange={(e) => update('rulesSummary', e.target.value)} rows={3} />
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><User className="size-3" /> Kontak (Nama)</FieldLabel>
+        <Input value={form.contactName} onChange={(e) => update('contactName', e.target.value)} />
+      </Field>
+      <Field>
+        <FieldLabel className="gap-1"><Phone className="size-3" /> Kontak (WhatsApp)</FieldLabel>
+        <Input type="tel" inputMode="numeric" value={form.contactWhatsapp} onChange={(e) => update('contactWhatsapp', e.target.value.replace(/\D/g, ''))} placeholder="62812XXXXXXXX" />
+      </Field>
+    </FieldGroup>
   );
 }
 
@@ -632,7 +585,7 @@ export default function KompetisiPage() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
+    return <div className="flex justify-center py-20"><Spinner className="size-6 text-primary" /></div>;
   }
 
   return (
@@ -640,22 +593,16 @@ export default function KompetisiPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Kompetisi</h1>
-          <p className="text-sm text-slate-500 font-light mt-1">{competitions.length} lomba terdaftar</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Kompetisi</h1>
+          <p className="mt-1 text-sm font-light text-muted-foreground">{competitions.length} lomba terdaftar</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setShowCatManager(!showCatManager); setShowAdd(false); setEditingId(null); }}
-            className="flex items-center gap-2 px-5 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs tracking-wider uppercase transition-all hover:bg-slate-50 cursor-pointer"
-            style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-          >
-            <Tag className="w-3.5 h-3.5" /> Kelola Kategori
-          </button>
-          <button onClick={() => { setShowAdd(!showAdd); setEditingId(null); }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase transition-all hover:bg-cyan-400 cursor-pointer"
-            style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-          >
-            <Plus className="w-3.5 h-3.5" /> Tambah Lomba
-          </button>
+          <Button variant="outline" onClick={() => { setShowCatManager(!showCatManager); setShowAdd(false); setEditingId(null); }} className="clip-angled text-xs font-bold uppercase tracking-wider">
+            <Tag data-icon="inline-start" /> Kelola Kategori
+          </Button>
+          <Button onClick={() => { setShowAdd(!showAdd); setEditingId(null); }} className="clip-angled text-xs font-bold uppercase tracking-wider">
+            <Plus data-icon="inline-start" /> Tambah Lomba
+          </Button>
         </div>
       </div>
 
@@ -709,7 +656,7 @@ export default function KompetisiPage() {
               className="px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
               style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
             >
-              {catSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : editingCatId ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+              {catSaving ? <Spinner className="w-3 h-3" /> : editingCatId ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
             </button>
             {editingCatId && (
               <button onClick={() => { setEditingCatId(null); setCatForm({ id: '', label: '', color: 'text-cyan-700 bg-cyan-50 border-cyan-200' }); }}
@@ -746,52 +693,38 @@ export default function KompetisiPage() {
           <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Tambah Lomba Baru</h2>
           <FormFields form={addForm} setForm={setAddForm} isAdd categories={categories} />
           <div className="flex gap-2 pt-2">
-            <button onClick={handleAdd} disabled={saving}
-              className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-            >
-              {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
-            </button>
-            <button onClick={() => setShowAdd(false)}
-              className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-            >
-              <X className="w-3 h-3" /> Batal
-            </button>
+            <Button onClick={handleAdd} disabled={saving} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+              {saving ? <Spinner data-icon="inline-start" /> : <Check data-icon="inline-start" />} Simpan
+            </Button>
+            <Button variant="outline" onClick={() => setShowAdd(false)} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+              <X data-icon="inline-start" /> Batal
+            </Button>
           </div>
         </div>
       )}
 
       {/* Search + Sort */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari lomba..."
-            className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-medium focus:outline-none focus:border-astro-cyan"
-            style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-          />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="max-w-xs flex-1">
+          <InputGroup className="clip-angled h-10 border-border bg-background">
+            <InputGroupAddon align="inline-start">
+              <Search className="size-3.5 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari lomba..." className="text-xs font-medium" />
+          </InputGroup>
         </div>
 
-        <div className="flex gap-1">
+        <ToggleGroup type="single" value={sortBy} onValueChange={(v) => v && setSortBy(v as 'newest' | 'az' | 'za')} spacing={1}>
           {[
             { key: 'newest', label: 'Terbaru' },
             { key: 'az', label: 'A-Z' },
             { key: 'za', label: 'Z-A' },
           ].map((opt) => (
-            <button key={opt.key}
-              onClick={() => setSortBy(opt.key as 'newest' | 'az' | 'za')}
-              className={`px-3 py-2 text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                sortBy === opt.key
-                  ? 'bg-astro-cyan text-slate-950'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-              style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-            >
+            <ToggleGroupItem key={opt.key} value={opt.key} className="clip-angled-sm px-3 py-2 text-[10px] font-bold uppercase tracking-wider">
               {opt.label}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
       </div>
 
       {/* List */}
@@ -814,44 +747,32 @@ export default function KompetisiPage() {
                     <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Edit Lomba</h2>
                     <FormFields form={editForm} setForm={setEditForm} categories={categories} />
                     <div className="flex gap-2 pt-2">
-                      <button onClick={() => handleSave(comp.id)} disabled={saving}
-                        className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
-                        style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                      >
-                        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
-                      </button>
-                      <button onClick={handleCancelEdit}
-                        className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-                        style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                      >
-                        <X className="w-3 h-3" /> Batal
-                      </button>
+                      <Button onClick={() => handleSave(comp.id)} disabled={saving} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+                        {saving ? <Spinner data-icon="inline-start" /> : <Check data-icon="inline-start" />} Simpan
+                      </Button>
+                      <Button variant="outline" onClick={handleCancelEdit} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+                        <X data-icon="inline-start" /> Batal
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{comp.title}</h3>
-                        <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${catColor}`}
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                        >
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <h3 className="text-base font-black uppercase tracking-tight text-foreground">{comp.title}</h3>
+                        <Badge variant="outline" className={cn('clip-angled-sm border text-[10px] font-bold uppercase tracking-wider', catColor)}>
                           {cat?.label || comp.category}
-                        </span>
-                        <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                        </Badge>
+                        <Badge variant="outline" className={cn('clip-angled-sm border text-[9px] font-bold uppercase tracking-wider',
                           (comp as any).isFree === '1' || (comp as any).isFree === true
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                            : 'border-amber-200 bg-amber-50 text-amber-700')}
                         >
                           {(comp as any).isFree === '1' || (comp as any).isFree === true ? 'Gratis' : 'Berbayar'}
-                        </span>
-                        <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border bg-sky-50 text-sky-700 border-sky-200"
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                        >
+                        </Badge>
+                        <Badge variant="outline" className="clip-angled-sm border-sky-200 bg-sky-50 text-[9px] font-bold uppercase tracking-wider text-sky-700">
                           {(comp as any).origin === 'external' ? 'Eksternal' : 'Internal'}
-                        </span>
+                        </Badge>
                       </div>
                       {comp.tagline && (
                         <p className="text-sm text-slate-500 font-light mb-2">{comp.tagline}</p>
@@ -865,42 +786,30 @@ export default function KompetisiPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-1 flex-shrink-0">
+                    <div className="flex flex-shrink-0 gap-1">
                       {!comp.isActive && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border bg-red-50 text-red-600 border-red-200 self-center mr-1"
-                          style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                        >
+                        <Badge variant="outline" className="clip-angled-sm mr-1 self-center border-red-200 bg-red-50 text-[10px] font-bold uppercase tracking-wider text-red-600">
                           Nonaktif
-                        </span>
+                        </Badge>
                       )}
-                      <button onClick={() => handleToggleActive(comp)}
-                        className={`p-2 transition-colors cursor-pointer ${comp.isActive ? 'text-slate-400 hover:text-amber-600' : 'text-amber-500 hover:text-green-600'}`}
-                        title={comp.isActive ? 'Nonaktifkan' : 'Aktifkan'}
-                      >
-                        {comp.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                      <button onClick={() => handleEdit(comp)}
-                        className="p-2 text-slate-400 hover:text-astro-cyan transition-colors cursor-pointer" title="Edit"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleTimelineOpen(comp.id)}
-                        className={`p-2 transition-colors cursor-pointer ${timelineOpen === comp.id ? 'text-astro-cyan' : 'text-slate-400 hover:text-astro-cyan'}`}
-                        title="Atur Timeline"
-                      >
-                        <Clock className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleWinnerOpen(comp.id)}
-                        className={`p-2 transition-colors cursor-pointer ${winnerOpenId === comp.id ? 'text-astro-cyan' : 'text-slate-400 hover:text-astro-cyan'}`}
-                        title="Atur Sertifikat & Juara"
-                      >
-                        <Award className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDeleteComp(comp.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer" title="Hapus"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => handleToggleActive(comp)} title={comp.isActive ? 'Nonaktifkan' : 'Aktifkan'} aria-label={comp.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                        className={comp.isActive ? 'text-muted-foreground hover:text-amber-600' : 'text-amber-500 hover:text-green-600'}>
+                        {comp.isActive ? <EyeOff /> : <Eye />}
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(comp)} title="Edit" aria-label="Edit" className="text-muted-foreground hover:text-primary">
+                        <Pencil />
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => handleTimelineOpen(comp.id)} title="Atur Timeline" aria-label="Atur Timeline"
+                        className={timelineOpen === comp.id ? 'text-primary' : 'text-muted-foreground hover:text-primary'}>
+                        <Clock />
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => handleWinnerOpen(comp.id)} title="Atur Sertifikat & Juara" aria-label="Atur Sertifikat dan Juara"
+                        className={winnerOpenId === comp.id ? 'text-primary' : 'text-muted-foreground hover:text-primary'}>
+                        <Award />
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => handleDeleteComp(comp.id)} title="Hapus" aria-label="Hapus" className="text-muted-foreground hover:text-destructive">
+                        <Trash2 />
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -985,19 +894,13 @@ export default function KompetisiPage() {
                         />
                       </div>
                       <div className="flex gap-2 self-end">
-                        <button onClick={() => handleTlSave(comp.id)} disabled={tlSaving}
-                          className="flex-1 px-3 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
-                          style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                        >
-                          {tlSaving ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : tlEditingId ? <Check className="w-3 h-3 mx-auto" /> : <Plus className="w-3 h-3 mx-auto" />}
-                        </button>
+                        <Button onClick={() => handleTlSave(comp.id)} disabled={tlSaving} size="icon" aria-label="Simpan timeline">
+                          {tlSaving ? <Spinner className="size-4" /> : tlEditingId ? <Check className="size-4" /> : <Plus className="size-4" />}
+                        </Button>
                         {tlEditingId && (
-                          <button onClick={() => { setTlEditingId(null); setTlForm({ date: '', title: '', desc: '' }); setTlDateRange({ start: '', end: '' }); }}
-                            className="px-3 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-                            style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
+                          <Button variant="outline" size="icon" onClick={() => { setTlEditingId(null); setTlForm({ date: '', title: '', desc: '' }); setTlDateRange({ start: '', end: '' }); }} aria-label="Batal edit timeline">
+                            <X />
+                          </Button>
                         )}
                       </div>
                     </div>

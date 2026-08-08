@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { apiHelpers } from '@/src/lib/api';
 
 interface Props {
@@ -32,36 +35,37 @@ export default function PaymentStatusUpdate({ registrationId, currentStatus }: P
   };
 
   return (
-    <div className="pt-3 border-t border-slate-100 space-y-3">
-      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+    <div className="space-y-3 border-t border-border pt-3">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         Update Status Pembayaran
       </span>
-      <select
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-        className="w-full px-3 py-2 bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-astro-cyan transition-colors cursor-pointer"
-        style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-      >
-        <option value="pending">Pending</option>
-        <option value="detecting">Detecting</option>
-        <option value="paid">Paid / Lunas</option>
-        <option value="failed">Failed / Gagal</option>
-      </select>
+      <Select value={status} onValueChange={setStatus}>
+        <SelectTrigger className="clip-angled-sm h-10 w-full bg-background">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="detecting">Detecting</SelectItem>
+            <SelectItem value="paid">Paid / Lunas</SelectItem>
+            <SelectItem value="failed">Failed / Gagal</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
-      <button
+      <Button
         onClick={handleUpdate}
         disabled={loading || status === currentStatus}
-        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-astro-cyan hover:bg-cyan-400 disabled:bg-slate-100 disabled:text-slate-400 text-slate-950 font-bold text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
-        style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
+        className="clip-angled-sm w-full text-xs font-bold uppercase tracking-wider"
       >
         {loading ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          <Spinner data-icon="inline-start" />
         ) : done ? (
-          <><Check className="w-3.5 h-3.5" /> Tersimpan</>
+          <><Check data-icon="inline-start" /> Tersimpan</>
         ) : (
           'Simpan Perubahan'
         )}
-      </button>
+      </Button>
     </div>
   );
 }

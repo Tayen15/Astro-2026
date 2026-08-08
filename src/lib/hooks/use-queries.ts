@@ -97,10 +97,14 @@ export function useCompetitionMutations() {
 
 /* ─── Registrations ─── */
 
-export function useRegistrations(query: Record<string, string | number | undefined> = {}) {
+export function useRegistrations(
+  query: Record<string, string | number | undefined> = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: queryKeys.registrations.list(query),
     queryFn: () => apiHelpers.registrations.list(query),
+    enabled: options.enabled,
   });
 }
 

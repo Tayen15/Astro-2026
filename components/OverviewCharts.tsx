@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts';
-import { apiHelpers } from '@/src/lib/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useRegistrationStats } from '@/src/lib/hooks/use-queries';
 
 interface ChartData {
   name: string;
@@ -29,23 +29,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function OverviewCharts() {
-  const [perCompetition, setPerCompetition] = useState<ChartData[]>([]);
-  const [statusDistribution, setStatusDistribution] = useState<StatusData[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const stats = await apiHelpers.registrations.stats();
-        setPerCompetition(stats.perCompetition || []);
-        setStatusDistribution(stats.statusDistribution || []);
-      } catch {
-        // fallback
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
+  const { data: stats, isLoading: loading } = useRegistrationStats();
+  const perCompetition: ChartData[] = stats?.perCompetition || [];
+  const statusDistribution: StatusData[] = stats?.statusDistribution || [];
 
   if (loading) return null;
 
@@ -66,19 +52,17 @@ export default function OverviewCharts() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
       {/* Bar Chart — Pendaftar Per Lomba */}
-      <div className="lg:col-span-3 bg-white border border-slate-200"
-        style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-      >
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+      <Card className="clip-angled-lg border-border lg:col-span-3">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-sm font-black uppercase tracking-tight">
             Pendaftar Per Lomba
-          </h2>
-        </div>
-        <div className="p-5">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-5">
           {perCompetition.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">Belum ada data.</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data.</p>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={perCompetition} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
@@ -102,21 +86,19 @@ export default function OverviewCharts() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Pie Chart — Status Pembayaran */}
-      <div className="lg:col-span-2 bg-white border border-slate-200"
-        style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-      >
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+      <Card className="clip-angled-lg border-border lg:col-span-2">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-sm font-black uppercase tracking-tight">
             Status Pembayaran
-          </h2>
-        </div>
-        <div className="p-5">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-5">
           {statusDistribution.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">Belum ada data.</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data.</p>
           ) : (
             <div className="flex flex-col items-center">
               <ResponsiveContainer width="100%" height={200}>
@@ -137,11 +119,11 @@ export default function OverviewCharts() {
                   <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex flex-wrap justify-center gap-4 mt-2">
+              <div className="mt-2 flex flex-wrap justify-center gap-4">
                 {statusDistribution.map((s) => (
                   <div key={s.name} className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                    <span className="text-[10px] font-medium text-slate-600 uppercase tracking-wider">
+                    <span className="size-2.5 rounded-full" style={{ backgroundColor: s.color }} />
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                       {STATUS_LABELS[s.name] || s.name}: {s.value}
                     </span>
                   </div>
@@ -149,8 +131,8 @@ export default function OverviewCharts() {
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -3,10 +3,17 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
-import { Loader2, Plus, Pencil, X, Check, Trash2, Tag } from 'lucide-react';
+import { Plus, Pencil, Check, Trash2, Tag, X } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useGalleryPhotos, useGalleryCategories, queryKeys } from '@/src/lib/hooks/use-queries';
 import { apiHelpers } from '@/src/lib/api';
 
@@ -97,7 +104,6 @@ export default function GalleryPage() {
     onError: () => toast.error('Gagal menghapus kategori'),
   });
 
-  // Auto-set first category
   const handleEdit = (item: GalleryItem) => {
     setForm({ title: item.title, category: item.category, imageUrl: item.imageUrl, year: item.year, likesCount: item.likesCount, sortOrder: item.sortOrder || 0 });
     setEditingId(item.id);
@@ -144,179 +150,170 @@ export default function GalleryPage() {
 
   const paginated = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
-
-  const inp = `w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan`;
+  if (loading) return <div className="flex justify-center py-20"><Spinner className="size-6 text-primary" /></div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Galeri Foto</h1>
-          <p className="text-sm text-slate-500 font-light mt-1">{items.length} foto</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Galeri Foto</h1>
+          <p className="mt-1 text-sm font-light text-muted-foreground">{items.length} foto</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setShowCatManager(!showCatManager); setShowAdd(false); }}
-            className="flex items-center gap-2 px-5 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-            style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-            <Tag className="w-3.5 h-3.5" /> Kelola Kategori
-          </button>
-          <button onClick={() => { setShowAdd(!showAdd); setShowCatManager(false); setEditingId(null); setForm({ title: '', category: categories[0]?.slug || '', imageUrl: '', year: 'ASTRO 2025', likesCount: 0, sortOrder: 0 }); }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 cursor-pointer"
-            style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-            <Plus className="w-3.5 h-3.5" /> Tambah Foto
-          </button>
+          <Button variant="outline" onClick={() => { setShowCatManager(!showCatManager); setShowAdd(false); }} className="clip-angled text-xs font-bold uppercase tracking-wider">
+            <Tag data-icon="inline-start" /> Kelola Kategori
+          </Button>
+          <Button onClick={() => { setShowAdd(!showAdd); setShowCatManager(false); setEditingId(null); setForm({ title: '', category: categories[0]?.slug || '', imageUrl: '', year: 'ASTRO 2025', likesCount: 0, sortOrder: 0 }); }} className="clip-angled text-xs font-bold uppercase tracking-wider">
+            <Plus data-icon="inline-start" /> Tambah Foto
+          </Button>
         </div>
       </div>
 
       {/* Category Manager */}
       {showCatManager && (
-        <div className="bg-white border border-slate-200 relative p-5 space-y-4"
-          style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}>
-          <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Kelola Kategori Gallery</h2>
-            <button onClick={() => setShowCatManager(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
-          </div>
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama</label>
-              <input value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value, slug: editingId ? catForm.slug : e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                placeholder="Nama kategori" className={inp}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
+        <Card className="clip-angled relative border-border">
+          <div className="absolute -top-px -left-px size-8 bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+          <CardContent className="space-y-4 p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black uppercase tracking-tight text-foreground">Kelola Kategori Gallery</h2>
+              <Button variant="ghost" size="icon-sm" onClick={() => setShowCatManager(false)} aria-label="Tutup"><X /></Button>
             </div>
-            <div className="flex-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Slug</label>
-              <input value={catForm.slug} onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })}
-                placeholder="competition" className={inp}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
+            <FieldGroup className="flex items-end gap-3">
+              <Field className="flex-1">
+                <FieldLabel>Nama</FieldLabel>
+                <Input value={catForm.name}
+                  onChange={(e) => setCatForm({ ...catForm, name: e.target.value, slug: catEditingId ? catForm.slug : e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                  placeholder="Nama kategori" />
+              </Field>
+              <Field className="flex-1">
+                <FieldLabel>Slug</FieldLabel>
+                <Input value={catForm.slug} onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })} placeholder="competition" />
+              </Field>
+              <Button onClick={handleCatSave} disabled={catSaving} size="icon">
+                {catSaving ? <Spinner className="size-4" /> : catEditingId ? <Check className="size-4" /> : <Plus className="size-4" />}
+              </Button>
+              {catEditingId && (
+                <Button variant="outline" onClick={() => { setCatEditingId(null); setCatForm({ name: '', slug: '' }); }} className="text-xs font-bold uppercase tracking-wider">
+                  Batal
+                </Button>
+              )}
+            </FieldGroup>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <Badge key={cat.id} variant="secondary" className="gap-2 border border-border px-3 py-1.5 text-xs font-bold">
+                  <span>{cat.name}</span>
+                  <span className="text-[10px] text-muted-foreground">({cat.slug})</span>
+                  <Button variant="ghost" size="icon-xs" onClick={() => handleCatEdit(cat)} aria-label="Edit" className="ml-1 text-muted-foreground hover:text-primary"><Pencil /></Button>
+                  <Button variant="ghost" size="icon-xs" onClick={() => handleCatDelete(cat.id)} aria-label="Hapus" className="text-muted-foreground hover:text-destructive"><X /></Button>
+                </Badge>
+              ))}
             </div>
-            <button onClick={handleCatSave} disabled={catSaving}
-              className="px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 cursor-pointer"
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-              {catSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : catEditingId ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
-            </button>
-            {catEditingId && (
-              <button onClick={() => { setCatEditingId(null); setCatForm({ name: '', slug: '' }); }}
-                className="px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                Batal
-              </button>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <div key={cat.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700">
-                <span>{cat.name}</span>
-                <span className="text-[10px] text-slate-400">({cat.slug})</span>
-                <button onClick={() => handleCatEdit(cat)} className="text-slate-400 hover:text-astro-cyan cursor-pointer ml-1"><Pencil className="w-3 h-3" /></button>
-                <button onClick={() => handleCatDelete(cat.id)} className="text-slate-400 hover:text-red-500 cursor-pointer"><X className="w-3 h-3" /></button>
-              </div>
-            ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {showAdd && (
-        <div className="bg-white border border-slate-200 relative p-5 space-y-4"
-          style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}>
-          <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
-          <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{editingId ? 'Edit' : 'Tambah'} Foto</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Judul <span className="text-red-400">*</span></label>
-              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Judul foto" className={inp}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
+        <Card className="clip-angled relative border-border">
+          <div className="absolute -top-px -left-px size-8 bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+          <CardContent className="space-y-4 p-5">
+            <h2 className="text-sm font-black uppercase tracking-tight text-foreground">{editingId ? 'Edit' : 'Tambah'} Foto</h2>
+            <FieldGroup className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Field>
+                <FieldLabel>Judul <span className="text-destructive">*</span></FieldLabel>
+                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Judul foto" />
+              </Field>
+              <Field>
+                <FieldLabel>Kategori <span className="text-destructive">*</span></FieldLabel>
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {categories.map((c) => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel>Tahun</FieldLabel>
+                <Select value={form.year} onValueChange={(v) => setForm({ ...form, year: v })}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {YEARS.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </FieldGroup>
+            <Field>
+              <FieldLabel>Gambar <span className="text-destructive">*</span></FieldLabel>
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer">
+                  <span className="clip-angled-sm inline-block border border-border bg-muted px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent">
+                    Upload File
+                  </span>
+                  <input type="file" accept="image/*" className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const uploadRes = await apiHelpers.upload(file);
+                        const url = (uploadRes as any)?.url;
+                        if (url) setForm({ ...form, imageUrl: url });
+                      } catch { console.error('Upload failed'); }
+                    }} />
+                </label>
+                <span className="text-[10px] text-muted-foreground">atau</span>
+                <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="Atau masukkan URL gambar..." className="flex-1" />
+              </div>
+            </Field>
+            {form.imageUrl && (
+              <div className="clip-angled-sm flex items-center gap-3 border border-border bg-muted/50 p-3">
+                <Image src={form.imageUrl} alt="Preview" width={64} height={48} unoptimized className="size-16 object-cover" />
+                <span className="text-xs text-muted-foreground">Preview</span>
+                <Button variant="ghost" size="sm" onClick={() => setForm({ ...form, imageUrl: '' })} className="ml-auto text-xs text-destructive hover:text-destructive">Hapus</Button>
+              </div>
+            )}
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleSave} disabled={saving} className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider">
+                {saving ? <Spinner data-icon="inline-start" /> : <Check data-icon="inline-start" />} Simpan
+              </Button>
+              <Button variant="outline" className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider"
+                onClick={() => { setShowAdd(false); setEditingId(null); setForm({ title: '', category: categories[0]?.slug || '', imageUrl: '', year: 'ASTRO 2025', likesCount: 0, sortOrder: 0 }); }}>
+                <X data-icon="inline-start" /> Batal
+              </Button>
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kategori <span className="text-red-400">*</span></label>
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className={inp + ' cursor-pointer'}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>
-                {categories.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tahun</label>
-              <select value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })}
-                className={inp + ' cursor-pointer'}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}>
-                {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gambar <span className="text-red-400">*</span></label>
-            <div className="flex items-center gap-3 mt-1">
-              <label className="cursor-pointer">
-                <div className="px-4 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors text-xs font-bold text-slate-700 uppercase tracking-wider"
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-                  Upload File
-                </div>
-                <input type="file" accept="image/*" className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    try {
-                      const uploadRes = await apiHelpers.upload(file);
-                      const url = (uploadRes as any)?.url;
-                      if (url) setForm({ ...form, imageUrl: url });
-                    } catch { console.error('Upload failed'); }
-                  }} />
-              </label>
-              <span className="text-[10px] text-slate-400">atau</span>
-              <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                placeholder="Atau masukkan URL gambar..." className={`${inp} flex-1`}
-                style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }} />
-            </div>
-          </div>
-          {form.imageUrl && (
-            <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
-              style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-              <Image src={form.imageUrl} alt="Preview" width={64} height={48} unoptimized className="w-16 h-12 object-cover rounded" />
-              <span className="text-xs text-slate-500">Preview</span>
-              <button onClick={() => setForm({ ...form, imageUrl: '' })}
-                className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
-            </div>
-          )}
-          <div className="flex gap-2 pt-2">
-            <button onClick={handleSave} disabled={saving}
-              className="flex items-center gap-1 px-4 py-2 bg-astro-cyan text-slate-950 font-bold text-xs tracking-wider uppercase hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-              {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Simpan
-            </button>
-            <button onClick={() => { setShowAdd(false); setEditingId(null); setForm({ title: '', category: categories[0]?.slug || '', imageUrl: '', year: 'ASTRO 2025', likesCount: 0, sortOrder: 0 }); }}
-              className="flex items-center gap-1 px-4 py-2 border border-slate-300 text-slate-600 font-bold text-xs tracking-wider uppercase hover:bg-slate-50 cursor-pointer"
-              style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}>
-              <X className="w-3 h-3" /> Batal
-            </button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 gap-3">
         {paginated.map((item) => (
-          <div key={item.id} className="bg-white border border-slate-200 relative p-4 flex items-center justify-between group"
-            style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
-            <div className="flex items-center gap-3">
-              {item.imageUrl && <Image src={item.imageUrl} alt="" width={48} height={36} unoptimized className="w-12 h-9 object-cover rounded" />}
-              <div>
-                <span className="text-sm font-bold text-slate-900">{item.title}</span>
-                <div className="flex gap-2 mt-0.5">
-                  <span className="text-[10px] font-semibold text-slate-500 uppercase">{item.category}</span>
-                  <span className="text-[10px] text-slate-400">|</span>
-                  <span className="text-[10px] text-slate-500">{item.year}</span>
+          <Card key={item.id} className="clip-angled group relative border-border p-4">
+            <CardContent className="flex items-center justify-between gap-4 p-0">
+              <div className="flex items-center gap-3">
+                {item.imageUrl && <Image src={item.imageUrl} alt="" width={48} height={36} unoptimized className="size-12 rounded object-cover" />}
+                <div>
+                  <span className="text-sm font-bold text-foreground">{item.title}</span>
+                  <div className="mt-0.5 flex gap-2">
+                    <span className="text-[10px] font-semibold uppercase text-muted-foreground">{item.category}</span>
+                    <span className="text-[10px] text-muted-foreground/60">|</span>
+                    <span className="text-[10px] text-muted-foreground">{item.year}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => handleEdit(item)} className="p-1.5 text-slate-400 hover:text-astro-cyan cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-              <button onClick={() => handleDelete(item.id, item.title)} className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-            </div>
-          </div>
+              <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(item)} aria-label="Edit"><Pencil /></Button>
+                <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(item.id, item.title)} aria-label="Hapus" className="text-muted-foreground hover:text-destructive"><Trash2 /></Button>
+              </div>
+            </CardContent>
+          </Card>
         ))}
-        {items.length === 0 && <p className="text-sm text-slate-400 italic py-4 text-center">Belum ada foto.</p>}
+        {items.length === 0 && <p className="py-4 text-center text-sm italic text-muted-foreground">Belum ada foto.</p>}
       </div>
       <Pagination currentPage={page} totalItems={items.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
 

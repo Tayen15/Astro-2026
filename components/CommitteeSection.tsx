@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion, AnimatePresence } from 'motion/react';
 import { Users } from 'lucide-react';
-import { apiHelpers } from '@/src/lib/api';
+import { Badge } from '@/components/ui/badge';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { cn } from '@/lib/utils';
+import { useCommitteeMembers, useCommitteeDivisions } from '@/src/lib/hooks/use-queries';
 
 const MotionImage = motion.create(Image);
 
@@ -12,56 +15,50 @@ export default function CommitteeSection() {
   const reduce = useReducedMotion();
   const [activeDivision, setActiveDivision] = useState<string>('');
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [members, setMembers] = useState<any[]>([]);
-  const [divisions, setDivisions] = useState<any[]>([]);
+  const { data: members = [] } = useCommitteeMembers();
+  const { data: divList = [] } = useCommitteeDivisions();
+
+  const divisions = useMemo(() => {
+    const divMap = new Map<string, any[]>();
+    members.forEach((m: any) => {
+      const key = m.division;
+      if (!divMap.has(key)) divMap.set(key, []);
+      divMap.get(key)!.push(m);
+    });
+
+    const merged = divList.map((d: any) => ({
+      slug: d.slug,
+      name: d.name,
+      shortName: d.shortName || null,
+      displayName: d.shortName ? `${d.name} (${d.shortName})` : d.name,
+      shortDisplay: d.shortName || d.name,
+      members: divMap.get(d.slug) || [],
+      staffCount: divMap.get(d.slug)?.length || 0,
+      id: d.slug,
+    }));
+
+    // Add any divisions from members not in divList
+    members.forEach((m: any) => {
+      if (!merged.find((d: any) => d.slug === m.division)) {
+        merged.push({
+          slug: m.division,
+          name: m.divisionName || m.division,
+          shortName: null,
+          displayName: m.divisionName || m.division,
+          shortDisplay: m.divisionName?.split(' ')[0] || m.division,
+          members: divMap.get(m.division) || [],
+          staffCount: divMap.get(m.division)?.length || 0,
+          id: m.division,
+        });
+      }
+    });
+
+    return merged;
+  }, [members, divList]);
 
   useEffect(() => {
-    Promise.all([
-      apiHelpers.committeeMembers.list(),
-      apiHelpers.committeeDivisions.list(),
-    ]).then(([memberList, divList]) => {
-      setMembers(memberList);
-
-      // Build division display list from divisions API
-      const divMap = new Map<string, any[]>();
-      memberList.forEach((m: any) => {
-        const key = m.division;
-        if (!divMap.has(key)) divMap.set(key, []);
-        divMap.get(key)!.push(m);
-      });
-
-      const merged = divList.map((d: any) => ({
-        slug: d.slug,
-        name: d.name,
-        shortName: d.shortName || null,
-        displayName: d.shortName ? `${d.name} (${d.shortName})` : d.name,
-        shortDisplay: d.shortName || d.name,
-        members: divMap.get(d.slug) || [],
-        staffCount: divMap.get(d.slug)?.length || 0,
-        id: d.slug,
-      }));
-
-      // Add any divisions from members not in divList
-      memberList.forEach((m: any) => {
-        if (!merged.find((d: any) => d.slug === m.division)) {
-          merged.push({
-            slug: m.division,
-            name: m.divisionName || m.division,
-            shortName: null,
-            displayName: m.divisionName || m.division,
-            shortDisplay: m.divisionName?.split(' ')[0] || m.division,
-            members: divMap.get(m.division) || [],
-            staffCount: divMap.get(m.division)?.length || 0,
-            id: m.division,
-          });
-        }
-      });
-
-      setDivisions(merged);
-      if (merged.length > 0 && !activeDivision) setActiveDivision(merged[0].slug);
-    }).catch(() => {});
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (divisions.length > 0 && !activeDivision) setActiveDivision(divisions[0].slug);
+  }, [divisions, activeDivision]);
 
   const filteredMembers = members.filter((m) => m.division === activeDivision);
   const currentDivision = divisions.find((d) => d.slug === activeDivision);
@@ -129,29 +126,22 @@ export default function CommitteeSection() {
         </div>
 
         {/* ── Filter Pills ── */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
-          {divisions.map((div) => {
-            const isActive = activeDivision === div.slug;
-            return (
-              <button
+        <div className="mb-12 flex flex-wrap justify-center gap-2">
+          <ToggleGroup type="single" value={activeDivision} onValueChange={(v) => v && setActiveDivision(v)} spacing={2}>
+            {divisions.map((div) => (
+              <ToggleGroupItem
                 key={div.id}
-                onClick={() => setActiveDivision(div.slug)}
-                className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold tracking-wide rounded-xl transition-all duration-200 cursor-pointer ${
-                  isActive
-                    ? 'bg-white text-slate-900 shadow-lg shadow-black/5 ring-1 ring-slate-200'
-                    : 'bg-white/40 text-slate-600 hover:bg-white/70 hover:text-slate-800 ring-1 ring-transparent'
-                }`}
+                value={div.slug}
+                className="gap-2 rounded-xl px-4 py-2 text-xs font-semibold tracking-wide data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-lg data-[state=on]:shadow-black/5 data-[state=on]:ring-1 data-[state=on]:ring-slate-200 data-[state=off]:bg-white/40 data-[state=off]:text-slate-600 data-[state=off]:hover:bg-white/70 data-[state=off]:hover:text-slate-800"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-astro-cyan' : 'bg-slate-300'}`} />
+                <span className={cn('size-1.5 rounded-full', activeDivision === div.slug ? 'bg-astro-cyan' : 'bg-slate-300')} />
                 {div.shortDisplay}
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                  isActive ? 'bg-sky-50 text-astro-cyan' : 'bg-white/40 text-slate-400'
-                }`}>
+                <Badge variant="secondary" className={cn('rounded-md text-[10px] font-bold', activeDivision === div.slug ? 'bg-sky-50 text-astro-cyan' : 'bg-white/40 text-muted-foreground')}>
                   {div.staffCount}
-                </span>
-              </button>
-            );
-          })}
+                </Badge>
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </div>
 
         {/* ── Division Label ── */}
@@ -192,13 +182,9 @@ export default function CommitteeSection() {
 
                   {/* Always-visible role badge */}
                   <div className="absolute top-3 left-3 z-20">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
-                      member.isLeader === '1'
-                        ? 'bg-amber-400 text-amber-950 shadow-sm'
-                        : 'bg-white/80 text-slate-700 backdrop-blur-sm ring-1 ring-white'
-                    }`}>
+                    <Badge className={member.isLeader === '1' ? 'bg-amber-400 text-[10px] font-bold uppercase tracking-wider text-amber-950 shadow-sm' : 'bg-white/80 text-[10px] font-bold uppercase tracking-wider text-slate-700 ring-1 ring-white backdrop-blur-sm'}>
                       {member.isLeader === '1' ? 'Koordinator' : 'Staf'}
-                    </span>
+                    </Badge>
                   </div>
 
                   {/* Overlay on hover/tap */}

@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { motion, useReducedMotion } from 'motion/react';
-import { ArrowDown } from 'lucide-react';
+import Image from "next/image";
+import { motion, useReducedMotion } from "motion/react";
+import { ArrowDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const MotionImage = motion.create(Image);
 
@@ -13,7 +14,11 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const },
+  },
 };
 
 export default function ProfileHero() {
@@ -24,7 +29,6 @@ export default function ProfileHero() {
       id="home"
       className="relative min-h-[100svh] flex bg-gradient-to-b from-sky-400 via-sky-300 to-sky-100 flex-col items-center justify-start overflow-hidden pt-[18svh] md:pt-[15svh]"
     >
-
       {/* ─── CLOUD IMAGES ─── */}
       {/* Big cloud top-left */}
       <MotionImage
@@ -33,7 +37,7 @@ export default function ProfileHero() {
         width={288}
         height={200}
         animate={{ x: [0, 20, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[8%] -left-10 w-72 h-auto opacity-65 pointer-events-none select-none z-0"
       />
 
@@ -44,7 +48,7 @@ export default function ProfileHero() {
         width={320}
         height={220}
         animate={{ x: [0, -20, 0] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[15%] -right-16 w-80 h-auto opacity-55 pointer-events-none select-none z-0"
       />
 
@@ -55,7 +59,7 @@ export default function ProfileHero() {
         width={192}
         height={140}
         animate={{ x: [0, 15, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[45%] -left-8 w-48 h-auto opacity-45 pointer-events-none select-none z-0"
       />
 
@@ -66,7 +70,7 @@ export default function ProfileHero() {
         width={160}
         height={120}
         animate={{ x: [0, -12, 0] }}
-        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[55%] -right-6 w-40 h-auto opacity-40 pointer-events-none select-none z-0"
       />
 
@@ -107,7 +111,7 @@ export default function ProfileHero() {
         width={112}
         height={112}
         animate={{ y: [0, -20, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[10%] right-[8%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
       />
       <MotionImage
@@ -116,7 +120,7 @@ export default function ProfileHero() {
         width={96}
         height={96}
         animate={{ y: [0, -14, 0] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-[22%] left-[4%] w-24 h-24 md:w-36 md:h-36 object-contain pointer-events-none select-none z-0"
       />
       <MotionImage
@@ -125,7 +129,7 @@ export default function ProfileHero() {
         width={64}
         height={64}
         animate={{ y: [0, -12, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[38%] left-[16%] w-16 h-16 md:w-24 md:h-24 object-contain pointer-events-none select-none z-0"
       />
       <MotionImage
@@ -134,7 +138,7 @@ export default function ProfileHero() {
         width={112}
         height={112}
         animate={{ y: [0, -18, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-[15%] right-[4%] w-28 h-28 md:w-40 md:h-40 object-contain pointer-events-none select-none z-0"
       />
 
@@ -144,14 +148,14 @@ export default function ProfileHero() {
         initial="hidden"
         animate="visible"
       >
-
         {/* ─── MAIN TITLE ─── */}
         <motion.div variants={fadeUp} className="mb-6 md:mb-0 md:-mt-6">
           <h1 className="text-massive mb-0">
             <span
               className="block bg-gradient-to-b from-slate-300 via-slate-400 to-slate-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(0,0,0,0.15)]"
               style={{
-                textShadow: '0 2px 0 #cbd5e1, 0 4px 0 #94a3b8, 0 6px 0 #64748b, 0 8px 20px rgba(0,0,0,0.3)',
+                textShadow:
+                  "0 2px 0 #cbd5e1, 0 4px 0 #94a3b8, 0 6px 0 #64748b, 0 8px 20px rgba(0,0,0,0.3)",
               }}
             >
               ASTRO
@@ -159,7 +163,8 @@ export default function ProfileHero() {
             <span
               className="block bg-gradient-to-b from-slate-200 via-slate-500 to-slate-800 bg-clip-text text-transparent"
               style={{
-                textShadow: '0 2px 0 #e2e8f0, 0 4px 0 #94a3b8, 0 6px 0 #475569, 0 8px 0 #1e293b, 0 12px 30px rgba(0,0,0,0.35)',
+                textShadow:
+                  "0 2px 0 #e2e8f0, 0 4px 0 #94a3b8, 0 6px 0 #475569, 0 8px 0 #1e293b, 0 12px 30px rgba(0,0,0,0.35)",
               }}
             >
               2026
@@ -178,24 +183,38 @@ export default function ProfileHero() {
         </motion.div>
 
         {/* Accent line */}
-        <motion.div variants={fadeUp} className="flex justify-center mb-8 md:mb-10">
+        <motion.div
+          variants={fadeUp}
+          className="flex justify-center mb-8 md:mb-10"
+        >
           <div className="w-24 h-[3px] bg-white/40 rounded-full" />
         </motion.div>
 
         {/* CTA - Solid Parallelogram Buttons */}
-        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href="#about-event"
-            className="group px-8 py-4 bg-sky-600 border-2 border-sky-300 text-white font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out shadow-[0_8px_30px_rgba(2,132,199,0.4)] hover:bg-sky-500 hover:shadow-[0_12px_40px_rgba(2,132,199,0.5)] hover:-translate-y-0.5 active:scale-95 cursor-pointer skew-x-[-8deg] rounded-none"
+        <motion.div
+          variants={fadeUp}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <Button
+            asChild
+            size="lg"
+            className="skew-x-[-8deg] rounded-none border-2 border-sky-300 bg-sky-600 px-8 py-4 text-sm font-black uppercase tracking-wider text-white shadow-[0_8px_30px_rgba(2,132,199,0.4)] hover:-translate-y-0.5 hover:bg-sky-500 hover:shadow-[0_12px_40px_rgba(2,132,199,0.5)] active:scale-95"
           >
-            <span className="block skew-x-[8deg] flex items-center gap-2"><ArrowDown className="w-4 h-4" /> Explore Now</span>
-          </a>
-          <a
-            href="#contact"
-            className="group px-8 py-4 bg-slate-700 border-2 border-slate-400 text-white font-bold text-sm tracking-wider uppercase transition-all duration-200 ease-in-out shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:bg-slate-600 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] hover:-translate-y-0.5 cursor-pointer skew-x-[-8deg] rounded-none"
+            <a href="#about-event">
+              <span className="flex items-center gap-2 skew-x-[8deg]">
+                <ArrowDown className="size-4" /> Explore Now
+              </span>
+            </a>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            className="skew-x-[-8deg] rounded-none border-2 border-slate-400 bg-slate-700 px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 hover:bg-slate-600 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] active:scale-95"
           >
-            <span className="block skew-x-[8deg]">Contact Us</span>
-          </a>
+            <a href="#contact">
+              <span className="block skew-x-[8deg]">Contact Us</span>
+            </a>
+          </Button>
         </motion.div>
       </motion.div>
 

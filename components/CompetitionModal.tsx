@@ -1,10 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  X,
   Trophy,
   BookOpen,
   Info,
@@ -15,6 +13,12 @@ import {
   FileText,
   MessageCircle,
 } from 'lucide-react';
+import { ResponsiveModal } from '@/components/responsive-modal';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import type { Competition } from '@/types/astro';
 
 type Tab = 'overview' | 'prizes' | 'rules';
@@ -24,226 +28,161 @@ interface Props {
   onClose: () => void;
 }
 
+const categoryStyles: Record<string, string> = {
+  akademik: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  olahraga: 'border-orange-200 bg-orange-50 text-orange-700',
+  esports: 'border-cyan-200 bg-cyan-50 text-cyan-700',
+};
+
+const prizeColors = [
+  'border-amber-200 bg-amber-50 text-amber-700',
+  'border-slate-200 bg-slate-100 text-slate-700',
+  'border-amber-200 bg-amber-50/80 text-amber-850',
+  'border-cyan-200 bg-cyan-50 text-cyan-700',
+  'border-violet-200 bg-violet-50 text-violet-700',
+];
+
 export default function CompetitionModal({ competition, onClose }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const router = useRouter();
-  const reduce = useReducedMotion();
-
-  useEffect(() => {
-    document.body.style.overflow = competition ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [competition]);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  }, [onClose]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
-  useEffect(() => {
-    if (competition) setActiveTab('overview');
-  }, [competition]);
 
   if (!competition) return null;
 
+  const categoryLabel =
+    competition.category === 'akademik'
+      ? 'Akademik'
+      : competition.category === 'olahraga'
+        ? 'Olahraga'
+        : 'Esports';
+
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: 'overview', label: 'Overview', icon: <Info className="w-4 h-4" /> },
-    { key: 'prizes', label: 'Hadiah', icon: <Trophy className="w-4 h-4" /> },
-    { key: 'rules', label: 'Rulebook', icon: <BookOpen className="w-4 h-4" /> },
+    { key: 'overview', label: 'Overview', icon: <Info /> },
+    { key: 'prizes', label: 'Hadiah', icon: <Trophy /> },
+    { key: 'rules', label: 'Rulebook', icon: <BookOpen /> },
   ];
 
   return (
-    <AnimatePresence>
-      {competition && (
-        <motion.div
-          key={competition.id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Detail ${competition.title}`}
-        >
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
+    <ResponsiveModal
+      open={!!competition}
+      onOpenChange={(next) => !next && onClose()}
+      title={competition.title}
+      titleClassName="sr-only"
+      contentClassName="max-w-2xl gap-0 p-0"
+    >
+      <div className="border-b border-border p-6 pb-4 md:p-8">
+        <Badge variant="outline" className={cn('mb-2 w-fit text-xs font-semibold', categoryStyles[competition.category])}>
+          {categoryLabel}
+        </Badge>
+        <h2 className="text-2xl font-bold text-foreground md:text-3xl">
+          {competition.title}
+        </h2>
+        <p className="mt-1 italic text-muted-foreground">{competition.tagline}</p>
+      </div>
 
-          <motion.div
-            initial={reduce ? false : { opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white border border-slate-100 rounded-2xl shadow-2xl"
-          >
-            {/* Close */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-all duration-200 ease-in-out cursor-pointer"
-              aria-label="Tutup"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)} className="flex flex-col">
+        <div className="border-b border-border px-6 md:px-8">
+          <TabsList className="w-full justify-start gap-0 bg-transparent">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.key} value={tab.key} className="gap-2 border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary">
+                {tab.icon}
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
-            {/* Header */}
-            <div className="p-6 md:p-8 pb-4 border-b border-slate-100">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 ${
-                competition.category === 'akademik'
-                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
-                  : competition.category === 'olahraga'
-                  ? 'bg-orange-50 border border-orange-200 text-orange-700'
-                  : 'bg-cyan-50 border border-cyan-200 text-cyan-700'
-              }`}>
-                {competition.category === 'akademik' ? 'Akademik' : competition.category === 'olahraga' ? 'Olahraga' : 'Esports'}
+        <TabsContent value="overview" className="space-y-5 p-6 md:p-8">
+          <p className="leading-relaxed text-foreground">{competition.description}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-border/60 bg-muted/50">
+              <CardContent className="p-4">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Coins className="size-3.5 text-primary" /> Biaya Pendaftaran
+                </div>
+                <div className="font-semibold text-foreground">Rp {competition.fee.toLocaleString('id-ID')}</div>
+              </CardContent>
+            </Card>
+            <Card className="border-border/60 bg-muted/50">
+              <CardContent className="p-4">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <CalendarDays className="size-3.5 text-primary" /> Jadwal
+                </div>
+                <div className="font-semibold text-foreground">
+                  {new Date(competition.scheduleDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border/60 bg-muted/50">
+              <CardContent className="p-4">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <MapPin className="size-3.5 text-primary" /> Lokasi
+                </div>
+                <div className="font-semibold text-foreground">{competition.location}</div>
+              </CardContent>
+            </Card>
+            <Card className="border-border/60 bg-muted/50">
+              <CardContent className="p-4">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Users className="size-3.5 text-primary" /> Kuota
+                </div>
+                <div className="font-semibold text-foreground">{competition.filledSlots}/{competition.maxSlots} Terisi</div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="prizes" className="space-y-4 p-6 md:p-8">
+          {competition.prizes.map((p, i) => (
+            <div key={p.label} className="flex items-center gap-4 rounded-xl border border-border bg-muted/50 p-4">
+              <span className={cn('rounded-lg border p-2', prizeColors[i] || prizeColors[1])}>
+                <Trophy className="size-5" />
               </span>
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mt-1">{competition.title}</h2>
-              <p className="text-slate-500 italic mt-1">{competition.tagline}</p>
+              <div>
+                <div className="text-sm font-semibold text-muted-foreground">{p.label}</div>
+                <div className="font-bold text-foreground">{p.value}</div>
+              </div>
             </div>
+          ))}
+        </TabsContent>
 
-            {/* Tabs */}
-            <div className="flex border-b border-slate-100 px-6 md:px-8">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 ease-in-out border-b-2 cursor-pointer ${
-                    activeTab === tab.key
-                      ? 'text-cyan-600 border-cyan-600'
-                      : 'text-slate-500 border-transparent hover:text-slate-850'
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+        <TabsContent value="rules" className="space-y-4 p-6 md:p-8">
+          <ul className="space-y-2.5">
+            {competition.rulesSummary.map((rule, idx) => (
+              <li key={idx} className="flex items-start gap-3 text-foreground">
+                <span className="mt-0.5 flex size-5 flex-shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-xs font-bold text-primary">
+                  {idx + 1}
+                </span>
+                {rule}
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row">
+            <Button asChild variant="outline" className="gap-2">
+              <a href={competition.rulebookUrl} target="_blank" rel="noopener noreferrer">
+                <FileText data-icon="inline-start" /> Baca Rulebook Lengkap
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="gap-2">
+              <a href={`https://wa.me/${competition.contactPerson.whatsapp}`} target="_blank" rel="noopener noreferrer">
+                <MessageCircle data-icon="inline-start" /> Hubungi {competition.contactPerson.name}
+              </a>
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
 
-            {/* Content */}
-            <div className="p-6 md:p-8">
-              <AnimatePresence mode="wait">
-                {activeTab === 'overview' && (
-                  <motion.div
-                    key="overview"
-                    initial={reduce ? false : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-5"
-                  >
-                    <p className="text-slate-700 leading-relaxed">{competition.description}</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-slate-50 border border-slate-100/60 rounded-xl p-4">
-                        <div className="flex items-center gap-2 text-slate-550 text-xs mb-1">
-                          <Coins className="w-3.5 h-3.5 text-cyan-600" /> Biaya Pendaftaran
-                        </div>
-                        <div className="text-slate-900 font-semibold">Rp {competition.fee.toLocaleString('id-ID')}</div>
-                      </div>
-                      <div className="bg-slate-50 border border-slate-100/60 rounded-xl p-4">
-                        <div className="flex items-center gap-2 text-slate-550 text-xs mb-1">
-                          <CalendarDays className="w-3.5 h-3.5 text-cyan-600" /> Jadwal
-                        </div>
-                        <div className="text-slate-900 font-semibold">
-                          {new Date(competition.scheduleDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </div>
-                      </div>
-                      <div className="bg-slate-50 border border-slate-100/60 rounded-xl p-4">
-                        <div className="flex items-center gap-2 text-slate-550 text-xs mb-1">
-                          <MapPin className="w-3.5 h-3.5 text-cyan-600" /> Lokasi
-                        </div>
-                        <div className="text-slate-900 font-semibold">{competition.location}</div>
-                      </div>
-                      <div className="bg-slate-50 border border-slate-100/60 rounded-xl p-4">
-                        <div className="flex items-center gap-2 text-slate-550 text-xs mb-1">
-                          <Users className="w-3.5 h-3.5 text-cyan-600" /> Kuota
-                        </div>
-                        <div className="text-slate-900 font-semibold">{competition.filledSlots}/{competition.maxSlots} Terisi</div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {activeTab === 'prizes' && (
-                  <motion.div
-                    key="prizes"
-                    initial={reduce ? false : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
-                  >
-                    {[
-                      ...competition.prizes.map((p) => ({ ...p, rank: p.label, prize: p.value })),
-                    ].map((item, i) => ({ ...item, color: [
-                      'text-amber-700 bg-amber-50 border-amber-200',
-                      'text-slate-700 bg-slate-100 border-slate-200',
-                      'text-amber-850 bg-amber-50/80 border-amber-200',
-                      'text-cyan-700 bg-cyan-50 border-cyan-200',
-                      'text-violet-700 bg-violet-50 border-violet-200',
-                    ][i] || 'text-slate-700 bg-slate-100 border-slate-200' })).map((item) => (
-                      <div key={item.rank} className="flex items-center gap-4 bg-slate-50 rounded-xl p-4 border border-slate-100">
-                        <span className={`p-2 rounded-lg border ${item.color}`}>
-                          <Trophy className="w-5 h-5" />
-                        </span>
-                        <div>
-                          <div className="text-sm font-semibold text-slate-500">{item.rank}</div>
-                          <div className="text-slate-900 font-bold">{item.prize}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
-
-                {activeTab === 'rules' && (
-                  <motion.div
-                    key="rules"
-                    initial={reduce ? false : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
-                  >
-                    <ul className="space-y-2.5">
-                      {competition.rulesSummary.map((rule, idx) => (
-                        <li key={idx} className="flex items-start gap-3 text-slate-700">
-                          <span className="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-50 border border-cyan-200/50 text-cyan-700 text-xs flex items-center justify-center font-bold mt-0.5">
-                            {idx + 1}
-                          </span>
-                          {rule}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                      <a href={competition.rulebookUrl} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-5 py-3 border border-slate-200 hover:border-cyan-500 text-slate-700 hover:text-slate-950 font-medium rounded-xl text-sm transition-all duration-200 ease-in-out hover:bg-slate-50">
-                        <FileText className="w-4 h-4" /> Baca Rulebook Lengkap
-                      </a>
-                      <a href={`https://wa.me/${competition.contactPerson.whatsapp}`} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-5 py-3 border border-slate-200 hover:border-emerald-500 text-slate-700 hover:text-slate-950 font-medium rounded-xl text-sm transition-all duration-200 ease-in-out hover:bg-slate-50">
-                        <MessageCircle className="w-4 h-4" /> Hubungi {competition.contactPerson.name}
-                      </a>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Bottom CTA */}
-            <div className="px-6 md:px-8 pb-6 md:pb-8">
-              <button
-                onClick={() => {
-                  onClose();
-                  router.push(`/register/${competition.id}`);
-                }}
-                className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-base transition-all duration-200 ease-in-out shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] active:scale-95 cursor-pointer"
-              >
-                Daftar {competition.title}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      <div className="px-6 pb-6 md:px-8 md:pb-8">
+        <Button
+          onClick={() => {
+            onClose();
+            router.push(`/register/${competition.id}`);
+          }}
+          size="lg"
+          className="clip-angled w-full text-base shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
+        >
+          Daftar {competition.title}
+        </Button>
+      </div>
+    </ResponsiveModal>
   );
 }

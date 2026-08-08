@@ -1,8 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { X, Loader2, CheckCircle2, MessageCircle, Copy, Check } from 'lucide-react';
+import { CheckCircle2, MessageCircle, Copy, Check } from 'lucide-react';
+import { ResponsiveModal } from '@/components/responsive-modal';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import type { Competition } from '@/types/astro';
 import { apiHelpers } from '@/src/lib/api';
 
@@ -18,7 +28,6 @@ const bankInfo = {
 };
 
 export default function RegistrationModal({ competition, onClose }: Props) {
-  const reduce = useReducedMotion();
   const [formData, setFormData] = useState({
     fullName: '',
     teamName: '',
@@ -35,16 +44,12 @@ export default function RegistrationModal({ competition, onClose }: Props) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    document.body.style.overflow = competition ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [competition]);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  }, [onClose]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    },
+    [onClose]
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -175,368 +180,257 @@ Terima kasih.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
+  const update = (key: keyof typeof formData, value: string) =>
+    setFormData((prev) => ({ ...prev, [key]: value }));
+
+  const memberCount = competition.maxTeamMembers || 5;
+  const membersArr = formData.members ? formData.members.split('\n') : [];
+
   return (
-    <AnimatePresence>
-      {competition && (
-        <motion.div
-          key="registration-modal"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="absolute inset-0" onClick={onClose} />
+    <ResponsiveModal
+      open={!!competition}
+      onOpenChange={(next) => !next && onClose()}
+      title="Pendaftaran"
+      description={`${competition.title} (${isTeam ? 'Kategori Tim' : 'Kategori Individu'})`}
+      titleClassName="text-xl uppercase tracking-tight"
+      descriptionClassName="font-bold uppercase tracking-wider text-primary"
+      contentClassName="max-w-xl"
+    >
+      {!isSuccess ? (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <FieldGroup className="gap-4">
+              {isTeam ? (
+                <>
+                  <Field data-invalid={!!errors.teamName}>
+                    <FieldLabel htmlFor="teamName">Nama Tim</FieldLabel>
+                    <Input
+                      id="teamName"
+                      value={formData.teamName}
+                      onChange={(e) => update('teamName', e.target.value)}
+                      placeholder="Masukkan nama tim Anda"
+                      disabled={loading}
+                      aria-invalid={!!errors.teamName}
+                    />
+                    {errors.teamName && <FieldError>{errors.teamName}</FieldError>}
+                  </Field>
 
-          <motion.div
-            initial={reduce ? false : { opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white border border-slate-100 rounded-2xl shadow-2xl z-10"
-          >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all duration-200 cursor-pointer"
-              aria-label="Tutup"
+                  <Field data-invalid={!!errors.institution}>
+                    <FieldLabel htmlFor="institution">Sekolah / Instansi</FieldLabel>
+                    <Input
+                      id="institution"
+                      value={formData.institution}
+                      onChange={(e) => update('institution', e.target.value)}
+                      placeholder="Asal sekolah atau instansi"
+                      disabled={loading}
+                      aria-invalid={!!errors.institution}
+                    />
+                    {errors.institution && <FieldError>{errors.institution}</FieldError>}
+                  </Field>
+
+                  <Field data-invalid={!!errors.leaderName}>
+                    <FieldLabel htmlFor="leaderName">Nama Ketua Tim</FieldLabel>
+                    <Input
+                      id="leaderName"
+                      value={formData.leaderName}
+                      onChange={(e) => update('leaderName', e.target.value)}
+                      placeholder="Nama lengkap ketua tim"
+                      disabled={loading}
+                      aria-invalid={!!errors.leaderName}
+                    />
+                    {errors.leaderName && <FieldError>{errors.leaderName}</FieldError>}
+                  </Field>
+
+                  <Field data-invalid={!!errors.leaderIdentity}>
+                    <FieldLabel htmlFor="leaderIdentity">Nomor Identitas Ketua (NISN / KTP / Kartu Pelajar)</FieldLabel>
+                    <Input
+                      id="leaderIdentity"
+                      value={formData.leaderIdentity}
+                      onChange={(e) => update('leaderIdentity', e.target.value.replace(/\D/g, ''))}
+                      placeholder="Nomor identitas ketua"
+                      disabled={loading}
+                      aria-invalid={!!errors.leaderIdentity}
+                    />
+                    {errors.leaderIdentity && <FieldError>{errors.leaderIdentity}</FieldError>}
+                  </Field>
+                </>
+              ) : (
+                <>
+                  <Field data-invalid={!!errors.fullName}>
+                    <FieldLabel htmlFor="fullName">Nama Lengkap</FieldLabel>
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => update('fullName', e.target.value)}
+                      placeholder="Nama lengkap pendaftar"
+                      disabled={loading}
+                      aria-invalid={!!errors.fullName}
+                    />
+                    {errors.fullName && <FieldError>{errors.fullName}</FieldError>}
+                  </Field>
+
+                  <Field data-invalid={!!errors.identityNumber}>
+                    <FieldLabel htmlFor="identityNumber">Nomor Identitas (NISN / KTP / Kartu Pelajar)</FieldLabel>
+                    <Input
+                      id="identityNumber"
+                      value={formData.identityNumber}
+                      onChange={(e) => update('identityNumber', e.target.value.replace(/\D/g, ''))}
+                      placeholder="Nomor identitas pendaftar"
+                      disabled={loading}
+                      aria-invalid={!!errors.identityNumber}
+                    />
+                    {errors.identityNumber && <FieldError>{errors.identityNumber}</FieldError>}
+                  </Field>
+
+                  <Field data-invalid={!!errors.institution}>
+                    <FieldLabel htmlFor="institution">Sekolah / Instansi</FieldLabel>
+                    <Input
+                      id="institution"
+                      value={formData.institution}
+                      onChange={(e) => update('institution', e.target.value)}
+                      placeholder="Asal sekolah atau instansi"
+                      disabled={loading}
+                      aria-invalid={!!errors.institution}
+                    />
+                    {errors.institution && <FieldError>{errors.institution}</FieldError>}
+                  </Field>
+                </>
+              )}
+
+              <Field data-invalid={!!errors.email}>
+                <FieldLabel htmlFor="email">Alamat Email {isTeam && 'Ketua'}</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => update('email', e.target.value)}
+                  placeholder="contoh@email.com"
+                  disabled={loading}
+                  aria-invalid={!!errors.email}
+                />
+                {errors.email && <FieldError>{errors.email}</FieldError>}
+              </Field>
+
+              <Field data-invalid={!!errors.whatsapp}>
+                <FieldLabel htmlFor="whatsapp">Nomor WhatsApp {isTeam && 'Ketua'}</FieldLabel>
+                <Input
+                  id="whatsapp"
+                  type="tel"
+                  value={formData.whatsapp}
+                  onChange={(e) => update('whatsapp', e.target.value.replace(/\D/g, ''))}
+                  placeholder="62812XXXXXXXX"
+                  disabled={loading}
+                  aria-invalid={!!errors.whatsapp}
+                />
+                {errors.whatsapp && <FieldError>{errors.whatsapp}</FieldError>}
+              </Field>
+
+              {isTeam && (
+                <Field data-invalid={!!errors.members}>
+                  <FieldLabel htmlFor="members">Anggota Tim (Min. {(competition as any).minTeamMembers || 1})</FieldLabel>
+                  {Array.from({ length: memberCount }, (_, i) => (
+                    <Input
+                      key={i}
+                      value={membersArr[i] || ''}
+                      onChange={(e) => {
+                        const arr = [...membersArr];
+                        arr[i] = e.target.value;
+                        update('members', arr.filter(Boolean).join('\n'));
+                      }}
+                      placeholder={`Anggota ${i + 1}`}
+                      disabled={loading}
+                      aria-invalid={!!errors.members}
+                    />
+                  ))}
+                  {errors.members && <FieldError>{errors.members}</FieldError>}
+                </Field>
+              )}
+            </FieldGroup>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              size="lg"
+              className="clip-angled w-full text-base shadow-[0_0_20px_rgba(6,182,212,0.3)]"
             >
-              <X className="w-5 h-5" />
-            </button>
+              {loading ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Memproses Pendaftaran...
+                </>
+              ) : (
+                `Daftar Sekarang - Rp ${competition.fee.toLocaleString('id-ID')}`
+              )}
+            </Button>
+          </form>
+        ) : (
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div className="flex flex-col items-center">
+              <CheckCircle2 className="mb-4 size-16 text-emerald-500" />
+              <h2 className="text-xl font-black uppercase tracking-tight text-foreground md:text-2xl">
+                Pendaftaran Berhasil!
+              </h2>
+              <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                Terima kasih telah mendaftar di *{competition.title}*. Silakan selesaikan pembayaran Anda untuk mengamankan slot kompetisi.
+              </p>
+            </div>
 
-            {!isSuccess ? (
-              <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
+            <div className="w-full rounded-xl border border-slate-100 bg-muted/50 p-5 text-left">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                Instruksi Pembayaran Bank Transfer
+              </h3>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <div>
-                  <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight">
-                    Pendaftaran
-                  </h2>
-                  <p className="text-sm text-slate-500 font-bold mt-1 text-astro-cyan uppercase tracking-wider">
-                    {competition.title} ({isTeam ? 'Kategori Tim' : 'Kategori Individu'})
-                  </p>
+                  <div className="text-xs font-medium text-muted-foreground">Bank Penerima</div>
+                  <div className="font-bold text-foreground">{bankInfo.bankName}</div>
                 </div>
-
-                <div className="space-y-4">
-                  {isTeam ? (
-                    <>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                          Nama Tim
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.teamName}
-                          onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
-                          className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                            errors.teamName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                          } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                          placeholder="Masukkan nama tim Anda"
-                          disabled={loading}
-                        />
-                        {errors.teamName && (
-                          <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                            {errors.teamName}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                          Sekolah / Instansi
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.institution}
-                          onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                          className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                            errors.institution ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                          } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                          placeholder="Asal sekolah atau instansi"
-                          disabled={loading}
-                        />
-                        {errors.institution && (
-                          <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                            {errors.institution}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                          Nama Ketua Tim
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.leaderName}
-                          onChange={(e) => setFormData({ ...formData, leaderName: e.target.value })}
-                          className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                            errors.leaderName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                          } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                          placeholder="Nama lengkap ketua tim"
-                          disabled={loading}
-                        />
-                        {errors.leaderName && (
-                          <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                            {errors.leaderName}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                          Nomor Identitas Ketua (NISN / KTP / Kartu Pelajar)
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.leaderIdentity}
-                          onChange={(e) => setFormData({ ...formData, leaderIdentity: e.target.value.replace(/\D/g, '') })}
-                          className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                            errors.leaderIdentity ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                          } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                          placeholder="Nomor identitas ketua"
-                          disabled={loading}
-                        />
-                        {errors.leaderIdentity && (
-                          <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                            {errors.leaderIdentity}
-                          </span>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                          Nama Lengkap
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.fullName}
-                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                          className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                            errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                          } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                          placeholder="Nama lengkap pendaftar"
-                          disabled={loading}
-                        />
-                        {errors.fullName && (
-                          <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                            {errors.fullName}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                          Nomor Identitas (NISN / KTP / Kartu Pelajar)
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.identityNumber}
-                          onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value.replace(/\D/g, '') })}
-                          className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                            errors.identityNumber ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                          } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                          placeholder="Nomor identitas pendaftar"
-                          disabled={loading}
-                        />
-                        {errors.identityNumber && (
-                          <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                            {errors.identityNumber}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                          Sekolah / Instansi
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.institution}
-                          onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                          className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                            errors.institution ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                          } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                          placeholder="Asal sekolah atau instansi"
-                          disabled={loading}
-                        />
-                        {errors.institution && (
-                          <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                            {errors.institution}
-                          </span>
-                        )}
-                      </div>
-                    </>
-                  )}
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Alamat Email {isTeam && 'Ketua'}
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                        errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                      } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                      placeholder="contoh@email.com"
-                      disabled={loading}
-                    />
-                    {errors.email && (
-                      <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                        {errors.email}
-                      </span>
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground">Atas Nama</div>
+                  <div className="font-bold text-foreground">{bankInfo.accountHolder}</div>
+                </div>
+                <div className="sm:col-span-2">
+                  <div className="text-xs font-medium text-muted-foreground">Nomor Rekening</div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="font-mono text-base font-bold tracking-wider text-foreground">
+                      {bankInfo.accountNumber}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={handleCopy}
+                      aria-label="Salin nomor rekening"
+                    >
+                      {copied ? <Check className="text-emerald-500" /> : <Copy />}
+                    </Button>
+                    {copied && (
+                      <Badge variant="secondary" className="text-[10px] font-bold text-emerald-600">
+                        Tersalin
+                      </Badge>
                     )}
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Nomor WhatsApp {isTeam && 'Ketua'}
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.whatsapp}
-                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value.replace(/\D/g, '') })}
-                      className={`w-full px-4 py-2.5 bg-slate-50 border ${
-                        errors.whatsapp ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-astro-cyan'
-                      } text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                      placeholder="62812XXXXXXXX"
-                      disabled={loading}
-                    />
-                    {errors.whatsapp && (
-                      <span className="text-[11px] text-red-500 font-medium mt-1 block">
-                        {errors.whatsapp}
-                      </span>
-                    )}
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground">Jumlah Transfer</div>
+                  <div className="text-base font-bold text-primary">
+                    Rp {competition.fee.toLocaleString('id-ID')}
                   </div>
-
-                  {isTeam && (
-                    <div className="space-y-2.5">
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Anggota Tim (Min. {(competition as any).minTeamMembers || 1})
-                      </label>
-                      {Array.from({ length: competition.maxTeamMembers || 5 }, (_, i) => (
-                        <div key={i}>
-                          <input
-                            type="text"
-                            value={(formData.members as any)[i] || ''}
-                            onChange={(e) => {
-                              const arr = (formData.members as any) || [];
-                              arr[i] = e.target.value;
-                              setFormData({ ...formData, members: arr.filter(Boolean).join('\n') });
-                            }}
-                            placeholder={`Anggota ${i + 1}`}
-                            className={`w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-astro-cyan text-slate-850 text-sm focus:outline-none focus:bg-white transition-colors`}
-                            disabled={loading}
-                          />
-                        </div>
-                      ))}
-                      {errors.members && (
-                        <span className="text-[11px] text-red-500 font-medium mt-1 block">{errors.members}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 text-slate-950 font-bold rounded-xl text-base transition-all duration-200 ease-in-out cursor-pointer active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.3)] disabled:shadow-none"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Memproses Pendaftaran...
-                      </>
-                    ) : (
-                      `Daftar Sekarang - Rp ${competition.fee.toLocaleString('id-ID')}`
-                    )}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="p-6 md:p-8 space-y-6 text-center">
-                <div className="flex flex-col items-center">
-                  <CheckCircle2 className="w-16 h-16 text-emerald-500 mb-4" />
-                  <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight">
-                    Pendaftaran Berhasil!
-                  </h2>
-                  <p className="text-sm text-slate-600 mt-2 max-w-sm">
-                    Terima kasih telah mendaftar di *{competition.title}*. Silakan selesaikan pembayaran Anda untuk mengamankan slot kompetisi.
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 text-left space-y-4">
-                  <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Instruksi Pembayaran Bank Transfer
-                  </h3>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="text-xs text-slate-500 font-medium">Bank Penerima</div>
-                      <div className="text-slate-900 font-bold">{bankInfo.bankName}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 font-medium">Atas Nama</div>
-                      <div className="text-slate-900 font-bold">{bankInfo.accountHolder}</div>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <div className="text-xs text-slate-500 font-medium">Nomor Rekening</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-base text-slate-900 font-mono font-bold tracking-wider">
-                          {bankInfo.accountNumber}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleCopy}
-                          className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-55 hover:border-slate-300 text-slate-500 transition-all duration-200 cursor-pointer"
-                          aria-label="Salin nomor rekening"
-                        >
-                          {copied ? (
-                            <Check className="w-4 h-4 text-emerald-500" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </button>
-                        {copied && (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/50 px-2 py-0.5 rounded">
-                            Tersalin
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-500 font-medium">Jumlah Transfer</div>
-                      <div className="text-base text-cyan-600 font-bold">
-                        Rp {competition.fee.toLocaleString('id-ID')}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-xs text-slate-600 leading-relaxed text-left">
-                  <span className="font-bold text-slate-700">Penting:</span> Simpan bukti transfer Anda. Setelah melakukan pembayaran, Anda wajib melakukan konfirmasi dengan mengirimkan bukti transfer ke Contact Person melalui WhatsApp menggunakan tombol di bawah ini.
-                </div>
-
-                <div className="pt-2">
-                  <a
-                    href={getWhatsAppLink()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl text-base transition-all duration-200 ease-in-out cursor-pointer active:scale-95 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    Konfirmasi Pembayaran (WhatsApp)
-                  </a>
                 </div>
               </div>
-            )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            </div>
+
+            <div className="text-left text-xs leading-relaxed text-muted-foreground">
+              <span className="font-bold text-foreground">Penting:</span> Simpan bukti transfer Anda. Setelah melakukan pembayaran, Anda wajib melakukan konfirmasi dengan mengirimkan bukti transfer ke Contact Person melalui WhatsApp menggunakan tombol di bawah ini.
+            </div>
+
+            <Button asChild size="lg" className="clip-angled w-full bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400">
+              <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">
+                <MessageCircle data-icon="inline-start" />
+                Konfirmasi Pembayaran (WhatsApp)
+              </a>
+            </Button>
+          </div>
+        )}
+    </ResponsiveModal>
   );
 }

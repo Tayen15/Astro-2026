@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { authClient } from '@/src/lib/auth-client';
-import { Loader2, Check, Save } from 'lucide-react';
+import { Check, Save } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -62,121 +69,94 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-astro-cyan" />
+        <Spinner className="size-6 text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-7xl">
+    <div className="max-w-7xl space-y-8">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Profil</h1>
-        <p className="text-sm text-slate-500 font-light mt-1">
+        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Profil</h1>
+        <p className="mt-1 text-sm font-light text-muted-foreground">
           Kelola akun dan password Anda
         </p>
       </div>
 
       {message && (
-        <div
-          className={`p-3 text-xs font-medium ${
-            messageType === 'success'
-              ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
-              : 'bg-red-50 border border-red-200 text-red-700'
-          }`}
-          style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
-        >
-          {messageType === 'success' ? <Check className="w-3.5 h-3.5 inline mr-1" /> : null}
-          {message}
-        </div>
+        <Alert variant={messageType === 'success' ? 'default' : 'destructive'} className="clip-angled border-border">
+          <AlertDescription className="text-xs font-medium">
+            {messageType === 'success' ? <Check className="mr-1 inline size-3.5" /> : null}
+            {message}
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Email */}
-      <div className="bg-white border border-slate-200 relative"
-        style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-      >
-        <div className="absolute -top-[1px] -left-[1px] w-8 h-8 bg-astro-cyan"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
-        />
-        <div className="p-6 space-y-5">
-          <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">
-            Email
-          </h2>
+      <Card className="clip-angled relative overflow-hidden border-border">
+        <div className="absolute -top-px -left-px size-8 bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+        <CardContent className="space-y-5 p-6">
+          <h2 className="text-sm font-black uppercase tracking-tight text-foreground">Email</h2>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Email Saat Ini
             </span>
-            <p className="text-sm font-medium text-slate-900 mt-0.5">{user?.email || '—'}</p>
+            <p className="mt-0.5 text-sm font-medium text-foreground">{user?.email || '—'}</p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Change Password */}
-      <div className="bg-white border border-slate-200 relative"
-        style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-      >
-        <div className="p-6 space-y-5">
-          <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">
-            Ubah Password
-          </h2>
+      <Card className="clip-angled border-border">
+        <CardContent className="space-y-5 p-6">
+          <h2 className="text-sm font-black uppercase tracking-tight text-foreground">Ubah Password</h2>
 
           <form onSubmit={handleUpdatePassword} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-[0.15em]">
-                Password Saat Ini
-              </label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-white border border-slate-200 text-sm focus:outline-none focus:border-astro-cyan transition-colors"
-                style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-[0.15em]">
-                  Password Baru
-                </label>
-                <input
+            <FieldGroup className="gap-4">
+              <Field>
+                <FieldLabel htmlFor="current-password">Password Saat Ini</FieldLabel>
+                <Input
+                  id="current-password"
                   type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
                   required
-                  minLength={6}
-                  className="w-full px-4 py-3 bg-white border border-slate-200 text-sm focus:outline-none focus:border-astro-cyan transition-colors"
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-[0.15em]">
-                  Konfirmasi Password Baru
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-3 bg-white border border-slate-200 text-sm focus:outline-none focus:border-astro-cyan transition-colors"
-                  style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-                />
-              </div>
-            </div>
+              </Field>
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center justify-center gap-2 px-8 py-3 bg-astro-cyan hover:bg-cyan-400 disabled:bg-slate-200 disabled:text-slate-400 text-slate-950 font-black text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
-              style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Simpan Password Baru
-            </button>
+              <div className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2')}>
+                <Field>
+                  <FieldLabel htmlFor="new-password">Password Baru</FieldLabel>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="confirm-password">Konfirmasi Password Baru</FieldLabel>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </Field>
+              </div>
+            </FieldGroup>
+
+            <Button type="submit" disabled={saving} className="clip-angled text-xs font-black uppercase tracking-wider">
+              {saving ? <Spinner data-icon="inline-start" /> : <Save data-icon="inline-start" />}
+              {saving ? 'Menyimpan...' : 'Simpan Password Baru'}
+            </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

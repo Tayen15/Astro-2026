@@ -3,17 +3,39 @@
 import { useState } from 'react';
 import { authClient } from '@/src/lib/auth-client';
 import Link from 'next/link';
-import { Search, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Spinner } from '@/components/ui/spinner';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import Pagination from '@/components/Pagination';
 import { useCompetitions, useRegistrations } from '@/src/lib/hooks/use-queries';
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  detecting: 'bg-blue-50 text-blue-700 border-blue-200',
-  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  failed: 'bg-red-50 text-red-700 border-red-200',
+  pending: 'border-amber-200 bg-amber-50 text-amber-700',
+  detecting: 'border-blue-200 bg-blue-50 text-blue-700',
+  paid: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  failed: 'border-red-200 bg-red-50 text-red-700',
 };
 
 export default function RegistrationsPage() {
@@ -53,147 +75,142 @@ export default function RegistrationsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-astro-cyan" />
+        <Spinner className="size-6 text-primary" />
       </div>
     );
   }
 
+  const resetFilters = () => {
+    setSearch('');
+    setStatusFilter('');
+    setLombaFilter('');
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Pendaftaran</h1>
-        <p className="text-sm text-slate-500 font-light mt-1">
+        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Pendaftaran</h1>
+        <p className="mt-1 text-sm font-light text-muted-foreground">
           {tab === 'mine' ? `${userEmail} — ${myRegistrations.length} pendaftaran` : `${registrations.length} total pendaftaran`}
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
-        <button
-          onClick={() => { setTab('all'); setSearch(''); setStatusFilter(''); setLombaFilter(''); }}
-          className={`px-4 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all duration-200 cursor-pointer ${
-            tab === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          Semua Pendaftaran
-        </button>
-        <button
-          onClick={() => { setTab('mine'); setSearch(''); setStatusFilter(''); setLombaFilter(''); }}
-          className={`px-4 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all duration-200 cursor-pointer ${
-            tab === 'mine' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          Pendaftaran Saya
-        </button>
-      </div>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as 'all' | 'mine'); setPage(1); }}>
+        <TabsList className="bg-muted">
+          <TabsTrigger value="all" onClick={() => resetFilters()}>Semua Pendaftaran</TabsTrigger>
+          <TabsTrigger value="mine" onClick={() => resetFilters()}>Pendaftaran Saya</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama, tim, atau email..."
-            className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-astro-cyan transition-colors"
-            style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-          />
+          <InputGroup className="clip-angled h-10 border-border bg-white">
+            <InputGroupAddon align="inline-start">
+              <Search className="size-3.5 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari nama, tim, atau email..."
+              className="text-xs font-medium"
+            />
+          </InputGroup>
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2.5 bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-astro-cyan transition-colors cursor-pointer"
-          style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-        >
-          <option value="">Semua Status</option>
-          <option value="pending">Pending</option>
-          <option value="detecting">Detecting</option>
-          <option value="paid">Paid</option>
-          <option value="failed">Failed</option>
-        </select>
+        <Select value={statusFilter || undefined} onValueChange={(v) => setStatusFilter(v === 'all' ? '' : v)}>
+          <SelectTrigger className="clip-angled-sm h-10 w-full bg-white sm:w-44">
+            <SelectValue placeholder="Semua Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">Semua Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="detecting">Detecting</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="failed">Failed</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
 
-        <select
-          value={lombaFilter}
-          onChange={(e) => setLombaFilter(e.target.value)}
-          className="px-3 py-2.5 bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-astro-cyan transition-colors cursor-pointer"
-          style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
-        >
-          <option value="">Semua Lomba</option>
-          {(allCompetitions ?? []).map((c: any) => (
-            <option key={c.id} value={c.title}>{c.title}</option>
-          ))}
-        </select>
+        <Select value={lombaFilter || undefined} onValueChange={(v) => setLombaFilter(v === 'all' ? '' : v)}>
+          <SelectTrigger className="clip-angled-sm h-10 w-full bg-white sm:w-56">
+            <SelectValue placeholder="Semua Lomba" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">Semua Lomba</SelectItem>
+              {(allCompetitions ?? []).map((c: any) => (
+                <SelectItem key={c.id} value={c.title}>{c.title}</SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-slate-200 overflow-hidden"
-        style={{ clipPath: 'polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)' }}
-      >
+      <div className="clip-angled-lg overflow-hidden border border-border bg-background">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="text-left px-5 py-3 w-10">No</th>
-                <th className="text-left px-5 py-3">Referensi</th>
-                <th className="text-left px-5 py-3">Nama / Tim</th>
-                <th className="text-left px-5 py-3 hidden md:table-cell">Lomba</th>
-                <th className="text-left px-5 py-3">Status</th>
-                <th className="text-right px-5 py-3 hidden md:table-cell">Tanggal</th>
-                <th className="text-right px-5 py-3 w-10"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <TableHead className="w-10 px-5">No</TableHead>
+                <TableHead className="px-5">Referensi</TableHead>
+                <TableHead className="px-5">Nama / Tim</TableHead>
+                <TableHead className="hidden px-5 md:table-cell">Lomba</TableHead>
+                <TableHead className="px-5">Status</TableHead>
+                <TableHead className="hidden px-5 text-right md:table-cell">Tanggal</TableHead>
+                <TableHead className="w-10 px-5 text-right"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-border">
               {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-slate-400 text-sm">
+                <TableRow>
+                  <TableCell colSpan={7} className="px-5 py-12 text-center text-sm text-muted-foreground">
                     Belum ada pendaftaran.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 paginated.map((reg: any, i: number) => (
-                  <tr key={reg.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3.5 text-slate-400 text-xs font-mono">{i + 1}</td>
-                    <td className="px-5 py-3.5">
-                      <code className="text-xs font-mono font-bold text-slate-700">
+                  <TableRow key={reg.id} className="hover:bg-muted/50">
+                    <TableCell className="px-5 py-3.5 font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell className="px-5 py-3.5">
+                      <code className="font-mono text-xs font-bold text-foreground">
                         {reg.paymentReference || '—'}
                       </code>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <p className="font-medium text-slate-900">
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5">
+                      <p className="font-medium text-foreground">
                         {reg.type === 'team' ? reg.teamName : reg.fullName}
                       </p>
-                      <p className="text-xs text-slate-500">{reg.email}</p>
-                    </td>
-                    <td className="px-5 py-3.5 hidden md:table-cell">
-                      <span className="text-sm text-slate-700">{reg.competitionName}</span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${statusColors[reg.paymentStatus] || statusColors.pending}`}
-                        style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
-                      >
+                      <p className="text-xs text-muted-foreground">{reg.email}</p>
+                    </TableCell>
+                    <TableCell className="hidden px-5 py-3.5 md:table-cell">
+                      <span className="text-sm text-foreground">{reg.competitionName}</span>
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5">
+                      <Badge variant="outline" className={cn('clip-angled-sm border text-[10px] font-bold uppercase tracking-wider', statusColors[reg.paymentStatus] || statusColors.pending)}>
                         {reg.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right hidden md:table-cell">
-                      <span className="text-xs text-slate-500">
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden px-5 py-3.5 text-right md:table-cell">
+                      <span className="text-xs text-muted-foreground">
                         {reg.createdAt ? new Date(reg.createdAt).toLocaleDateString('id-ID') : '—'}
                       </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <Link
-                        href={`/dashboard/registrations/${reg.id}`}
-                        className="text-slate-400 hover:text-astro-cyan transition-colors inline-flex items-center"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </Link>
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="px-5 py-3.5 text-right">
+                      <Button asChild variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-primary">
+                        <Link href={`/dashboard/registrations/${reg.id}`} aria-label={`Detail ${reg.id}`}>
+                          <ChevronRight />
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 
