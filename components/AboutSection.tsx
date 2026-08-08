@@ -56,6 +56,7 @@ export default function AboutSection({ competitions }: Props) {
         if (catDiff !== 0) return catDiff;
         return a.title.localeCompare(b.title);
       });
+      // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [competitions, selectedCategory, selectedOrigin, searchQuery]);
 
   return (

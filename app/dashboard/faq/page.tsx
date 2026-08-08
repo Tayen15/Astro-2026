@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Loader2, Pencil, Trash2, Check, X, ChevronUp, ChevronDown } from 'lucide-react';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import { useFaqs, queryKeys } from '@/src/lib/hooks/use-queries';
+import { apiHelpers } from '@/src/lib/api';
 
 const PAGE_SIZE = 10;
 
@@ -11,12 +14,13 @@ interface FAQItem {
   id: number;
   question: string;
   answer: string;
-  sortOrder: number;
+  sortOrder: number | null;
 }
 
 export default function FAQPage() {
-  const [faqs, setFaqs] = useState<FAQItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const { data: faqsData, isLoading: loading } = useFaqs();
+  const faqs = faqsData ?? [];
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ question: '', answer: '' });
   const [showAdd, setShowAdd] = useState(false);
@@ -26,14 +30,23 @@ export default function FAQPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [page, setPage] = useState(1);
 
-  const fetchFaqs = async () => {
-    const res = await fetch('/api/faqs');
-    const json = await res.json();
-    setFaqs(json.data || []);
-    setLoading(false);
-  };
+  const invalidate = () => qc.invalidateQueries({ queryKey: queryKeys.faqs.all });
 
-  useEffect(() => { fetchFaqs(); }, []);
+  const saveMutation = useMutation({
+    mutationFn: ({ id, body }: { id: number; body: { question: string; answer: string; sortOrder?: number | null } }) =>
+      apiHelpers.faqs.update(String(id), body),
+    onSuccess: () => { setEditingId(null); invalidate(); },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiHelpers.faqs.remove(String(id)),
+    onSuccess: () => { setDeleteModal(null); invalidate(); },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: (body: { question: string; answer: string }) => apiHelpers.faqs.create(body),
+    onSuccess: () => { setAddForm({ question: '', answer: '' }); setShowAdd(false); invalidate(); },
+  });
 
   const handleEdit = (faq: FAQItem) => {
     setEditingId(faq.id);
@@ -42,14 +55,8 @@ export default function FAQPage() {
 
   const handleSave = async (id: number) => {
     setSaving(true);
-    await fetch(`/api/faqs/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editForm),
-    });
-    setEditingId(null);
+    await saveMutation.mutateAsync({ id, body: editForm });
     setSaving(false);
-    fetchFaqs();
   };
 
   const handleDelete = (id: number) => {
@@ -58,10 +65,8 @@ export default function FAQPage() {
       message: 'Yakin ingin menghapus FAQ ini? Tindakan ini tidak bisa dibatalkan.',
       onConfirm: async () => {
         setDeleteLoading(true);
-        await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
-        setDeleteModal(null);
+        await deleteMutation.mutateAsync(id);
         setDeleteLoading(false);
-        fetchFaqs();
       },
     });
   };
@@ -69,15 +74,8 @@ export default function FAQPage() {
   const handleAdd = async () => {
     if (!addForm.question || !addForm.answer) return;
     setSaving(true);
-    await fetch('/api/faqs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(addForm),
-    });
-    setAddForm({ question: '', answer: '' });
-    setShowAdd(false);
+    await addMutation.mutateAsync(addForm);
     setSaving(false);
-    fetchFaqs();
   };
 
   const handleMove = async (id: number, direction: 'up' | 'down') => {
@@ -91,19 +89,11 @@ export default function FAQPage() {
 
     // Swap sort orders
     await Promise.all([
-      fetch(`/api/faqs/${faqs[idx].id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...faqs[idx], sortOrder: swapOrder }),
-      }),
-      fetch(`/api/faqs/${faqs[swapIdx].id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...faqs[swapIdx], sortOrder: currentOrder }),
-      }),
+      saveMutation.mutateAsync({ id: faqs[idx].id, body: { ...faqs[idx], sortOrder: swapOrder } }),
+      saveMutation.mutateAsync({ id: faqs[swapIdx].id, body: { ...faqs[swapIdx], sortOrder: currentOrder } }),
     ]);
 
-    fetchFaqs();
+    invalidate();
   };
 
   if (loading) {

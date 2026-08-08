@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Loader2, Pencil, X, Check, Search, Plus, Trophy,
   Coins, Users, MapPin, Calendar, Phone, User, Tag,
@@ -10,39 +11,20 @@ import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
 import WinnerManager from '@/components/WinnerManager';
+import { useCompetitions, useCategories, queryKeys } from '@/src/lib/hooks/use-queries';
+import { apiHelpers } from '@/src/lib/api';
 
 const PAGE_SIZE = 10;
 
-interface Competition {
-  id: string;
-  title: string;
-  category: string;
-  tagline: string | null;
-  description: string | null;
-  fee: number;
-  maxSlots: number;
-  filledSlots: number;
-  scheduleDate: string | null;
-  location: string | null;
-  prizesFirst: string | null;
-  prizesSecond: string | null;
-  prizesThird: string | null;
-  rulesSummary: string[] | null;
-  rulebookUrl: string | null;
-  contactName: string | null;
-  contactWhatsapp: string | null;
-  isActive: string | null;
-  type: string | null;
-  maxTeamMembers: number | null;
-  minTeamMembers: number | null;
-  membersRequired: string | null;
-}
+/** Competition shape derived from the Eden API response. */
+type Competition = Awaited<ReturnType<typeof apiHelpers.competitions.list>>[number];
 
 interface Category {
   id: string;
   label: string;
   color: string;
-  sortOrder: number;
+  sortOrder: number | null;
+  createdAt: Date;
 }
 
 const emptyForm = {
@@ -91,7 +73,7 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
     }
     setForm(updated);
   };
-  const inp = (field: string) =>
+  const inp = (_field: string) =>
     `w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan`;
 
   return (
@@ -303,9 +285,11 @@ function FormFields({ form, setForm, isAdd, categories }: { form: any; setForm: 
 }
 
 export default function KompetisiPage() {
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const { data: compsData, isLoading: loading } = useCompetitions();
+  const { data: catsData } = useCategories();
+  const competitions = compsData ?? [];
+  const categories = catsData ?? [];
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<'newest' | 'az' | 'za'>('newest');
@@ -332,7 +316,8 @@ export default function KompetisiPage() {
     date: string;
     title: string;
     desc: string;
-    sortOrder: number;
+    sortOrder: number | null;
+    createdAt: Date;
   }
   const [timelineOpen, setTimelineOpen] = useState<string | null>(null);
   const [winnerOpenId, setWinnerOpenId] = useState<string | null>(null);
@@ -342,19 +327,53 @@ export default function KompetisiPage() {
   const [tlSaving, setTlSaving] = useState(false);
   const [tlDateRange, setTlDateRange] = useState({ start: '', end: '' });
 
-  const fetchData = async () => {
-    const [compRes, catRes] = await Promise.all([
-      fetch('/api/competitions'),
-      fetch('/api/categories'),
-    ]);
-    const compJson = await compRes.json();
-    const catJson = await catRes.json();
-    setCompetitions(compJson.data || []);
-    setCategories(catJson.data || []);
-    setLoading(false);
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: queryKeys.competitions.all });
+    qc.invalidateQueries({ queryKey: queryKeys.categories.all });
   };
 
-  useEffect(() => { fetchData(); }, []);
+  const saveMutation = useMutation({
+    mutationFn: ({ id, body }: { id?: string; body: Record<string, unknown> }) =>
+      id
+        ? apiHelpers.competitions.update(id, body)
+        : apiHelpers.competitions.create(body),
+    onSuccess: () => {
+      setEditingId(null);
+      invalidate();
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      apiHelpers.competitions.update(id, body),
+    onSuccess: () => invalidate(),
+  });
+
+  const deleteCompMutation = useMutation({
+    mutationFn: (id: string) => apiHelpers.competitions.remove(id),
+    onSuccess: () => {
+      toast.success('Lomba berhasil dihapus');
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menghapus lomba'),
+  });
+
+  const catSaveMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      editingCatId
+        ? apiHelpers.categories.update(editingCatId, body)
+        : apiHelpers.categories.create(body),
+    onSuccess: () => {
+      setEditingCatId(null);
+      invalidate();
+    },
+    onError: () => console.error('Category save failed'),
+  });
+
+  const catDeleteMutation = useMutation({
+    mutationFn: (id: string) => apiHelpers.categories.remove(id),
+    onSuccess: () => invalidate(),
+  });
 
   /* ─── Competition CRUD ─── */
   const handleEdit = (comp: Competition) => {
@@ -372,7 +391,9 @@ export default function KompetisiPage() {
       fee: comp.fee,
       maxSlots: comp.maxSlots,
       filledSlots: comp.filledSlots,
-      scheduleDate: comp.scheduleDate ? comp.scheduleDate.split('T')[0] : '',
+      scheduleDate: comp.scheduleDate
+        ? new Date(comp.scheduleDate).toISOString().split('T')[0]
+        : '',
       location: comp.location || '',
       prizes: (comp as any).prizes?.length
         ? (comp as any).prizes
@@ -386,8 +407,8 @@ export default function KompetisiPage() {
       contactName: comp.contactName || '',
       contactWhatsapp: comp.contactWhatsapp || '',
       feeDisplay: formatRupiah(String(comp.fee)),
-      isFree: (comp as any).isFree === '1' || (comp as any).isFree === true,
-      origin: (comp as any).origin || 'internal',
+      isFree: comp.isFree,
+      origin: comp.origin || 'internal',
     });
   };
 
@@ -396,22 +417,19 @@ export default function KompetisiPage() {
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
-      const { feeDisplay, ...submitData } = editForm;
-      await fetch(`/api/competitions/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { feeDisplay: _feeDisplay, ...submitData } = editForm;
+      await saveMutation.mutateAsync({
+        id,
+        body: {
           ...submitData,
           fee: parseRupiah(String(editForm.fee)) || 0,
           maxSlots: parseInt(editForm.maxSlots) || 0,
           filledSlots: parseInt(editForm.filledSlots) || 0,
           rulesSummary: editForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
           scheduleDate: editForm.scheduleDate ? new Date(editForm.scheduleDate).toISOString() : null,
-        }),
+        },
       });
-      setEditingId(null);
       toast.success('Lomba berhasil diperbarui');
-      fetchData();
     } catch (err) { console.error(err); toast.error('Gagal menyimpan lomba'); }
     setSaving(false);
   };
@@ -420,23 +438,20 @@ export default function KompetisiPage() {
     if (!addForm.title || !addForm.id) return;
     setSaving(true);
     try {
-      const { feeDisplay, ...submitData } = addForm;
-      await fetch('/api/competitions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { feeDisplay: _feeDisplay, ...submitData } = addForm;
+      await saveMutation.mutateAsync({
+        body: {
           ...submitData,
           fee: parseRupiah(String(addForm.fee)) || 0,
           maxSlots: parseInt(addForm.maxSlots) || 0,
           filledSlots: parseInt(addForm.filledSlots) || 0,
           rulesSummary: addForm.rulesSummary.split('\n').filter((s: string) => s.trim()),
           scheduleDate: addForm.scheduleDate ? new Date(addForm.scheduleDate).toISOString() : null,
-        }),
+        },
       });
       setAddForm({ ...emptyForm });
       setShowAdd(false);
       toast.success('Lomba berhasil ditambahkan');
-      fetchData();
     } catch (err) { console.error(err); toast.error('Gagal menambahkan lomba'); }
     setSaving(false);
   };
@@ -444,10 +459,9 @@ export default function KompetisiPage() {
   /* ─── Toggle Active ─── */
   const handleToggleActive = async (comp: Competition) => {
     try {
-      await fetch(`/api/competitions/${comp.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await toggleActiveMutation.mutateAsync({
+        id: comp.id,
+        body: {
           title: comp.title,
           category: comp.category,
           tagline: comp.tagline,
@@ -464,11 +478,10 @@ export default function KompetisiPage() {
           rulebookUrl: comp.rulebookUrl,
           contactName: comp.contactName,
           contactWhatsapp: comp.contactWhatsapp,
-          isActive: comp.isActive !== '1',
-        }),
+          isActive: !comp.isActive,
+        },
       });
-      toast.success(comp.isActive === '1' ? 'Lomba dinonaktifkan' : 'Lomba diaktifkan');
-      fetchData();
+      toast.success(comp.isActive ? 'Lomba dinonaktifkan' : 'Lomba diaktifkan');
     } catch (err) { console.error(err); toast.error('Gagal mengubah status'); }
   };
 
@@ -480,12 +493,9 @@ export default function KompetisiPage() {
       onConfirm: async () => {
         setDeleteLoading(true);
         try {
-          const res = await fetch(`/api/competitions/${id}`, { method: 'DELETE' });
-          const json = await res.json();
-          if (!res.ok) { toast.error(json.error); setDeleteLoading(false); return; }
-          toast.success('Lomba berhasil dihapus');
-          fetchData();
+          await deleteCompMutation.mutateAsync(id);
         } catch (err) { console.error(err); toast.error('Gagal menghapus lomba'); }
+        setDeleteLoading(false);
       },
     });
   };
@@ -510,9 +520,8 @@ export default function KompetisiPage() {
     setTlForm({ date: '', title: '', desc: '' });
     setTlDateRange({ start: '', end: '' });
     try {
-      const res = await fetch(`/api/competitions/${compId}/timeline`);
-      const json = await res.json();
-      setTimelineItems((prev) => ({ ...prev, [compId]: json.data || [] }));
+      const items = await apiHelpers.competitions.timeline(compId);
+      setTimelineItems((prev) => ({ ...prev, [compId]: items ?? [] }));
     } catch {
       toast.error('Gagal memuat timeline');
     }
@@ -537,25 +546,16 @@ export default function KompetisiPage() {
     setTlSaving(true);
     try {
       if (tlEditingId) {
-        await fetch(`/api/competitions/${compId}/timeline/${tlEditingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        await apiHelpers.competitions.updateTimeline(compId, String(tlEditingId), payload);
       } else {
-        await fetch(`/api/competitions/${compId}/timeline`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        await apiHelpers.competitions.createTimeline(compId, payload);
       }
       setTlForm({ date: '', title: '', desc: '' });
       setTlDateRange({ start: '', end: '' });
       setTlEditingId(null);
       toast.success(tlEditingId ? 'Timeline diperbarui' : 'Timeline ditambahkan');
-      const res = await fetch(`/api/competitions/${compId}/timeline`);
-      const json = await res.json();
-      setTimelineItems((prev) => ({ ...prev, [compId]: json.data || [] }));
+      const items = await apiHelpers.competitions.timeline(compId);
+      setTimelineItems((prev) => ({ ...prev, [compId]: items ?? [] }));
     } catch {
       toast.error('Gagal menyimpan timeline');
     }
@@ -582,11 +582,10 @@ export default function KompetisiPage() {
   const handleTlDelete = async (compId: string, itemId: number) => {
     if (!confirm('Hapus item timeline ini?')) return;
     try {
-      await fetch(`/api/competitions/${compId}/timeline/${itemId}`, { method: 'DELETE' });
+      await apiHelpers.competitions.removeTimeline(compId, String(itemId));
       toast.success('Item timeline dihapus');
-      const res = await fetch(`/api/competitions/${compId}/timeline`);
-      const json = await res.json();
-      setTimelineItems((prev) => ({ ...prev, [compId]: json.data || [] }));
+      const items = await apiHelpers.competitions.timeline(compId);
+      setTimelineItems((prev) => ({ ...prev, [compId]: items ?? [] }));
     } catch {
       toast.error('Gagal menghapus item timeline');
     }
@@ -597,22 +596,8 @@ export default function KompetisiPage() {
     if (!catForm.label) return;
     setCatSaving(true);
     try {
-      if (editingCatId) {
-        await fetch(`/api/categories/${editingCatId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(catForm),
-        });
-        setEditingCatId(null);
-      } else {
-        await fetch('/api/categories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(catForm),
-        });
-      }
+      await catSaveMutation.mutateAsync(catForm);
       setCatForm({ id: '', label: '', color: 'text-cyan-700 bg-cyan-50 border-cyan-200' });
-      fetchData();
     } catch (err) { console.error(err); }
     setCatSaving(false);
   };
@@ -628,18 +613,14 @@ export default function KompetisiPage() {
       message: 'Yakin ingin menghapus kategori ini? Hanya bisa dihapus jika tidak ada lomba yang menggunakannya.',
       onConfirm: async () => {
         setDeleteModal(null);
-        const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
-        const json = await res.json();
-        if (!res.ok) { alert(json.error); return; }
-        fetchData();
+        try {
+          await catDeleteMutation.mutateAsync(id);
+        } catch (err: any) {
+          alert(err.message);
+        }
       },
     });
   };
-
-  const categoryOptions = [
-    { value: '', label: 'Semua Kategori' },
-    ...categories.map((c) => ({ value: c.id, label: c.label })),
-  ];
 
   const filtered = [...competitions]
     .filter((c) => !search || c.title.toLowerCase().includes(search.toLowerCase()))
@@ -885,7 +866,7 @@ export default function KompetisiPage() {
                       </div>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
-                      {comp.isActive !== '1' && (
+                      {!comp.isActive && (
                         <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border bg-red-50 text-red-600 border-red-200 self-center mr-1"
                           style={{ clipPath: 'polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%)' }}
                         >
@@ -893,10 +874,10 @@ export default function KompetisiPage() {
                         </span>
                       )}
                       <button onClick={() => handleToggleActive(comp)}
-                        className={`p-2 transition-colors cursor-pointer ${comp.isActive === '1' ? 'text-slate-400 hover:text-amber-600' : 'text-amber-500 hover:text-green-600'}`}
-                        title={comp.isActive === '1' ? 'Nonaktifkan' : 'Aktifkan'}
+                        className={`p-2 transition-colors cursor-pointer ${comp.isActive ? 'text-slate-400 hover:text-amber-600' : 'text-amber-500 hover:text-green-600'}`}
+                        title={comp.isActive ? 'Nonaktifkan' : 'Aktifkan'}
                       >
-                        {comp.isActive === '1' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {comp.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button onClick={() => handleEdit(comp)}
                         className="p-2 text-slate-400 hover:text-astro-cyan transition-colors cursor-pointer" title="Edit"

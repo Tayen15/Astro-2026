@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Pencil, Trash2, X, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import Pagination from '@/components/Pagination';
+import { useUsers, queryKeys } from '@/src/lib/hooks/use-queries';
+import { apiHelpers } from '@/src/lib/api';
 
 const PAGE_SIZE = 10;
 
@@ -17,24 +20,50 @@ interface User {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const { data: usersData, isLoading: loading } = useUsers();
+  const users = (usersData as any)?.data ?? usersData ?? [];
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<{ mode: 'create' | 'edit'; user?: User } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchUsers = async () => {
-    const res = await fetch('/api/users');
-    const json = await res.json();
-    setUsers(json.data || []);
-    setLoading(false);
-  };
+  const invalidateUsers = () => qc.invalidateQueries({ queryKey: queryKeys.users.all });
 
-  useEffect(() => { fetchUsers(); }, []);
+  const createMutation = useMutation({
+    mutationFn: (body: { email: string; password: string; name: string; role: string }) =>
+      apiHelpers.users.create(body),
+    onSuccess: () => {
+      toast.success('User berhasil dibuat');
+      setModal(null);
+      invalidateUsers();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
 
-  const filtered = users.filter((u) =>
+  const updateMutation = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: { name: string; role: string } }) =>
+      apiHelpers.users.update(id, body),
+    onSuccess: () => {
+      toast.success('User berhasil diupdate');
+      setModal(null);
+      invalidateUsers();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiHelpers.users.remove(id),
+    onSuccess: () => {
+      toast.success('User berhasil dihapus');
+      setDeleteTarget(null);
+      invalidateUsers();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const filtered = users.filter((u: User) =>
     u.email.toLowerCase().includes(search.toLowerCase()) ||
     u.name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -46,22 +75,14 @@ export default function UsersPage() {
     setSaving(true);
     const form = new FormData(e.currentTarget);
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: form.get('email'),
-          password: form.get('password'),
-          name: form.get('name'),
-        }),
+      await createMutation.mutateAsync({
+        email: String(form.get('email')),
+        password: String(form.get('password')),
+        name: String(form.get('name')),
+        role: String(form.get('role') || 'participant'),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Gagal membuat user');
-      toast.success('User berhasil dibuat');
-      setModal(null);
-      fetchUsers();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      // handled by onError
     }
     setSaving(false);
   };
@@ -72,22 +93,15 @@ export default function UsersPage() {
     setSaving(true);
     const form = new FormData(e.currentTarget);
     try {
-      const res = await fetch('/api/users', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: modal.user.id,
-          name: form.get('name'),
-          role: form.get('role'),
-        }),
+      await updateMutation.mutateAsync({
+        id: modal.user.id,
+        body: {
+          name: String(form.get('name')),
+          role: String(form.get('role')),
+        },
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Gagal mengupdate user');
-      toast.success('User berhasil diupdate');
-      setModal(null);
-      fetchUsers();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      // handled by onError
     }
     setSaving(false);
   };
@@ -96,18 +110,9 @@ export default function UsersPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const res = await fetch('/api/users', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: deleteTarget.id }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Gagal menghapus user');
-      toast.success('User berhasil dihapus');
-      setDeleteTarget(null);
-      fetchUsers();
-    } catch (err: any) {
-      toast.error(err.message);
+      await deleteMutation.mutateAsync(deleteTarget.id);
+    } catch {
+      // handled by onError
     }
     setDeleting(false);
   };

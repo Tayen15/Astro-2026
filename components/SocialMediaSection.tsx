@@ -28,7 +28,6 @@ export default function SocialMediaSection() {
   const reduce = useReducedMotion();
 
   // Pure clean neutral sky studio background matching adjacent sections
-  const bgSkyColor = '#e0f2fe';
 
   return (
     <section

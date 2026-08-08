@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Trophy, Heart, FileText, ExternalLink, Users, Medal, Download, ChevronRight } from 'lucide-react';
+import { X, Trophy, Heart, FileText, ExternalLink, Medal, Download, ChevronRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface CertItem {
@@ -282,7 +282,7 @@ export default function WinnersModal({
                         </div>
                         <div>
                           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Juara 2</span>
-                          {grouped['2'].map((w, i) => (
+                          {grouped['2'].map((w) => (
                             <h3 key={w.id} className="text-base sm:text-lg font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
                           ))}
                         </div>
@@ -305,7 +305,7 @@ export default function WinnersModal({
                         </div>
                         <div>
                           <span className="text-xs font-black text-amber-700 uppercase tracking-widest block mb-1">Juara 1</span>
-                          {grouped['1'].map((w, i) => (
+                          {grouped['1'].map((w) => (
                             <h3 key={w.id} className="text-lg sm:text-xl font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
                           ))}
                         </div>
@@ -328,7 +328,7 @@ export default function WinnersModal({
                         </div>
                         <div>
                           <span className="text-xs font-bold text-amber-900/70 uppercase tracking-wider block mb-1">Juara 3</span>
-                          {grouped['3'].map((w, i) => (
+                          {grouped['3'].map((w) => (
                             <h3 key={w.id} className="text-base sm:text-lg font-black text-slate-900 leading-snug">{getWinnerName(w)}</h3>
                           ))}
                         </div>

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Camera, X, ChevronLeft, ChevronRight, Heart, Share2, ZoomIn } from 'lucide-react';
+import { Camera, X, ChevronLeft, ChevronRight, Heart, ZoomIn } from 'lucide-react';
+import { apiHelpers } from '@/src/lib/api';
 
 const MotionImage = motion.create(Image);
 
@@ -33,11 +34,12 @@ export default function EventGallerySection() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/gallery').then(r => r.json()),
-      fetch('/api/gallery-categories').then(r => r.json()),
+      apiHelpers.galleryPhotos.list({ page: 1, pageSize: 100 }),
+      apiHelpers.galleryCategories.list(),
     ]).then(([gData, cData]) => {
-      setPhotos(gData.data || []);
-      setCategories(cData.data || []);
+      const list = Array.isArray(gData) ? gData : (gData as any)?.data ?? [];
+      setPhotos(list);
+      setCategories(cData);
     }).catch(() => {});
   }, []);
 
@@ -74,6 +76,7 @@ export default function EventGallerySection() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPhotoIndex]);
 
   return (

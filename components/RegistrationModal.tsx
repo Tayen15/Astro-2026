@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { X, Loader2, CheckCircle2, MessageCircle, Copy, Check, Trophy } from 'lucide-react';
+import { X, Loader2, CheckCircle2, MessageCircle, Copy, Check } from 'lucide-react';
 import type { Competition } from '@/types/astro';
+import { apiHelpers } from '@/src/lib/api';
 
 interface Props {
   competition: Competition | null;
@@ -114,26 +115,19 @@ export default function RegistrationModal({ competition, onClose }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/registrations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          competitionId: competition.id,
-          type: isTeam ? 'team' : 'individual',
-          fullName: formData.fullName || null,
-          identityNumber: formData.identityNumber || null,
-          teamName: formData.teamName || null,
-          leaderName: formData.leaderName || null,
-          leaderIdentity: formData.leaderIdentity || null,
-          members: formData.members || null,
-          institution: formData.institution,
-          email: formData.email,
-          whatsapp: formData.whatsapp,
-          paymentAmount: competition.fee,
-        }),
+      await apiHelpers.registrations.create({
+        competitionId: competition.id,
+        type: isTeam ? 'team' : 'individual',
+        fullName: formData.fullName || null,
+        identityNumber: formData.identityNumber || null,
+        teamName: formData.teamName || null,
+        leaderName: formData.leaderName || null,
+        leaderIdentity: formData.leaderIdentity || null,
+        members: formData.members || null,
+        institution: formData.institution,
+        email: formData.email,
+        whatsapp: formData.whatsapp,
       });
-
-      if (!res.ok) throw new Error('Gagal mendaftar');
 
       setLoading(false);
       setIsSuccess(true);

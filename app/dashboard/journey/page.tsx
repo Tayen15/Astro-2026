@@ -1,28 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Loader2, Plus, Pencil, X, Check, Trash2, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Plus, Pencil, X, Check, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import { useJourneys, queryKeys } from '@/src/lib/hooks/use-queries';
+import { apiHelpers } from '@/src/lib/api';
 
 interface Journey {
   id: string;
   theme: string;
-  participants: number;
-  universities: number;
-  competitionsCount: number;
+  participants: number | null;
+  universities: number | null;
+  competitionsCount: number | null;
   achievement: string | null;
   description: string | null;
   highlights: string[] | null;
+  isActive: string | null;
   sortOrder: number | null;
+  createdAt: Date;
 }
 
 const PAGE_SIZE = 10;
 
 export default function JourneyPage() {
-  const [items, setItems] = useState<Journey[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const { data: itemsData, isLoading: loading } = useJourneys();
+  const items = itemsData ?? [];
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,21 +41,35 @@ export default function JourneyPage() {
     sortOrder: 0,
   });
 
-  const fetchData = async () => {
-    const res = await fetch('/api/journeys');
-    setItems((await res.json()).data || []);
-    setLoading(false);
-  };
+  const invalidate = () => qc.invalidateQueries({ queryKey: queryKeys.journeys.all });
 
-  useEffect(() => { fetchData(); }, []);
+  const saveMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      editingId
+        ? apiHelpers.journeys.update(editingId, body)
+        : apiHelpers.journeys.create(body),
+    onSuccess: () => {
+      setForm({ id: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 });
+      setEditingId(null); setShowAdd(false);
+      toast.success(editingId ? 'Journey diperbarui' : 'Journey ditambahkan');
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menyimpan'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiHelpers.journeys.remove(id),
+    onSuccess: () => { toast.success('Journey dihapus'); setDeleteModal(null); invalidate(); },
+    onError: () => toast.error('Gagal menghapus'),
+  });
 
   const handleEdit = (item: Journey) => {
     setForm({
       id: item.id,
       theme: item.theme,
-      participants: item.participants,
-      universities: item.universities,
-      competitionsCount: item.competitionsCount,
+      participants: item.participants || 0,
+      universities: item.universities || 0,
+      competitionsCount: item.competitionsCount || 0,
       achievement: item.achievement || '',
       description: item.description || '',
       highlights: item.highlights?.join('\n') || '',
@@ -71,19 +91,7 @@ export default function JourneyPage() {
         sortOrder: Number(form.sortOrder),
         highlights: form.highlights.split('\n').filter(s => s.trim()),
       };
-      if (editingId) {
-        await fetch('/api/journeys/' + editingId, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-        });
-      } else {
-        await fetch('/api/journeys', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-        });
-      }
-      setForm({ id: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 });
-      setEditingId(null); setShowAdd(false);
-      toast.success(editingId ? 'Journey diperbarui' : 'Journey ditambahkan');
-      fetchData();
+      await saveMutation.mutateAsync(body);
     } catch { toast.error('Gagal menyimpan'); }
     setSaving(false);
   };
@@ -92,9 +100,7 @@ export default function JourneyPage() {
     setDeleteModal({
       title: 'Hapus Journey', message: 'Yakin ingin menghapus "' + theme + '"?',
       onConfirm: async () => {
-        const res = await fetch('/api/journeys/' + id, { method: 'DELETE' });
-        if (!res.ok) { toast.error('Gagal menghapus'); return; }
-        toast.success('Journey dihapus'); setDeleteModal(null); fetchData();
+        await deleteMutation.mutateAsync(id);
       },
     });
   };
@@ -103,7 +109,7 @@ export default function JourneyPage() {
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-astro-cyan" /></div>;
 
-  const inp = (field: string) => `w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan`;
+  const inp = (_field: string) => `w-full px-3 py-2 border border-slate-200 text-sm mt-1 focus:outline-none focus:border-astro-cyan`;
 
   return (
     <div className="space-y-6">

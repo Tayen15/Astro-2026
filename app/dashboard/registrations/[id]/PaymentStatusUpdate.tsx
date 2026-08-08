@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Check } from 'lucide-react';
+import { apiHelpers } from '@/src/lib/api';
 
 interface Props {
   registrationId: string;
@@ -18,13 +19,7 @@ export default function PaymentStatusUpdate({ registrationId, currentStatus }: P
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/registrations/${registrationId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentStatus: status }),
-      });
-
-      if (!res.ok) throw new Error('Failed to update');
+      await apiHelpers.registrations.update(registrationId, { paymentStatus: status });
 
       setDone(true);
       router.refresh();

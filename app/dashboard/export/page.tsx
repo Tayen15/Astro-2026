@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
+import { ky } from '@/src/lib/eden';
 
 export default function ExportPage() {
   const [loading, setLoading] = useState(false);
@@ -10,7 +11,7 @@ export default function ExportPage() {
   const handleExport = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/export');
+      const res = await ky('/api/export');
       if (!res.ok) throw new Error('Export failed');
 
       const blob = await res.blob();

@@ -5,6 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts';
+import { apiHelpers } from '@/src/lib/api';
 
 interface ChartData {
   name: string;
@@ -19,12 +20,6 @@ interface StatusData {
 }
 
 const COLORS = ['#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
-const STATUS_COLORS: Record<string, string> = {
-  pending: '#f59e0b',
-  detecting: '#3b82f6',
-  paid: '#10b981',
-  failed: '#ef4444',
-};
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Pending',
@@ -41,13 +36,9 @@ export default function OverviewCharts() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch per competition stats
-        const compRes = await fetch('/api/registrations/stats');
-        if (compRes.ok) {
-          const compJson = await compRes.json();
-          setPerCompetition(compJson.perCompetition || []);
-          setStatusDistribution(compJson.statusDistribution || []);
-        }
+        const stats = await apiHelpers.registrations.stats();
+        setPerCompetition(stats.perCompetition || []);
+        setStatusDistribution(stats.statusDistribution || []);
       } catch {
         // fallback
       }

@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Loader2, Plus, Pencil, X, Check, Trash2, Image as ImageIcon, Tag } from 'lucide-react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Image from 'next/image';
+import { Loader2, Plus, Pencil, X, Check, Trash2, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import { useGalleryPhotos, useGalleryCategories, queryKeys } from '@/src/lib/hooks/use-queries';
+import { apiHelpers } from '@/src/lib/api';
 
 interface GalleryItem {
   id: number;
@@ -26,9 +30,11 @@ const PAGE_SIZE = 10;
 const YEARS = ['ASTRO 2023', 'ASTRO 2024', 'ASTRO 2025', 'ASTRO 2026'];
 
 export default function GalleryPage() {
-  const [items, setItems] = useState<GalleryItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const { data: photosData, isLoading: loading } = useGalleryPhotos({ page: 1, pageSize: 100 });
+  const { data: categoriesData } = useGalleryCategories();
+  const items = Array.isArray(photosData) ? photosData : (photosData as any)?.data ?? [];
+  const categories = categoriesData ?? [];
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -41,25 +47,57 @@ export default function GalleryPage() {
 
   const [form, setForm] = useState({ title: '', category: '', imageUrl: '', year: 'ASTRO 2025', likesCount: 0, sortOrder: 0 });
 
-  const fetchData = async () => {
-    const [gRes, cRes] = await Promise.all([
-      fetch('/api/gallery'),
-      fetch('/api/gallery-categories'),
-    ]);
-    setItems((await gRes.json()).data || []);
-    setCategories((await cRes.json()).data || []);
-    setLoading(false);
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: queryKeys.galleryPhotos.all });
+    qc.invalidateQueries({ queryKey: queryKeys.galleryCategories.all });
   };
 
-  useEffect(() => { fetchData(); }, []);
+  const saveMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      editingId
+        ? apiHelpers.galleryPhotos.update(String(editingId), body)
+        : apiHelpers.galleryPhotos.create(body),
+    onSuccess: () => {
+      setForm({ title: '', category: categories[0]?.slug || '', imageUrl: '', year: 'ASTRO 2025', likesCount: 0, sortOrder: 0 });
+      setEditingId(null); setShowAdd(false);
+      toast.success(editingId ? 'Foto diperbarui' : 'Foto ditambahkan');
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menyimpan'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiHelpers.galleryPhotos.remove(String(id)),
+    onSuccess: () => { toast.success('Foto dihapus'); setDeleteModal(null); invalidate(); },
+    onError: () => toast.error('Gagal menghapus'),
+  });
+
+  const catSaveMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      catEditingId
+        ? apiHelpers.galleryCategories.update(String(catEditingId), body)
+        : apiHelpers.galleryCategories.create(body),
+    onSuccess: () => {
+      setCatForm({ name: '', slug: '' });
+      setCatEditingId(null);
+      toast.success(catEditingId ? 'Kategori diperbarui' : 'Kategori ditambahkan');
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menyimpan kategori'),
+  });
+
+  const catDeleteMutation = useMutation({
+    mutationFn: (id: number) => apiHelpers.galleryCategories.remove(String(id)),
+    onSuccess: () => {
+      toast.success('Kategori dihapus');
+      setCatEditingId(null);
+      setCatForm({ name: '', slug: '' });
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menghapus kategori'),
+  });
 
   // Auto-set first category
-  useEffect(() => {
-    if (categories.length > 0 && !form.category) {
-      setForm(f => ({ ...f, category: categories[0].slug }));
-    }
-  }, [categories]);
-
   const handleEdit = (item: GalleryItem) => {
     setForm({ title: item.title, category: item.category, imageUrl: item.imageUrl, year: item.year, likesCount: item.likesCount, sortOrder: item.sortOrder || 0 });
     setEditingId(item.id);
@@ -72,19 +110,7 @@ export default function GalleryPage() {
     setSaving(true);
     try {
       const body = { ...form, likesCount: Number(form.likesCount), sortOrder: Number(form.sortOrder) };
-      if (editingId) {
-        await fetch('/api/gallery/' + editingId, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-        });
-      } else {
-        await fetch('/api/gallery', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-        });
-      }
-      setForm({ title: '', category: categories[0]?.slug || '', imageUrl: '', year: 'ASTRO 2025', likesCount: 0, sortOrder: 0 });
-      setEditingId(null); setShowAdd(false);
-      toast.success(editingId ? 'Foto diperbarui' : 'Foto ditambahkan');
-      fetchData();
+      await saveMutation.mutateAsync(body);
     } catch { toast.error('Gagal menyimpan'); }
     setSaving(false);
   };
@@ -93,9 +119,7 @@ export default function GalleryPage() {
     setDeleteModal({
       title: 'Hapus Foto', message: 'Yakin ingin menghapus "' + title + '"?',
       onConfirm: async () => {
-        const res = await fetch('/api/gallery/' + id, { method: 'DELETE' });
-        if (!res.ok) { toast.error('Gagal menghapus'); return; }
-        toast.success('Foto dihapus'); setDeleteModal(null); fetchData();
+        await deleteMutation.mutateAsync(id);
       },
     });
   };
@@ -104,19 +128,7 @@ export default function GalleryPage() {
     if (!catForm.name || !catForm.slug) { toast.error('Nama dan slug wajib diisi'); return; }
     setCatSaving(true);
     try {
-      if (catEditingId) {
-        await fetch('/api/gallery-categories', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: catEditingId, ...catForm }),
-        });
-      } else {
-        await fetch('/api/gallery-categories', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catForm),
-        });
-      }
-      setCatForm({ name: '', slug: '' });
-      setCatEditingId(null);
-      toast.success(catEditingId ? 'Kategori diperbarui' : 'Kategori ditambahkan');
-      fetchData();
+      await catSaveMutation.mutateAsync(catForm);
     } catch { toast.error('Gagal menyimpan kategori'); }
     setCatSaving(false);
   };
@@ -127,12 +139,7 @@ export default function GalleryPage() {
   };
 
   const handleCatDelete = async (id: number) => {
-    const res = await fetch('/api/gallery-categories?id=' + id, { method: 'DELETE' });
-    if (!res.ok) { toast.error('Gagal menghapus kategori'); return; }
-    toast.success('Kategori dihapus');
-    setCatEditingId(null);
-    setCatForm({ name: '', slug: '' });
-    fetchData();
+    await catDeleteMutation.mutateAsync(id);
   };
 
   const paginated = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -251,12 +258,10 @@ export default function GalleryPage() {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    const fd = new FormData();
-                    fd.append('file', file);
                     try {
-                      const res = await fetch('/api/upload', { method: 'POST', body: fd });
-                      const json = await res.json();
-                      if (json.url) setForm({ ...form, imageUrl: json.url });
+                      const uploadRes = await apiHelpers.upload(file);
+                      const url = (uploadRes as any)?.url;
+                      if (url) setForm({ ...form, imageUrl: url });
                     } catch { console.error('Upload failed'); }
                   }} />
               </label>
@@ -269,7 +274,7 @@ export default function GalleryPage() {
           {form.imageUrl && (
             <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
               style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-              <img src={form.imageUrl} alt="Preview" className="w-16 h-12 object-cover rounded" />
+              <Image src={form.imageUrl} alt="Preview" width={64} height={48} unoptimized className="w-16 h-12 object-cover rounded" />
               <span className="text-xs text-slate-500">Preview</span>
               <button onClick={() => setForm({ ...form, imageUrl: '' })}
                 className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
@@ -295,7 +300,7 @@ export default function GalleryPage() {
           <div key={item.id} className="bg-white border border-slate-200 relative p-4 flex items-center justify-between group"
             style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
             <div className="flex items-center gap-3">
-              {item.imageUrl && <img src={item.imageUrl} alt="" className="w-12 h-9 object-cover rounded" />}
+              {item.imageUrl && <Image src={item.imageUrl} alt="" width={48} height={36} unoptimized className="w-12 h-9 object-cover rounded" />}
               <div>
                 <span className="text-sm font-bold text-slate-900">{item.title}</span>
                 <div className="flex gap-2 mt-0.5">

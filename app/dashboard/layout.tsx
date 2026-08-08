@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/src/db/supabase/server';
+import { headers } from 'next/headers';
+import { auth } from '@/src/server/auth';
 import DashboardShell from './DashboardShell';
 
 export default async function DashboardLayout({
@@ -7,30 +8,26 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!user) {
+  if (!session) {
     redirect('/login');
   }
 
-  // Get user role from our users table
-  const { db } = await import('@/src/db');
-  const userRecord = await db.query.users.findFirst({
-    where: (users: any, { eq }: any) => eq(users.id, user.id),
-  });
-
-  const role = userRecord?.role || 'participant';
+  const role = session.user.role || 'participant';
 
   // Only admin can access dashboard
   if (role !== 'admin') {
     redirect('/');
   }
 
-  const userName = userRecord?.name || user.email?.split('@')[0] || 'User';
+  const userName =
+    session.user.name || session.user.email?.split('@')[0] || 'User';
 
   return (
-    <DashboardShell role={role} userName={userName} userEmail={user.email!}>
+    <DashboardShell role={role} userName={userName} userEmail={session.user.email}>
       {children}
     </DashboardShell>
   );

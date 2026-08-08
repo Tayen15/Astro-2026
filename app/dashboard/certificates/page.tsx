@@ -1,18 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Loader2, Search, Trophy, Award, Check, X, Send, Users, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Trophy, Check, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import Pagination from '@/components/Pagination';
-
-interface Competition {
-  id: string;
-  title: string;
-  certificateEnabled: string;
-  certificateType: string;
-  certificateTemplate: string | null;
-}
+import { useCompetitions, useRegistrations, queryKeys } from '@/src/lib/hooks/use-queries';
+import { apiHelpers } from '@/src/lib/api';
 
 interface Registration {
   id: string;
@@ -29,51 +23,55 @@ interface Registration {
 const PAGE_SIZE = 10;
 
 export default function SertifikatPage() {
-  const router = useRouter();
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const qc = useQueryClient();
   const [selectedComp, setSelectedComp] = useState<string>('');
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    fetch('/api/competitions')
-      .then(r => r.json())
-      .then(json => {
-        const filtered = (json.data || []).filter((c: Competition) => c.certificateEnabled === '1');
-        setCompetitions(filtered);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data: compsData, isLoading: loading } = useCompetitions();
+  const competitions = (compsData ?? []).filter(
+    (c: any) => c.certificateEnabled === '1' || c.certificateEnabled === true,
+  );
 
-  useEffect(() => {
-    if (!selectedComp) return;
-    fetch('/api/registrations?lomba=' + selectedComp)
-      .then(r => r.json())
-      .then(json => {
-        // Only show paid registrations
-        const paid = (json.data || []).filter((r: any) => r.paymentStatus === 'paid');
-        setRegistrations(paid);
-      })
-      .catch(() => {});
-  }, [selectedComp]);
+  const { data: regPage } = useRegistrations(
+    selectedComp ? { competitionId: selectedComp, pageSize: 100 } : {},
+  );
+  const registrations = selectedComp
+    ? (Array.isArray(regPage) ? regPage : (regPage as any)?.data ?? []).filter(
+        (r: any) => r.paymentStatus === 'paid',
+      )
+    : [];
+
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: queryKeys.registrations.list({ competitionId: selectedComp }) });
+
+  const winnerMutation = useMutation({
+    mutationFn: ({ regId, rank }: { regId: string; rank: string | null }) =>
+      apiHelpers.registrations.update(regId, {
+        isWinner: rank ? '1' : '0',
+        winnerRank: rank,
+      }),
+    onSuccess: (_d, v) => {
+      toast.success(v.rank ? 'Ditandai sebagai juara ' + v.rank : 'Juara dibatalkan');
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menyimpan'),
+  });
+
+  const sendMutation = useMutation({
+    mutationFn: (regId: string) =>
+      apiHelpers.certificates.send({ registrationId: regId, competitionId: selectedComp }),
+    onSuccess: (_d, regId) => {
+      const reg = registrations.find((r: any) => r.id === regId);
+      toast.success('Sertifikat dikirim ke ' + (reg?.email ?? ''));
+      invalidate();
+    },
+    onError: () => toast.error('Gagal mengirim sertifikat'),
+  });
 
   const toggleWinner = async (regId: string, rank: string | null) => {
-    const isWinner = rank ? '1' : '0';
     try {
-      const res = await fetch('/api/registrations/' + regId, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isWinner, winnerRank: rank }),
-      });
-      if (!res.ok) throw new Error();
-      toast.success(rank ? 'Ditandai sebagai juara ' + rank : 'Juara dibatalkan');
-      // Refresh
-      const r = await fetch('/api/registrations?lomba=' + selectedComp);
-      const json = await r.json();
-      setRegistrations((json.data || []).filter((r: any) => r.paymentStatus === 'paid'));
+      await winnerMutation.mutateAsync({ regId, rank });
     } catch {
       toast.error('Gagal menyimpan');
     }
@@ -82,21 +80,7 @@ export default function SertifikatPage() {
   const sendCertificate = async (reg: Registration) => {
     setSending(true);
     try {
-      const res = await fetch('/api/certificates/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          registrationId: reg.id,
-          competitionId: selectedComp,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) { toast.error(json.error || 'Gagal'); return; }
-      toast.success('Sertifikat dikirim ke ' + reg.email);
-      // Refresh
-      const r = await fetch('/api/registrations?lomba=' + selectedComp);
-      const j = await r.json();
-      setRegistrations((j.data || []).filter((r: any) => r.paymentStatus === 'paid'));
+      await sendMutation.mutateAsync(reg.id);
     } catch {
       toast.error('Gagal mengirim sertifikat');
     }

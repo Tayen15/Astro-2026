@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
+import { apiHelpers } from '@/src/lib/api';
 
 const MotionImage = motion.create(Image);
 
@@ -27,13 +28,11 @@ export default function SponsorSection() {
   const [mediaPartners, setMediaPartners] = useState<MediaPartnerItem[]>([]);
 
   useEffect(() => {
-    fetch('/api/sponsors')
-      .then(r => r.json())
-      .then(json => setSponsors(json.data || []))
+    apiHelpers.sponsors.list()
+      .then(setSponsors)
       .catch(() => {});
-    fetch('/api/media-partners')
-      .then(r => r.json())
-      .then(json => setMediaPartners(json.data || []))
+    apiHelpers.mediaPartners.list()
+      .then(setMediaPartners)
       .catch(() => {});
   }, []);
 

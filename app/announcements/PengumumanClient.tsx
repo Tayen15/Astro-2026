@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
-import { Search, Eye, ExternalLink, FileText, Loader2 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Search, Eye, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import WinnersModal from './WinnersModal';
+import { apiHelpers } from '@/src/lib/api';
 
 type CategoryType = 'akademik' | 'olahraga' | 'esports';
 
@@ -51,7 +52,6 @@ export default function PengumumanClient({
 }: {
   competitions: CompetitionItem[];
 }) {
-  const reduce = useReducedMotion();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
   const [modalOpen, setModalOpen] = useState<string | null>(null);
@@ -83,8 +83,7 @@ export default function PengumumanClient({
     setModalOpen(comp.id);
     setLoadingModal(true);
     try {
-      const res = await fetch(`/api/registrations/winners?competitionId=${comp.id}`);
-      const json = await res.json();
+      const json = await apiHelpers.registrations.winners(comp.id);
       setModalData({
         competition: comp,
         winners: json.winners || [],

@@ -114,14 +114,14 @@ export default function CompetitionCard({ competition, index }: Props) {
         {/* Actions */}
         <div className="flex items-center gap-2 mt-1">
           <Link
-            href={`/lomba/${competition.id}`}
+            href={`/competitions/${competition.id}`}
             className="flex-1 py-2.5 text-[10px] font-bold tracking-[0.1em] uppercase text-slate-655 border border-slate-200 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200 ease-in-out cursor-pointer text-center block"
             style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
           >
             Detail
           </Link>
           <button
-            onClick={() => router.push(`/daftar/${competition.id}`)}
+            onClick={() => router.push(`/register/${competition.id}`)}
             className="flex-1 py-2.5 text-[10px] font-black tracking-[0.1em] uppercase text-slate-950 bg-astro-cyan hover:bg-cyan-400 text-center transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
             style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}
           >

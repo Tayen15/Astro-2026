@@ -1,7 +1,7 @@
 import { db } from '@/src/db';
 import { competitions, faqs as faqsTable } from '@/src/db/schema';
 import { desc } from 'drizzle-orm';
-import type { AstroData, Competition } from '@/types/astro';
+import type { AstroData } from '@/types/astro';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import StatsBar from '@/components/StatsBar';
@@ -22,7 +22,7 @@ export default async function Home() {
   try {
     dbCompetitions = await db.select().from(competitions);
     dbFaqs = await db.select().from(faqsTable).orderBy(desc(faqsTable.sortOrder));
-  } catch (e) {
+  } catch {
     // DB not available, use JSON
   }
 

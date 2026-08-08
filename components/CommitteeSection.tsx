@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion, AnimatePresence } from 'motion/react';
 import { Users } from 'lucide-react';
+import { apiHelpers } from '@/src/lib/api';
 
 const MotionImage = motion.create(Image);
 
@@ -16,11 +17,9 @@ export default function CommitteeSection() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/committee').then(r => r.json()),
-      fetch('/api/committee-divisions').then(r => r.json()),
-    ]).then(([memData, divData]) => {
-      const memberList = memData.data || [];
-      const divList = (divData.data || []);
+      apiHelpers.committeeMembers.list(),
+      apiHelpers.committeeDivisions.list(),
+    ]).then(([memberList, divList]) => {
       setMembers(memberList);
 
       // Build division display list from divisions API
@@ -61,6 +60,7 @@ export default function CommitteeSection() {
       setDivisions(merged);
       if (merged.length > 0 && !activeDivision) setActiveDivision(merged[0].slug);
     }).catch(() => {});
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredMembers = members.filter((m) => m.division === activeDivision);

@@ -8,17 +8,19 @@ import {
   Trophy, Building2
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { createClient } from '@/src/db/supabase/client';
+import { useSession, signOut } from '@/src/lib/auth-client';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+
+  const { data: session } = useSession();
+  const isLoggedIn = !!session;
+  const userRole = session?.user?.role ?? null;
 
   const isProfilePage = pathname.startsWith('/profile');
 
@@ -26,22 +28,6 @@ export default function Navbar() {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    // Check login state and role
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsLoggedIn(!!user);
-      if (user) {
-        fetch('/api/auth/me')
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.data?.role) setUserRole(data.data.role);
-          })
-          .catch(() => {});
-      }
-    });
   }, []);
 
   useEffect(() => {
@@ -83,8 +69,7 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     setIsDropdownOpen(false);
     router.replace('/login');
   };
@@ -105,11 +90,11 @@ export default function Navbar() {
         { label: 'GALLERY', href: '#gallery' },
         { label: 'MEDIA', href: '#social' },
         { label: 'PANITIA', href: '#committee' },
-        { label: 'PENGUMUMAN', href: '/pengumuman' },
+        { label: 'PENGUMUMAN', href: '/announcements' },
       ]
     : [
         { label: 'KOMPETISI', href: '#competitions' },
-        { label: 'PENGUMUMAN', href: '/pengumuman' },
+        { label: 'PENGUMUMAN', href: '/announcements' },
         { label: 'TIMELINE', href: '#timeline' },
         { label: 'FAQ', href: '#faq' },
       ];
@@ -216,7 +201,7 @@ export default function Navbar() {
                     className="absolute right-0 mt-2 w-44 bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200 shadow-xl overflow-hidden"
                   >
                     <button
-                      onClick={() => { router.push('/cek-pendaftaran'); setIsDropdownOpen(false); }}
+                      onClick={() => { router.push('/check-registration'); setIsDropdownOpen(false); }}
                       className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-semibold tracking-wider uppercase text-slate-700 hover:text-slate-950 hover:bg-sky-50 transition-all duration-200 cursor-pointer text-left"
                     >
                       <Search className="w-3.5 h-3.5" /> Cek Pendaftaran
@@ -366,7 +351,7 @@ export default function Navbar() {
                     {isLoggedIn ? (
                       <>
                         <button
-                          onClick={() => { router.push('/cek-pendaftaran'); setIsMobileOpen(false); }}
+                          onClick={() => { router.push('/check-registration'); setIsMobileOpen(false); }}
                           className="flex items-center gap-3 w-full px-3.5 py-3 text-xs font-bold tracking-wider text-left text-slate-700 hover:text-sky-700 hover:bg-white rounded-lg transition-all"
                         >
                           <Search className="w-4 h-4 text-slate-400" />
@@ -383,8 +368,7 @@ export default function Navbar() {
                         )}
                         <button
                           onClick={async () => {
-                            const supabase = createClient();
-                            await supabase.auth.signOut();
+                            await signOut();
                             setIsMobileOpen(false);
                             router.replace('/login');
                           }}

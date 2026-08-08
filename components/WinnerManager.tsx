@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Loader2, Trophy, Award, Check, X, Send, Users, Mail,
-  Upload, ExternalLink, Save, Plus, FileText,
+  Upload, ExternalLink, Save, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Pagination from '@/components/Pagination';
+import { apiHelpers } from '@/src/lib/api';
 
 const PAGE_SIZE = 5;
 
@@ -52,9 +53,9 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
 
   const fetchRegistrations = useCallback(async () => {
     try {
-      const res = await fetch(`/api/registrations?lomba=${competitionId}`);
-      const json = await res.json();
-      const data: Registration[] = (json.data || []);
+      const res = await apiHelpers.registrations.list({ competitionId, pageSize: 100 });
+      const list = Array.isArray(res) ? res : (res as any)?.data ?? [];
+      const data: Registration[] = list;
       const seen = new Set<string>();
       const paid = data.filter((r) => {
         if (r.paymentStatus !== 'paid') return false;
@@ -89,25 +90,18 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
     }
 
     setNewCert((prev) => ({ ...prev, [regId]: { name, uploading: true } }));
-    const fd = new FormData();
-    fd.append('file', file);
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      const json = await res.json();
-      if (!json.url) { toast.error(json.error || 'Gagal upload'); setNewCert((prev) => ({ ...prev, [regId]: { name, uploading: false } })); return; }
+      const uploadRes = await apiHelpers.upload(file);
+      const url = (uploadRes as any)?.url;
+      if (!url) { toast.error('Gagal upload'); setNewCert((prev) => ({ ...prev, [regId]: { name, uploading: false } })); return; }
 
       // Get current certs
       const reg = registrations.find((r) => r.id === regId);
       const current = reg?.certificates || [];
-      const updated = [...current, { name, url: json.url }];
+      const updated = [...current, { name, url }];
 
       // Save to server immediately
-      const saveRes = await fetch(`/api/registrations/${regId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ certificates: updated }),
-      });
-      if (!saveRes.ok) throw new Error();
+      await apiHelpers.registrations.update(regId, { certificates: updated });
       toast.success(`Sertifikat untuk "${name}" berhasil ditambahkan`);
       await fetchRegistrations();
       setNewCert((prev) => {
@@ -126,12 +120,7 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
     if (!reg) return;
     const updated = reg.certificates.filter((c) => c.url !== certUrl);
     try {
-      const res = await fetch(`/api/registrations/${regId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ certificates: updated }),
-      });
-      if (!res.ok) throw new Error();
+      await apiHelpers.registrations.update(regId, { certificates: updated });
       toast.success('Sertifikat dihapus');
       await fetchRegistrations();
     } catch {
@@ -168,13 +157,13 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
     let fail = 0;
     for (const [regId, change] of entries) {
       try {
-        const res = await fetch(`/api/registrations/${regId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isWinner: change.isWinner, winnerRank: change.winnerRank }),
+        // Sequential PATCHes keep the success/fail count deterministic
+        // oxlint-disable-next-line no-await-in-loop
+        await apiHelpers.registrations.update(regId, {
+          isWinner: change.isWinner,
+          winnerRank: change.winnerRank,
         });
-        if (res.ok) success++;
-        else fail++;
+        success++;
       } catch { fail++; }
     }
     if (fail === 0) toast.success(`Semua ${success} perubahan berhasil disimpan`);
@@ -187,13 +176,7 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
   // ─── Send Certificate Email ───
   const sendCertificate = async (reg: Registration) => {
     try {
-      const res = await fetch('/api/certificates/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registrationId: reg.id, competitionId }),
-      });
-      const json = await res.json();
-      if (!res.ok) { toast.error(json.error || 'Gagal'); return; }
+      await apiHelpers.certificates.send({ registrationId: reg.id, competitionId });
       toast.success('Sertifikat berhasil dikirim ke ' + reg.email);
       await fetchRegistrations();
     } catch {

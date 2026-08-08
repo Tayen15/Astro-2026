@@ -20,6 +20,7 @@ import {
   FileText,
   MessageCircle,
 } from 'lucide-react';
+import { apiHelpers } from '@/src/lib/api';
 
 const MotionImage = motion.create(Image);
 
@@ -123,29 +124,23 @@ export default function CompetitionDetailPage() {
   const [competition, setCompetition] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [timeline, setTimeline] = useState<any[]>([]);
-  const [timelineLoading, setTimelineLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/competitions/${id}`)
-      .then((r) => r.json())
-      .then((json) => {
-        if (!json.data) {
+    apiHelpers.competitions.get(id)
+      .then((data) => {
+        if (!data) {
           notFound();
         } else {
-          setCompetition(toCompetition(json.data));
+          setCompetition(toCompetition(data));
         }
       })
       .catch(() => notFound())
       .finally(() => setLoading(false));
 
     // Fetch timeline dari API
-    fetch(`/api/competitions/${id}/timeline`)
-      .then((r) => r.json())
-      .then((json) => {
-        setTimeline(json.data || []);
-      })
-      .catch(() => {})
-      .finally(() => setTimelineLoading(false));
+    apiHelpers.competitions.timeline(id)
+      .then(setTimeline)
+      .catch(() => {});
   }, [id]);
 
   if (loading) return <DetailSkeleton />;

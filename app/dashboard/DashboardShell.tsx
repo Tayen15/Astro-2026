@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { createClient } from '@/src/db/supabase/client';
+import { signOut } from '@/src/lib/auth-client';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -30,14 +30,13 @@ interface Props {
   userEmail: string;
 }
 
-export default function DashboardShell({ children, role, userName, userEmail }: Props) {
+export default function DashboardShell({ children, role, userName }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.replace('/login');
   };
 
@@ -46,13 +45,13 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
     ...(role === 'admin' ? [
       { href: '/dashboard/registrations', label: 'Pendaftaran', icon: ClipboardList },
       { href: '/dashboard/users', label: 'User', icon: Users },
-      { href: '/dashboard/kompetisi', label: 'Kompetisi', icon: Trophy },
+      { href: '/dashboard/competitions', label: 'Kompetisi', icon: Trophy },
       { href: '/dashboard/faq', label: 'FAQ', icon: HelpCircle },
       { href: '/dashboard/sponsor', label: 'Sponsor', icon: Star },
       { href: '/dashboard/journey', label: 'Journey', icon: Calendar },
       { href: '/dashboard/gallery', label: 'Gallery', icon: ImageIcon },
       { href: '/dashboard/committee', label: 'Committee', icon: Users },
-      { href: '/dashboard/sertifikat', label: 'Sertifikat', icon: Award },
+      { href: '/dashboard/certificates', label: 'Sertifikat', icon: Award },
       { href: '/dashboard/export', label: 'Export Data', icon: Download },
     ] : []),
     { href: '/dashboard/profile', label: 'Profil', icon: User },
@@ -162,12 +161,12 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
 
           <div className="flex-1" />
 
-          <a
+          <Link
             href="/"
             className="text-xs text-slate-500 hover:text-astro-cyan transition-colors uppercase tracking-wider font-bold"
           >
             Lihat Website
-          </a>
+          </Link>
         </header>
 
         {/* Content */}

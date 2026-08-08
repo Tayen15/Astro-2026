@@ -234,7 +234,7 @@ export default function CompetitionModal({ competition, onClose }: Props) {
               <button
                 onClick={() => {
                   onClose();
-                  router.push(`/daftar/${competition.id}`);
+                  router.push(`/register/${competition.id}`);
                 }}
                 className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-base transition-all duration-200 ease-in-out shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] active:scale-95 cursor-pointer"
               >

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/src/db/supabase/client';
+import { authClient } from '@/src/lib/auth-client';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
@@ -21,29 +21,24 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const supabase = createClient();
-
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    const { error: authError } = await authClient.signIn.email({
       email,
       password,
     });
 
     if (authError) {
-      setError(authError.message === 'Invalid login credentials'
-        ? 'Email atau password salah'
-        : authError.message
+      setError(
+        authError.message?.toLowerCase().includes('invalid')
+          ? 'Email atau password salah'
+          : authError.message || 'Terjadi kesalahan',
       );
       setLoading(false);
       return;
     }
 
-    // Check role from users table
-    let isAdmin = false;
-    try {
-      const meRes = await fetch('/api/auth/me');
-      const meJson = await meRes.json();
-      isAdmin = meJson.data?.role === 'admin';
-    } catch {}
+    // Check role from session
+    const { data: session } = await authClient.getSession();
+    const isAdmin = session?.user?.role === 'admin';
 
     if (isAdmin) {
       router.replace('/dashboard');

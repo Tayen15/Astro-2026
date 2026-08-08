@@ -1,28 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/src/db/supabase/client';
+import { authClient } from '@/src/lib/auth-client';
 import { Loader2, Check, Save } from 'lucide-react';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [saving, setSaving] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
-      if (u) {
-        setUser(u);
-        setEmail(u.email || '');
+    authClient.getSession().then(({ data: session }) => {
+      if (session?.user) {
+        setUser(session.user);
       }
       setLoading(false);
     });
@@ -45,27 +40,14 @@ export default function ProfilePage() {
     }
 
     setSaving(true);
-    const supabase = createClient();
 
-    // Re-authenticate first
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: currentPassword,
-    });
-
-    if (signInError) {
-      setMessage('Password saat ini salah');
-      setMessageType('error');
-      setSaving(false);
-      return;
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
+    const { error } = await authClient.changePassword({
+      currentPassword,
+      newPassword,
     });
 
     if (error) {
-      setMessage(error.message);
+      setMessage(error.message || 'Password saat ini salah');
       setMessageType('error');
     } else {
       setMessage('Password berhasil diubah!');
@@ -73,32 +55,6 @@ export default function ProfilePage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    }
-    setSaving(false);
-  };
-
-  const handleUpdateEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage('');
-
-    setSaving(true);
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.updateUser({
-      data: { email_updated: true },
-    });
-
-    // For email change, Supabase sends a confirmation email
-    const { error: emailError } = await supabase.auth.updateUser({
-      email: email,
-    });
-
-    if (emailError) {
-      setMessage(emailError.message);
-      setMessageType('error');
-    } else {
-      setMessage('Email berhasil diubah!');
-      setMessageType('success');
     }
     setSaving(false);
   };

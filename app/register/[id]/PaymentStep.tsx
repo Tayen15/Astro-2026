@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Copy,
   Check,
-  MessageCircle,
   ArrowLeft,
   Building2,
   Receipt,
@@ -74,7 +73,7 @@ function generateQrisPayload(reference: string, amount: number) {
 
 const SIMULATION_DURATION = 18; // seconds before auto-detect paid
 
-export default function PaymentStep({ competition, formData, isTeam, registrationId, paymentReference, onBack }: Props) {
+export default function PaymentStep({ competition, paymentReference, onBack }: Props) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'detecting' | 'paid'>('pending');
@@ -106,38 +105,6 @@ export default function PaymentStep({ competition, formData, isTeam, registratio
     navigator.clipboard.writeText(bankInfo.accountNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const getWhatsAppLink = () => {
-    const phone = competition.contactPerson.whatsapp;
-    const name = competition.contactPerson.name;
-    let message = '';
-
-    if (isTeam) {
-      message = `Halo ${name}, saya ingin mengonfirmasi pembayaran pendaftaran ASTRO 2026 untuk lomba: *${competition.title}*.
-
-Detail Pendaftaran:
-- Nama Tim: ${formData.teamName}
-- Asal Sekolah/Instansi: ${formData.institution}
-- Nama Ketua: ${formData.leaderName}
-- Email Ketua: ${formData.email}
-- Nomor WhatsApp: ${formData.whatsapp}
-- Anggota Tim: ${formData.members}
-
-Terima kasih.`;
-    } else {
-      message = `Halo ${name}, saya ingin mengonfirmasi pembayaran pendaftaran ASTRO 2026 untuk lomba: *${competition.title}*.
-
-Detail Pendaftaran:
-- Nama Lengkap: ${formData.fullName}
-- Asal Sekolah/Instansi: ${formData.institution}
-- Email: ${formData.email}
-- Nomor WhatsApp: ${formData.whatsapp}
-
-Terima kasih.`;
-    }
-
-    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
   const qrisValue = generateQrisPayload(reference, competition.fee);
@@ -205,7 +172,7 @@ Terima kasih.`;
               transition={{ delay: 0.6 }}
             >
               <button
-                onClick={() => router.push('/cek-pendaftaran')}
+                onClick={() => router.push('/check-registration')}
                 className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-astro-cyan hover:bg-cyan-400 text-slate-950 font-black text-sm tracking-wider uppercase transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
                 style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
               >

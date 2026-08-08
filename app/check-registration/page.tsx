@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle, LogIn, Search, X, Building2, Phone, Mail, User, Users, CalendarDays, Coins, FileText, CreditCard } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle, LogIn, X, Building2, Phone, Mail, User, CalendarDays, Coins, FileText, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/src/db/supabase/client';
+import { authClient } from '@/src/lib/auth-client';
+import { apiHelpers } from '@/src/lib/api';
 import Navbar from '@/components/Navbar';
 
 const MotionImage = motion.create(Image);
@@ -53,12 +54,11 @@ export default function CekPendaftaranPage() {
   const [detailError, setDetailError] = useState('');
 
   const router = useRouter();
-  const reduce = useReducedMotion();
 
   useEffect(() => {
     async function fetchData() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: session } = await authClient.getSession();
+      const user = session?.user;
 
       if (!user?.email) {
         setLoading(false);
@@ -71,24 +71,24 @@ export default function CekPendaftaranPage() {
 
       try {
         // Fetch by both userId and email to cover all cases
-        const [byEmailRes, byUserRes] = await Promise.all([
-          fetch(`/api/registrations?search=${encodeURIComponent(user.email)}`),
-          user.id ? fetch(`/api/registrations?userId=${encodeURIComponent(user.id)}`) : Promise.resolve(null),
+        const [byEmail, byUser] = await Promise.all([
+          apiHelpers.registrations.list({ search: user.email, pageSize: 100 }),
+          user.id
+            ? apiHelpers.registrations.list({ userId: user.id, pageSize: 100 })
+            : Promise.resolve(null),
         ]);
 
-        const byEmail = await byEmailRes.json();
-        let combined = byEmail.data || [];
+        const emailList = Array.isArray(byEmail) ? byEmail : (byEmail as any)?.data ?? [];
+        let combined = emailList;
 
-        if (byUserRes) {
-          const byUser = await byUserRes.json();
-          if (byUser.data) {
-            // Merge and deduplicate by id
-            const ids = new Set(combined.map((r: any) => r.id));
-            for (const reg of byUser.data) {
-              if (!ids.has(reg.id)) {
-                combined.push(reg);
-                ids.add(reg.id);
-              }
+        if (byUser) {
+          const userList = Array.isArray(byUser) ? byUser : (byUser as any)?.data ?? [];
+          // Merge and deduplicate by id
+          const ids = new Set(combined.map((r: any) => r.id));
+          for (const reg of userList) {
+            if (!ids.has(reg.id)) {
+              combined.push(reg);
+              ids.add(reg.id);
             }
           }
         }
@@ -107,12 +107,11 @@ export default function CekPendaftaranPage() {
     setDetailError('');
     setSelectedReg(null);
     try {
-      const res = await fetch(`/api/registrations/${id}`);
-      const json = await res.json();
-      if (!json.data) throw new Error('Data tidak ditemukan');
+      const reg = await apiHelpers.registrations.get(id);
+      if (!reg) throw new Error('Data tidak ditemukan');
       const regItem = registrations?.find((r: any) => r.id === id);
-      const detail = {
-        ...json.data,
+      const detail: RegDetail = {
+        ...(reg as unknown as RegDetail),
         competitionName: regItem?.competitionName || '',
         competitionId: regItem?.competitionId || '',
         competitionCategory: '',
@@ -126,8 +125,7 @@ export default function CekPendaftaranPage() {
   };
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await authClient.signOut();
     router.push('/');
   };
 
@@ -287,7 +285,7 @@ export default function CekPendaftaranPage() {
                         <div className="flex items-center gap-2">
                           {reg.paymentStatus === 'pending' && (
                             <button
-                              onClick={() => router.push(`/daftar/${reg.competitionId}?regId=${reg.id}`)}
+                              onClick={() => router.push(`/register/${reg.competitionId}?regId=${reg.id}`)}
                               className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-500 uppercase tracking-wider transition-colors cursor-pointer"
                             >
                               <CreditCard className="w-3 h-3" /> Bayar
@@ -491,7 +489,7 @@ export default function CekPendaftaranPage() {
                     {selectedReg.paymentStatus === 'pending' && (
                       <div className="pt-2">
                         <button
-                          onClick={() => { setSelectedReg(null); router.push(`/daftar/${selectedReg.competitionId}?regId=${selectedReg.id}`); }}
+                          onClick={() => { setSelectedReg(null); router.push(`/register/${selectedReg.competitionId}?regId=${selectedReg.id}`); }}
                           className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs tracking-wider uppercase transition-all cursor-pointer"
                           style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
                         >

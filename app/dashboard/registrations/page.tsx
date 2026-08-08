@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/src/db/supabase/client';
+import { useState } from 'react';
+import { authClient } from '@/src/lib/auth-client';
 import Link from 'next/link';
-import { Search, Filter, ChevronRight, ClipboardList, Loader2 } from 'lucide-react';
+import { Search, ChevronRight, Loader2 } from 'lucide-react';
 import Pagination from '@/components/Pagination';
+import { useCompetitions, useRegistrations } from '@/src/lib/hooks/use-queries';
 
 const PAGE_SIZE = 10;
 
@@ -20,36 +21,20 @@ export default function RegistrationsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [lombaFilter, setLombaFilter] = useState('');
-  const [registrations, setRegistrations] = useState<any[]>([]);
-  const [myRegistrations, setMyRegistrations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [allCompetitions, setAllCompetitions] = useState<{ id: string; title: string }[]>([]);
-  const [userEmail, setUserEmail] = useState('');
 
-  useEffect(() => {
-    async function init() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) setUserEmail(user.email);
+  const { data: allCompetitions } = useCompetitions();
+  const { data: regPage, isLoading: loading } = useRegistrations({ pageSize: 100 });
+  const { data: session } = authClient.useSession();
 
-      const [regRes, compRes] = await Promise.all([
-        fetch('/api/registrations'),
-        fetch('/api/competitions'),
-      ]);
-      const regJson = await regRes.json();
-      const compJson = await compRes.json();
-
-      setRegistrations(regJson.data || []);
-      if (user?.email) {
-        const myRes = await fetch(`/api/registrations?search=${encodeURIComponent(user.email)}`);
-        const myJson = await myRes.json();
-        setMyRegistrations(myJson.data || []);
-      }
-      setAllCompetitions(compJson.data || []);
-      setLoading(false);
-    }
-    init();
-  }, []);
+  const userEmail = session?.user?.email ?? '';
+  const registrations = Array.isArray(regPage) ? regPage : (regPage as any)?.data ?? [];
+  const myRegistrations = userEmail
+    ? registrations.filter(
+        (r: any) =>
+          r.email?.toLowerCase() === userEmail.toLowerCase() ||
+          (r as any).userId,
+      )
+    : [];
 
   const displayed = tab === 'mine' ? myRegistrations : registrations;
 
@@ -135,7 +120,7 @@ export default function RegistrationsPage() {
           style={{ clipPath: 'polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)' }}
         >
           <option value="">Semua Lomba</option>
-          {allCompetitions.map((c: any) => (
+          {(allCompetitions ?? []).map((c: any) => (
             <option key={c.id} value={c.title}>{c.title}</option>
           ))}
         </select>

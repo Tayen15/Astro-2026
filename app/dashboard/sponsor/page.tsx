@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Image from 'next/image';
 import { Loader2, Plus, Pencil, X, Check, Trash2, Star, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
+import { useSponsors, useMediaPartners, queryKeys } from '@/src/lib/hooks/use-queries';
+import { apiHelpers } from '@/src/lib/api';
 
 interface Sponsor {
   id: number;
@@ -23,9 +27,11 @@ interface MediaPartner {
 const PAGE_SIZE = 10;
 
 export default function SponsorPage() {
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
-  const [mediaPartners, setMediaPartners] = useState<MediaPartner[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const { data: sponsorsData, isLoading: loading } = useSponsors();
+  const { data: mediaPartnersData } = useMediaPartners();
+  const sponsors = sponsorsData ?? [];
+  const mediaPartners = mediaPartnersData ?? [];
   const [tab, setTab] = useState<'sponsor' | 'media-partner'>('sponsor');
   const [spPage, setSpPage] = useState(1);
   const [mpPage, setMpPage] = useState(1);
@@ -40,37 +46,56 @@ export default function SponsorPage() {
   const [showMpAdd, setShowMpAdd] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
-  const fetchData = async () => {
-    const [spRes, mpRes] = await Promise.all([
-      fetch('/api/sponsors'),
-      fetch('/api/media-partners'),
-    ]);
-    setSponsors((await spRes.json()).data || []);
-    setMediaPartners((await mpRes.json()).data || []);
-    setLoading(false);
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: queryKeys.sponsors.all });
+    qc.invalidateQueries({ queryKey: queryKeys.mediaPartners.all });
   };
 
-  useEffect(() => { fetchData(); }, []);
+  const spSaveMutation = useMutation({
+    mutationFn: (body: typeof spForm) =>
+      spEditingId
+        ? apiHelpers.sponsors.update(String(spEditingId), body)
+        : apiHelpers.sponsors.create(body),
+    onSuccess: () => {
+      setSpForm({ name: '', website: '', logo: '', tier: 'gold' });
+      setSpEditingId(null); setShowSpAdd(false);
+      toast.success(spEditingId ? 'Sponsor diperbarui' : 'Sponsor ditambahkan');
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menyimpan sponsor'),
+  });
+
+  const spDeleteMutation = useMutation({
+    mutationFn: (id: number) => apiHelpers.sponsors.remove(String(id)),
+    onSuccess: () => { toast.success('Sponsor dihapus'); setDeleteModal(null); invalidate(); },
+    onError: () => toast.error('Gagal menghapus'),
+  });
+
+  const mpSaveMutation = useMutation({
+    mutationFn: (body: typeof mpForm) =>
+      mpEditingId
+        ? apiHelpers.mediaPartners.update(String(mpEditingId), body)
+        : apiHelpers.mediaPartners.create(body),
+    onSuccess: () => {
+      setMpForm({ name: '', website: '', logo: '' });
+      setMpEditingId(null); setShowMpAdd(false);
+      toast.success(mpEditingId ? 'Media partner diperbarui' : 'Media partner ditambahkan');
+      invalidate();
+    },
+    onError: () => toast.error('Gagal menyimpan media partner'),
+  });
+
+  const mpDeleteMutation = useMutation({
+    mutationFn: (id: number) => apiHelpers.mediaPartners.remove(String(id)),
+    onSuccess: () => { toast.success('Media partner dihapus'); setDeleteModal(null); invalidate(); },
+    onError: () => toast.error('Gagal menghapus'),
+  });
 
   const handleSpSave = async () => {
     if (!spForm.name && !spForm.logo) { toast.error('Nama atau logo wajib diisi'); return; }
     setSpSaving(true);
     try {
-      if (spEditingId) {
-        await fetch('/api/sponsors/' + spEditingId, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(spForm),
-        });
-      } else {
-        await fetch('/api/sponsors', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(spForm),
-        });
-      }
-      setSpForm({ name: '', website: '', logo: '', tier: 'gold' });
-      setSpEditingId(null); setShowSpAdd(false);
-      toast.success(spEditingId ? 'Sponsor diperbarui' : 'Sponsor ditambahkan');
-      fetchData();
+      await spSaveMutation.mutateAsync(spForm);
     } catch { toast.error('Gagal menyimpan sponsor'); }
     setSpSaving(false);
   };
@@ -84,9 +109,7 @@ export default function SponsorPage() {
     setDeleteModal({
       title: 'Hapus Sponsor', message: 'Yakin ingin menghapus "' + name + '"?',
       onConfirm: async () => {
-        const res = await fetch('/api/sponsors/' + id, { method: 'DELETE' });
-        if (!res.ok) { toast.error('Gagal menghapus'); return; }
-        toast.success('Sponsor dihapus'); setDeleteModal(null); fetchData();
+        await spDeleteMutation.mutateAsync(id);
       },
     });
   };
@@ -95,21 +118,7 @@ export default function SponsorPage() {
     if (!mpForm.name && !mpForm.logo) { toast.error('Nama atau logo wajib diisi'); return; }
     setMpSaving(true);
     try {
-      if (mpEditingId) {
-        await fetch('/api/media-partners/' + mpEditingId, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(mpForm),
-        });
-      } else {
-        await fetch('/api/media-partners', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(mpForm),
-        });
-      }
-      setMpForm({ name: '', website: '', logo: '' });
-      setMpEditingId(null); setShowMpAdd(false);
-      toast.success(mpEditingId ? 'Media partner diperbarui' : 'Media partner ditambahkan');
-      fetchData();
+      await mpSaveMutation.mutateAsync(mpForm);
     } catch { toast.error('Gagal menyimpan media partner'); }
     setMpSaving(false);
   };
@@ -123,20 +132,9 @@ export default function SponsorPage() {
     setDeleteModal({
       title: 'Hapus Media Partner', message: 'Yakin ingin menghapus "' + name + '"?',
       onConfirm: async () => {
-        const res = await fetch('/api/media-partners/' + id, { method: 'DELETE' });
-        if (!res.ok) { toast.error('Gagal menghapus'); return; }
-        toast.success('Media partner dihapus'); setDeleteModal(null); fetchData();
+        await mpDeleteMutation.mutateAsync(id);
       },
     });
-  };
-
-  const tierBadge = (tier: string) => {
-    const colors: Record<string, string> = {
-      platinum: 'bg-amber-100 text-amber-700 border-amber-200',
-      gold: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-      silver: 'bg-slate-100 text-slate-500 border-slate-200',
-    };
-    return colors[tier] || colors.silver;
   };
 
   const spPaginated = sponsors.slice((spPage - 1) * PAGE_SIZE, spPage * PAGE_SIZE);
@@ -211,12 +209,10 @@ export default function SponsorPage() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const formData = new FormData();
-                        formData.append('file', file);
                         try {
-                          const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                          const json = await res.json();
-                          if (json.url) setSpForm({ ...spForm, logo: json.url });
+                          const uploadRes = await apiHelpers.upload(file);
+                          const url = (uploadRes as any)?.url;
+                          if (url) setMpForm({ ...mpForm, logo: url });
                         } catch { console.error('Upload failed'); }
                       }}
                     />
@@ -229,7 +225,7 @@ export default function SponsorPage() {
               {spForm.logo && (
                 <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
                   style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-                  <img src={spForm.logo} alt="Preview" className="w-10 h-10 object-contain rounded" />
+                  <Image src={spForm.logo} alt="Preview" width={40} height={40} unoptimized className="w-10 h-10 object-contain rounded" />
                   <span className="text-xs text-slate-500">Preview logo</span>
                   <button onClick={() => setSpForm({ ...spForm, logo: '' })}
                     className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
@@ -256,7 +252,7 @@ export default function SponsorPage() {
                 style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
                 <div className="flex items-center gap-3">
                   {s.logo ? (
-                    <img src={s.logo} alt="" className="w-8 h-8 object-contain rounded" />
+                    <Image src={s.logo} alt="" width={32} height={32} unoptimized className="w-8 h-8 object-contain rounded" />
                   ) : null}
                   <span className="text-sm font-bold text-slate-900">{s.name || '(tanpa nama)'}</span>
                   {s.website && <span className="text-[11px] text-slate-400 hidden sm:block">{s.website.replace(/https?:\/\//, '')}</span>}
@@ -319,12 +315,10 @@ export default function SponsorPage() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const formData = new FormData();
-                        formData.append('file', file);
                         try {
-                          const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                          const json = await res.json();
-                          if (json.url) setMpForm({ ...mpForm, logo: json.url });
+                          const uploadRes = await apiHelpers.upload(file);
+                          const url = (uploadRes as any)?.url;
+                          if (url) setMpForm({ ...mpForm, logo: url });
                         } catch { console.error('Upload failed'); }
                       }}
                     />
@@ -337,7 +331,7 @@ export default function SponsorPage() {
               {mpForm.logo && (
                 <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200"
                   style={{ clipPath: 'polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)' }}>
-                  <img src={mpForm.logo} alt="Preview" className="w-10 h-10 object-contain rounded" />
+                  <Image src={mpForm.logo} alt="Preview" width={40} height={40} unoptimized className="w-10 h-10 object-contain rounded" />
                   <span className="text-xs text-slate-500">Preview logo</span>
                   <button onClick={() => setMpForm({ ...mpForm, logo: '' })}
                     className="ml-auto text-xs text-red-500 hover:text-red-700 cursor-pointer">Hapus</button>
@@ -364,7 +358,7 @@ export default function SponsorPage() {
                 style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
                 <div className="flex items-center gap-3">
                   {m.logo ? (
-                    <img src={m.logo} alt="" className="w-8 h-8 object-contain rounded" />
+                    <Image src={m.logo} alt="" width={32} height={32} unoptimized className="w-8 h-8 object-contain rounded" />
                   ) : null}
                   <span className="text-sm font-bold text-slate-900">{m.name || '(tanpa nama)'}</span>
                   {m.website && <span className="text-[11px] text-slate-400 hidden sm:block">{m.website.replace(/https?:\/\//, '')}</span>}

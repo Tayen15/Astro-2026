@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/src/db/supabase/client';
-import { ClipboardList, Loader2, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { authClient } from '@/src/lib/auth-client';
+import { ClipboardList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
+import { useRegistrations } from '@/src/lib/hooks/use-queries';
 
 const PAGE_SIZE = 10;
 
@@ -16,35 +17,16 @@ const statusColors: Record<string, string> = {
 };
 
 export default function MyRegistrationsPage() {
-  const [registrations, setRegistrations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState('');
   const [page, setPage] = useState(1);
+  const { data: session } = authClient.useSession();
+  const userEmail = session?.user?.email ?? '';
 
-  useEffect(() => {
-    async function fetchData() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+  const { data: regPage, isLoading: loading } = useRegistrations({
+    search: userEmail,
+    pageSize: 100,
+  });
 
-      if (!user?.email) {
-        setLoading(false);
-        return;
-      }
-
-      setUserEmail(user.email);
-
-      try {
-        const res = await fetch(`/api/registrations?search=${encodeURIComponent(user.email)}`);
-        const json = await res.json();
-        setRegistrations(json.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
-
+  const registrations = Array.isArray(regPage) ? regPage : (regPage as any)?.data ?? [];
   const paginated = registrations.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {

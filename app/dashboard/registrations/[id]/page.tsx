@@ -2,7 +2,7 @@ import { db } from '@/src/db';
 import { registrations, competitions } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import { CalendarDays, Coins, Mail, Phone, Building2, Users, User, CheckCircle2, XCircle, Tag, Globe } from 'lucide-react';
+import { CalendarDays, Coins, Mail, Phone, Building2, User, CheckCircle2, XCircle, Tag, Globe } from 'lucide-react';
 import Link from 'next/link';
 import PaymentStatusUpdate from './PaymentStatusUpdate';
 
