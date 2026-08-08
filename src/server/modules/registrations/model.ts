@@ -1,0 +1,54 @@
+import { z } from 'zod';
+import { paginationSchema } from '@/src/server/helpers/pagination';
+
+/** Public POST body — anonymous registration (paymentAmount computed server-side). */
+export const registrationCreateSchema = z.object({
+  competitionId: z.string().min(1),
+  type: z.enum(['team', 'individual']),
+  fullName: z.string().nullable().optional(),
+  identityNumber: z.string().nullable().optional(),
+  teamName: z.string().nullable().optional(),
+  leaderName: z.string().nullable().optional(),
+  leaderIdentity: z.string().nullable().optional(),
+  members: z.string().nullable().optional(),
+  institution: z.string().min(1),
+  email: z.string().email(),
+  whatsapp: z.string().min(1),
+  paymentMethod: z.string().nullable().optional(),
+});
+
+export type RegistrationCreate = z.infer<typeof registrationCreateSchema>;
+
+/** GET list query — search/status/competitionId (renamed from lomba) + pagination. */
+export const registrationListQuerySchema = paginationSchema.extend({
+  search: z.string().optional().default(''),
+  status: z.string().optional().default(''),
+  competitionId: z.string().optional().default(''),
+  userId: z.string().optional().default(''),
+});
+
+export type RegistrationListQuery = z.infer<typeof registrationListQuerySchema>;
+
+/** Fields an anonymous participant may self-edit, pre-payment only. */
+export const SELF_SERVICE_FIELDS = [
+  'fullName',
+  'identityNumber',
+  'teamName',
+  'leaderName',
+  'leaderIdentity',
+  'members',
+  'institution',
+  'email',
+  'whatsapp',
+] as const;
+
+/** Fields only an admin may edit. */
+export const ADMIN_FIELDS = [
+  'paymentStatus',
+  'paymentMethod',
+  'paymentAmount',
+  'isWinner',
+  'winnerRank',
+  'certificates',
+  'certificateSent',
+] as const;

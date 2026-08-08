@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion/react';
-import { Loader2, UserPlus, ArrowLeft, Mail, KeyRound, CheckCircle2, Clock } from 'lucide-react';
+import { authClient } from '@/src/lib/auth-client';
+import { motion } from 'motion/react';
+import { Loader2, ArrowLeft, Mail, KeyRound, CheckCircle2, Clock } from 'lucide-react';
 
 type Step = 'form' | 'otp' | 'success';
 
@@ -26,16 +27,15 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
+      // Better Auth: signUp.email with sendVerificationOnSignUp sends the OTP email
+      const { error: signUpError } = await authClient.signUp.email({
+        email,
+        password,
+        name,
       });
 
-      const json = await res.json();
-
-      if (!res.ok) {
-        setError(json.error || 'Gagal mengirim OTP');
+      if (signUpError) {
+        setError(signUpError.message || 'Gagal mengirim OTP');
         setLoading(false);
         return;
       }
@@ -69,15 +69,13 @@ export default function SignupPage() {
     setMessage('');
 
     try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
+      const { error: resendError } = await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: 'email-verification',
       });
 
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error || 'Gagal mengirim ulang OTP');
+      if (resendError) {
+        setError(resendError.message || 'Gagal mengirim ulang OTP');
       } else {
         setMessage('Kode OTP baru telah dikirim.');
         startCooldown();
@@ -99,16 +97,13 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
+      const { error: verifyError } = await authClient.emailOtp.verifyEmail({
+        email,
+        otp: code,
       });
 
-      const json = await res.json();
-
-      if (!res.ok) {
-        setError(json.error || 'Kode OTP tidak valid');
+      if (verifyError) {
+        setError(verifyError.message || 'Kode OTP tidak valid');
         setLoading(false);
         return;
       }
