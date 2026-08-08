@@ -307,6 +307,29 @@ export const journeys = pgTable("journeys", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/* ─── Journey Photos (documentation gallery) ─── */
+export const journeyPhotos = pgTable(
+  "journey_photos",
+  {
+    id: serial("id").primaryKey(),
+    journeyId: text("journey_id")
+      .notNull()
+      .references(() => journeys.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    caption: text("caption"),
+    sortOrder: integer("sort_order").default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("journey_photos_journey_id_idx").on(table.journeyId)],
+);
+
+export const journeyPhotosRelations = relations(journeyPhotos, ({ one }) => ({
+  journey: one(journeys, {
+    fields: [journeyPhotos.journeyId],
+    references: [journeys.id],
+  }),
+}));
+
 /* ─── Gallery Photos ─── */
 export const galleryPhotos = pgTable(
   "gallery_photos",

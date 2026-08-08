@@ -156,13 +156,13 @@ export default function Navbar() {
         {/* Right: CTA + Mobile */}
         <div className="flex h-full items-center gap-2 pr-4 md:pr-6">
           {isLoggedIn ? (
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'gap-1.5 text-[10px] font-bold uppercase tracking-wider',
+                    'hidden gap-1.5 text-[10px] font-bold uppercase tracking-wider md:flex',
                     !isScrolled && 'md:text-white/80 md:hover:text-white'
                   )}
                 >

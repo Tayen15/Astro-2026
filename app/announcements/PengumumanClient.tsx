@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Empty,
   EmptyDescription,
@@ -20,6 +22,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import WinnersModal from "./WinnersModal";
 import { apiHelpers } from "@/src/lib/api";
+import { queryKeys } from "@/src/lib/hooks/use-queries";
 
 type CategoryType = "akademik" | "olahraga" | "esports";
 
@@ -27,7 +30,7 @@ interface CompetitionItem {
   id: string;
   title: string;
   category: string;
-  tagline: string;
+  tagline: string | null;
   type: string | null;
   hasWinners: boolean;
 }
@@ -82,11 +85,9 @@ const CATEGORIES: { label: string; value: CategoryType | "all" }[] = [
   { label: "ESPORTS", value: "esports" },
 ];
 
-export default function PengumumanClient({
-  competitions,
-}: {
-  competitions: CompetitionItem[];
-}) {
+const SKELETON_COUNT = 6;
+
+export default function PengumumanClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<
     CategoryType | "all"
@@ -100,9 +101,16 @@ export default function PengumumanClient({
   } | null>(null);
   const [loadingModal, setLoadingModal] = useState(false);
 
+  // Lazy-loaded: data ditarik dari API di client, halaman langsung tampil.
+  const { data: competitions, isLoading } = useQuery({
+    queryKey: queryKeys.competitions.withWinners,
+    queryFn: () => apiHelpers.competitions.withWinners(),
+  });
+
   const filtered = useMemo(() => {
+    const list = competitions ?? [];
     const q = searchQuery.toLowerCase().trim();
-    return competitions
+    return list
       .filter((c) => {
         const matchCat =
           selectedCategory === "all" || c.category === selectedCategory;
@@ -209,7 +217,7 @@ export default function PengumumanClient({
                 <ToggleGroupItem
                   key={cat.value}
                   value={cat.value}
-                  className="clip-angled-sm px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=on]:shadow-sm data-[state=off]:border data-[state=off]:border-border data-[state=off]:bg-white data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
+                  className="clip-angled px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=on]:shadow-sm data-[state=off]:border data-[state=off]:border-border data-[state=off]:bg-white data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
                 >
                   {cat.label}
                 </ToggleGroupItem>
@@ -225,23 +233,51 @@ export default function PengumumanClient({
           transition={{ duration: 0.3, delay: 0.2 }}
           className="flex items-center justify-center gap-2 mb-8"
         >
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            {filtered.length} LOMBA DITEMUKAN
-          </span>
-          {selectedCategory !== "all" && (
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => setSelectedCategory("all")}
-              className="text-[10px] font-bold text-primary underline underline-offset-2 hover:text-primary/80"
-            >
-              Reset filter
-            </Button>
+          {isLoading ? (
+            <Skeleton className="h-4 w-40" />
+          ) : (
+            <>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                {filtered.length} LOMBA DITEMUKAN
+              </span>
+              {selectedCategory !== "all" && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setSelectedCategory("all")}
+                  className="text-[10px] font-bold text-primary underline underline-offset-2 hover:text-primary/80"
+                >
+                  Reset filter
+                </Button>
+              )}
+            </>
           )}
         </motion.div>
 
-        {/* Grid */}
-        {filtered.length > 0 ? (
+        {/* Grid / Skeleton / Empty */}
+        {isLoading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+            {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+              <div
+                key={index}
+                className="group bg-white border border-slate-200/80 p-5 md:p-6 flex flex-col gap-3"
+                style={{
+                  clipPath:
+                    "polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)",
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-3.5 w-12" />
+                </div>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="mt-2 h-9 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : filtered.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {filtered.map((comp, index) => {
               const cat =

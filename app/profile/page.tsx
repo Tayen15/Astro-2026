@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   motion,
@@ -26,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useJourneys } from "@/src/lib/hooks/use-queries";
+import SponsorSection from "@/components/SponsorSection";
 
 const MotionImage = motion.create(Image);
 
@@ -33,10 +35,8 @@ const MotionImage = motion.create(Image);
 
 export default function ProfilePage() {
   const reduce = useReducedMotion();
+  const router = useRouter();
   const [showAllJourney, setShowAllJourney] = useState(false);
-  const [activeJourneyYear, setActiveJourneyYear] = useState<string | null>(
-    null,
-  );
   const { data: journeysData } = useJourneys();
   const journey = useMemo(
     () =>
@@ -414,10 +414,7 @@ export default function ProfilePage() {
                   className={`${isLarge ? "md:col-span-7" : "md:col-span-5"} ${idx === 2 ? "md:col-start-1" : ""} ${idx === 3 ? "md:col-start-8" : ""}`}
                 >
                   <button
-                    onClick={() => {
-                      setShowAllJourney(true);
-                      setActiveJourneyYear(j.year);
-                    }}
+                    onClick={() => router.push(`/profile/journey/${j.year}`)}
                     className="block h-full w-full text-left group"
                   >
                     <div
@@ -550,18 +547,12 @@ export default function ProfilePage() {
           {/* Overlay content — all journeys full details */}
           <div className="max-h-[70vh] space-y-8 overflow-y-auto p-6 md:p-10">
             {journey.map((j, idx) => {
-              const isActive = activeJourneyYear === j.year;
               return (
                 <motion.div
                   key={j.year}
-                  initial={isActive ? { opacity: 0, y: 20 } : false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.08, duration: 0.4 }}
-                  className={`border-l-4 py-4 pl-5 transition-all duration-300 md:pl-8 ${
-                    isActive
-                      ? "rounded-r-xl border-primary bg-primary/5 -ml-2 pr-4 pl-7 md:pl-10 md:pr-8"
-                      : "border-border"
-                  }`}
+                  className="border-l-4 border-border py-4 pl-5 transition-all duration-300 md:pl-8"
                 >
                   <div className="mb-3 flex flex-wrap items-center gap-3">
                     <Badge className={j.year === "2026" ? "clip-angled-sm bg-primary text-primary-foreground" : "clip-angled-sm bg-muted text-foreground"}>
@@ -627,6 +618,8 @@ export default function ProfilePage() {
 
       {/* ════════════ 9. COMMITTEE ════════════ */}
       <CommitteeSection />
+
+      <SponsorSection />
 
       <Footer />
     </div>

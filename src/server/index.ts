@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia';
 import { auth } from '@/src/server/auth';
+import { authRoutes } from '@/src/server/auth-routes';
 import { authPlugin } from '@/src/server/plugins/auth';
 import { competitionsModule } from '@/src/server/modules/competitions';
 import { registrationsModule } from '@/src/server/modules/registrations';
@@ -11,6 +12,7 @@ import { committeeDivisionsModule } from '@/src/server/modules/committee-divisio
 import { galleryPhotosModule } from '@/src/server/modules/gallery-photos';
 import { galleryCategoriesModule } from '@/src/server/modules/gallery-categories';
 import { journeysModule } from '@/src/server/modules/journeys';
+import { journeyPhotosModule } from '@/src/server/modules/journey-photos';
 import { sponsorsModule } from '@/src/server/modules/sponsors';
 import { mediaPartnersModule } from '@/src/server/modules/media-partners';
 import { certificatesModule } from '@/src/server/modules/certificates';
@@ -25,6 +27,7 @@ import { uploadModule } from '@/src/server/modules/upload';
  */
 export const app = new Elysia({ prefix: '/api' })
   .use(authPlugin)
+  .use(authRoutes)
   .mount(auth.handler)
   .get('/health', () => ({ status: 'ok' }))
   .use(competitionsModule)
@@ -37,6 +40,7 @@ export const app = new Elysia({ prefix: '/api' })
   .use(galleryPhotosModule)
   .use(galleryCategoriesModule)
   .use(journeysModule)
+  .use(journeyPhotosModule)
   .use(sponsorsModule)
   .use(mediaPartnersModule)
   .use(certificatesModule)

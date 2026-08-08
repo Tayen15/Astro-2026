@@ -18,6 +18,12 @@ export async function unwrap<T>(res: Promise<{ data: T | null; error: unknown }>
  * request/response types are inferred from the Elysia `App`.
  */
 export const apiHelpers = {
+  // Auth (pre-signup email check)
+  auth: {
+    checkEmail: (email: string) =>
+      unwrap(api.auth['check-email'].post({ email } as never)),
+  },
+
   // Competitions
   competitions: {
     list: () => unwrap(api.competitions.get()),
@@ -103,6 +109,14 @@ export const apiHelpers = {
     create: (body: unknown) => unwrap(api.journeys.post(body as never)),
     update: (id: string, body: unknown) => unwrap(api.journeys({ id }).put(body as never)),
     remove: (id: string) => unwrap(api.journeys({ id }).delete()),
+  },
+
+  // Journey photos (documentation gallery)
+  journeyPhotos: {
+    list: (journeyId: string) =>
+      unwrap(api['journey-photos'].get({ query: { journeyId } })),
+    create: (body: unknown) => unwrap(api['journey-photos'].post(body as never)),
+    remove: (id: number) => unwrap(api['journey-photos']({ id: String(id) }).delete()),
   },
 
   // Sponsors / media partners

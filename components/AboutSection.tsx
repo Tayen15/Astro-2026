@@ -252,44 +252,33 @@ export default function AboutSection({ competitions }: Props) {
                   />
                 </InputGroup>
               </div>
-              {/* Origin filter — compact segmented control */}
-              <div
-                className="self-start border border-border bg-background sm:self-auto"
-                style={{
-                  clipPath:
-                    "polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%)",
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  <span className="px-3 pr-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Asal
-                  </span>
-                  <ToggleGroup
-                    type="single"
-                    value={selectedOrigin}
-                    onValueChange={(v) =>
-                      v &&
-                      setSelectedOrigin(
-                        v as "all" | "internal" | "external",
-                      )
-                    }
-                    spacing={0}
-                  >
-                    {[
-                      { label: "Semua", value: "all" as const },
-                      { label: "Internal", value: "internal" as const },
-                      { label: "Eksternal", value: "external" as const },
-                    ].map((opt) => (
-                      <ToggleGroupItem
-                        key={opt.value}
-                        value={opt.value}
-                        className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
-                      >
-                        {opt.label}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </div>
+              {/* Origin filter — parallelogram buttons, no label */}
+              <div className="self-start sm:self-auto">
+                <ToggleGroup
+                  type="single"
+                  value={selectedOrigin}
+                  onValueChange={(v) =>
+                    v &&
+                    setSelectedOrigin(
+                      v as "all" | "internal" | "external",
+                    )
+                  }
+                  spacing={1}
+                >
+                  {[
+                    { label: "Semua", value: "all" as const },
+                    { label: "Internal", value: "internal" as const },
+                    { label: "Eksternal", value: "external" as const },
+                  ].map((opt) => (
+                    <ToggleGroupItem
+                      key={opt.value}
+                      value={opt.value}
+                      className="clip-angled px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=on]:shadow-sm data-[state=off]:border data-[state=off]:border-border data-[state=off]:bg-white data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
+                    >
+                      {opt.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </div>
             </div>
 
@@ -310,7 +299,7 @@ export default function AboutSection({ competitions }: Props) {
                   <ToggleGroupItem
                     key={cat.value}
                     value={cat.value}
-                    className="clip-angled-sm px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=on]:shadow-sm data-[state=off]:border data-[state=off]:border-border data-[state=off]:bg-white data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
+                    className="clip-angled px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] data-[state=on]:bg-astro-cyan data-[state=on]:text-slate-950 data-[state=on]:shadow-sm data-[state=off]:border data-[state=off]:border-border data-[state=off]:bg-white data-[state=off]:text-muted-foreground data-[state=off]:hover:text-foreground"
                   >
                     {cat.label}
                   </ToggleGroupItem>

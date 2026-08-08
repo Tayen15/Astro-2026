@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, X, Check, Trash2 } from 'lucide-react';
+import { Plus, Pencil, X, Check, Trash2, ImagePlus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
@@ -13,7 +13,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
-import { useJourneys, queryKeys } from '@/src/lib/hooks/use-queries';
+import { useJourneys, useJourneyPhotos, queryKeys } from '@/src/lib/hooks/use-queries';
 import { apiHelpers } from '@/src/lib/api';
 
 interface Journey {
@@ -26,6 +26,15 @@ interface Journey {
   description: string | null;
   highlights: string[] | null;
   isActive: string | null;
+  sortOrder: number | null;
+  createdAt: Date;
+}
+
+interface JourneyPhoto {
+  id: number;
+  journeyId: string;
+  url: string;
+  caption: string | null;
   sortOrder: number | null;
   createdAt: Date;
 }
@@ -203,6 +212,7 @@ export default function JourneyPage() {
                 <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(item.id, item.theme)} aria-label="Hapus" className="text-muted-foreground hover:text-destructive"><Trash2 /></Button>
               </div>
             </CardContent>
+            <JourneyPhotoManager journey={item} />
           </Card>
         ))}
         {items.length === 0 && <p className="py-4 text-center text-sm italic text-muted-foreground">Belum ada data journey.</p>}
@@ -211,6 +221,107 @@ export default function JourneyPage() {
 
       <DeleteModal open={!!deleteModal} title={deleteModal?.title || ''} message={deleteModal?.message || ''}
         onConfirm={deleteModal?.onConfirm || (() => {})} onCancel={() => setDeleteModal(null)} loading={false} />
+    </div>
+  );
+}
+
+/* ─── Neutral uploader for a single journey's documentation photos ─── */
+function JourneyPhotoManager({ journey }: { journey: Journey }) {
+  const qc = useQueryClient();
+  const { data: photosData, isLoading: loading } = useJourneyPhotos(journey.id);
+  const photos: JourneyPhoto[] = photosData ?? [];
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [caption, setCaption] = useState('');
+
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: queryKeys.journeyPhotos.list(journey.id) });
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const uploadRes = await apiHelpers.upload(file);
+      const url = (uploadRes as { url?: string })?.url;
+      if (!url) {
+        toast.error('Gagal upload gambar');
+        return;
+      }
+      await apiHelpers.journeyPhotos.create({
+        journeyId: journey.id,
+        url,
+        caption: caption.trim() || null,
+      });
+      setCaption('');
+      toast.success('Foto dokumentasi ditambahkan');
+      invalidate();
+    } catch {
+      toast.error('Upload gagal');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    setDeletingId(id);
+    try {
+      await apiHelpers.journeyPhotos.remove(id);
+      toast.success('Foto dihapus');
+      invalidate();
+    } catch {
+      toast.error('Gagal menghapus foto');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <div className="mt-2 border-t border-border pt-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Keterangan foto (opsional)..."
+          className="min-w-0 flex-1 bg-background"
+        />
+        <label className="flex-shrink-0 cursor-pointer">
+          <Button asChild size="sm" variant="outline" disabled={uploading}
+            className="clip-angled-sm gap-1 text-[10px] font-bold uppercase tracking-wider">
+            <span>
+              {uploading ? <Loader2 className="size-3 animate-spin" /> : <ImagePlus className="size-3" />}
+              Upload Foto
+            </span>
+          </Button>
+          <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={handleUpload} />
+        </label>
+      </div>
+
+      {loading ? (
+        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="size-3 animate-spin" /> Memuat foto...
+        </div>
+      ) : photos.length > 0 ? (
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+          {photos.map((p) => (
+            <div key={p.id} className="group relative aspect-[4/3] overflow-hidden border border-border bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.url} alt={p.caption || 'Foto dokumentasi'} className="size-full object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <Button size="icon-xs" variant="outline" disabled={deletingId === p.id}
+                  onClick={() => handleDelete(p.id)} aria-label="Hapus foto"
+                  className="size-6 border-red-300 bg-white/90 text-red-600 hover:bg-red-50">
+                  {deletingId === p.id ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-[11px] text-muted-foreground">Belum ada foto dokumentasi. Upload untuk menambahkan.</p>
+      )}
     </div>
   );
 }

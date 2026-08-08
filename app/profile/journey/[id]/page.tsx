@@ -1,127 +1,55 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowLeft, Users, Award, Target, Sparkles, ArrowRight, Monitor, Mic2, Trophy, Handshake, Camera, Group } from 'lucide-react';
+import { ArrowLeft, Users, Award, Target, ArrowRight, Camera, X } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useJourneys, useJourneyPhotos } from '@/src/lib/hooks/use-queries';
 
 const MotionImage = motion.create(Image);
 
-const journeyData = [
-  {
-    year: '2023',
-    theme: 'First Step to The Stars',
-    participants: 150,
-    universities: 8,
-    competitions: 4,
-    achievement: 'Pertama kali diselenggarakan dengan 4 cabang lomba',
-    description:
-      'ASTRO 2023 merupakan edisi perdana yang menandai langkah awal perjalanan besar. Diselenggarakan dengan 4 cabang lomba utama yang diikuti oleh 150+ peserta dari 8 universitas di Indonesia. Meskipun masih sederhana, antusiasme peserta menjadi fondasi kuat untuk pengembangan ASTRO di tahun-tahun berikutnya.',
-    color: 'from-cyan-500 to-sky-500',
-    highlights: [
-      '4 cabang lomba pertama',
-      '150+ peserta dari 8 universitas',
-      'Acara perdana yang sukses',
-      'Mendapatkan apresiasi dari universitas',
-    ],
-    docs: [
-      { label: 'Peserta coding competition', icon: Monitor },
-      { label: 'Session seminar teknologi', icon: Mic2 },
-      { label: 'Foto bersama pemenang', icon: Trophy },
-    ],
-  },
-  {
-    year: '2024',
-    theme: 'Rising to The Stars',
-    participants: 320,
-    universities: 15,
-    competitions: 6,
-    achievement: 'Bertambah 2 cabang lomba baru, menjangkau 15 universitas',
-    description:
-      'ASTRO 2024 mengalami pertumbuhan signifikan dengan bertambahnya 2 cabang lomba baru, menjangkau lebih dari 15 universitas, dan diikuti oleh 320+ peserta. Kolaborasi dengan berbagai pihak mulai terbangun, menjadikan ASTRO sebagai event yang dinantikan oleh mahasiswa teknologi di Indonesia.',
-    color: 'from-sky-500 to-indigo-500',
-    highlights: [
-      '6 cabang lomba ( +2 baru )',
-      '320+ peserta dari 15 universitas',
-      'Kolaborasi dengan sponsor',
-      'Liputan media yang lebih luas',
-    ],
-    docs: [
-      { label: 'Presentasi finalis', icon: Monitor },
-      { label: 'Persiapan panitia', icon: Handshake },
-      { label: 'Sesi foto bersama', icon: Camera },
-    ],
-  },
-  {
-    year: '2025',
-    theme: 'Beyond The Stars',
-    participants: 500,
-    universities: 25,
-    competitions: 8,
-    achievement: 'Skala nasional dengan 8 cabang lomba dan 25+ universitas',
-    description:
-      'ASTRO 2025 mencapai skala nasional dengan 8 cabang lomba dan partisipasi dari 25+ universitas seluruh Indonesia. Dengan 500+ peserta, acara ini menjadi platform kompetisi teknologi yang diperhitungkan. Inovasi dalam penyelenggaraan dan pengalaman peserta terus ditingkatkan.',
-    color: 'from-indigo-500 to-purple-500',
-    highlights: [
-      '8 cabang lomba nasional',
-      '500+ peserta nasional',
-      '25+ universitas se-Indonesia',
-      'Pengalaman peserta premium',
-    ],
-    docs: [
-      { label: 'Interaksi peserta', icon: Group },
-      { label: 'Dokumentasi tim', icon: Camera },
-      { label: 'Moment awarding', icon: Trophy },
-    ],
-  },
-  {
-    year: '2026',
-    theme: 'Where Innovation Meets The Stars',
-    participants: 0,
-    universities: 0,
-    competitions: 10,
-    achievement: 'Edisi terbesar dengan inovasi dan dampak yang lebih luas',
-    description:
-      'ASTRO 2026 hadir sebagai edisi terbesar dengan konsep yang lebih inovatif, menjangkau lebih banyak peserta, dan memberikan dampak yang lebih luas bagi ekosistem teknologi dan kreativitas nasional. Coming soon — persiapkan dirimu untuk menjadi bagian dari sejarah!',
-    color: 'from-purple-500 to-pink-500',
-    highlights: [
-      '10+ cabang lomba',
-      'Konsep acara baru',
-      'Dampak yang lebih luas',
-      'Inovasi tanpa batas',
-    ],
-    docs: [
-      { label: 'Coming soon — persiapkan dirimu!', icon: Sparkles },
-    ],
-  },
-];
-
-/* ─── Icon map per label for docs ─── */
-const iconMap: Record<string, typeof Monitor> = {
-  'Peserta coding competition': Monitor,
-  'Session seminar teknologi': Mic2,
-  'Foto bersama pemenang': Trophy,
-  'Presentasi finalis': Monitor,
-  'Persiapan panitia': Handshake,
-  'Sesi foto bersama': Camera,
-  'Interaksi peserta': Group,
-  'Dokumentasi tim': Camera,
-  'Moment awarding': Trophy,
-  'Coming soon': Sparkles,
+/* Fallback color per year (DB doesn't store colors).
+   Semua pakai biru sama seperti First Step (2023): cyan → sky. */
+const yearColors: Record<string, string> = {
+  '2023': 'from-cyan-500 to-sky-500',
+  '2024': 'from-cyan-500 to-sky-500',
+  '2025': 'from-cyan-500 to-sky-500',
+  '2026': 'from-cyan-500 to-sky-500',
 };
 
 export default function JourneyDetailPage() {
   const params = useParams();
   const id = params?.id as string;
   const reduce = useReducedMotion();
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
-  const data = useMemo(() => journeyData.find((j) => j.year === id), [id]);
+  const { data: journeysData, isLoading: loadingJourneys } = useJourneys();
+  const { data: photosData } = useJourneyPhotos(id);
 
-  if (!data) {
+  const row = (journeysData || []).find((j: { id: string }) => j.id === id);
+
+  const data = useMemo(() => {
+    if (!row) return null;
+    return {
+      year: row.id,
+      theme: row.theme,
+      participants: row.participants || 0,
+      universities: row.universities || 0,
+      competitions: row.competitionsCount || 0,
+      achievement: row.achievement || '',
+      description: row.description || '',
+      highlights: row.highlights || [],
+      color: yearColors[row.id] || 'from-cyan-500 to-sky-500',
+    };
+  }, [row]);
+
+  const photos: { id: number; url: string; caption: string | null }[] = photosData ?? [];
+
+  if (!loadingJourneys && !data) {
     notFound();
   }
 
@@ -129,6 +57,17 @@ export default function JourneyDetailPage() {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } },
   };
+
+  if (!data) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-400">
+          <span className="size-4 animate-spin rounded-full border-2 border-slate-300 border-t-astro-cyan" />
+          Memuat...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -302,7 +241,7 @@ export default function JourneyDetailPage() {
                     style={{ clipPath: 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)' }}
                   >
                     <div className="flex items-start gap-3">
-                      <Trophy className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                      <Award className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                       <p className="text-sm font-bold text-slate-900">{data.achievement}</p>
                     </div>
                   </div>
@@ -374,40 +313,73 @@ export default function JourneyDetailPage() {
               <p className="text-sm text-slate-500 font-light">Momen-momen berharga selama perjalanan ASTRO {data.year}</p>
             </div>
 
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-              {data.docs.map((doc, i) => {
-                const DocIcon = doc.icon || (iconMap[doc.label] || Monitor);
-                return (
-                  <motion.div
-                    key={i}
+            {photos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center border border-dashed border-slate-200 bg-slate-50/50 py-16 text-center"
+                style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}>
+                <Camera className="mb-3 size-8 text-slate-300" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Belum ada foto dokumentasi untuk ASTRO {data.year}
+                </p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                {photos.map((doc, i) => (
+                  <motion.button
+                    key={doc.id}
+                    type="button"
+                    onClick={() => setLightbox(doc.url)}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
                     whileHover={reduce ? {} : { y: -6 }}
-                    className="group relative overflow-hidden aspect-[4/3] flex flex-col items-center justify-center cursor-pointer border border-slate-200/80 hover:border-astro-cyan/30 bg-gradient-to-br from-slate-50 to-cyan-50/30"
+                    className="group relative block aspect-[4/3] cursor-pointer overflow-hidden border border-slate-200/80 bg-slate-100 hover:border-astro-cyan/40 text-left"
                     style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
                   >
-                    <div className="w-14 h-14 rounded-full bg-white border border-slate-200/80 group-hover:border-astro-cyan/40 flex items-center justify-center mb-4 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-cyan-500/10 group-hover:scale-110">
-                      <DocIcon className="w-6 h-6 text-slate-400 group-hover:text-astro-cyan transition-colors duration-300" />
-                    </div>
-                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider text-center px-6">
-                      {doc.label}
-                    </p>
-                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-all duration-300 flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span className="text-[9px] font-black text-astro-cyan uppercase tracking-wider bg-white/90 px-3 py-1.5"
-                          style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
-                        >
-                          Lihat
-                        </span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={doc.url}
+                      alt={doc.caption || `Dokumentasi ASTRO ${data.year}`}
+                      className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    {doc.caption && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-8">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-white">{doc.caption}</p>
                       </div>
+                    )}
+                    <div className="absolute inset-0 bg-white/0 transition-all duration-300 group-hover:bg-astro-cyan/20 flex items-end justify-end p-4">
+                      <span className="flex items-center gap-1 text-[9px] font-black text-astro-600 uppercase tracking-wider opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        <Camera className="size-3" /> Lihat
+                      </span>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                  </motion.button>
+                ))}
+              </div>
+            )}
           </motion.div>
+
+          {/* ═══ Lightbox ═══ */}
+          {lightbox && (
+            <div
+              onClick={() => setLightbox(null)}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+            >
+              <button
+                onClick={() => setLightbox(null)}
+                aria-label="Tutup"
+                className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <X className="size-5" />
+              </button>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={lightbox}
+                alt="Dokumentasi ASTRO"
+                className="max-h-[85vh] max-w-[90vw] object-contain shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
         </div>
       </section>
 

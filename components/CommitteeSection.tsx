@@ -68,7 +68,7 @@ export default function CommitteeSection() {
   }, []);
 
   return (
-    <section id="committee" className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-b from-sky-100 via-sky-200 to-sky-100 text-slate-900">
+    <section id="committee" className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-b from-sky-100 via-sky-100 to-sky-200 text-slate-900">
       {/* Ambient Sky Glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] bg-cyan-300/30 rounded-full blur-[130px] pointer-events-none z-0" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-sky-300/40 blur-[120px] rounded-full pointer-events-none z-0" />
@@ -127,16 +127,22 @@ export default function CommitteeSection() {
 
         {/* ── Filter Pills ── */}
         <div className="mb-12 flex flex-wrap justify-center gap-2">
-          <ToggleGroup type="single" value={activeDivision} onValueChange={(v) => v && setActiveDivision(v)} spacing={2}>
+          <ToggleGroup
+            type="single"
+            value={activeDivision}
+            onValueChange={(v) => v && setActiveDivision(v)}
+            spacing={2}
+            className="flex min-w-full flex-wrap justify-center"
+          >
             {divisions.map((div) => (
               <ToggleGroupItem
                 key={div.id}
                 value={div.slug}
-                className="gap-2 rounded-xl px-4 py-2 text-xs font-semibold tracking-wide data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-lg data-[state=on]:shadow-black/5 data-[state=on]:ring-1 data-[state=on]:ring-slate-200 data-[state=off]:bg-white/40 data-[state=off]:text-slate-600 data-[state=off]:hover:bg-white/70 data-[state=off]:hover:text-slate-800"
+                className="clip-angled gap-2 px-4 py-2 text-xs font-semibold tracking-wide data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-lg data-[state=on]:shadow-black/5 data-[state=on]:ring-1 data-[state=on]:ring-slate-200 data-[state=off]:bg-white/40 data-[state=off]:text-slate-600 data-[state=off]:hover:bg-white/70 data-[state=off]:hover:text-slate-800"
               >
                 <span className={cn('size-1.5 rounded-full', activeDivision === div.slug ? 'bg-astro-cyan' : 'bg-slate-300')} />
                 {div.shortDisplay}
-                <Badge variant="secondary" className={cn('rounded-md text-[10px] font-bold', activeDivision === div.slug ? 'bg-sky-50 text-astro-cyan' : 'bg-white/40 text-muted-foreground')}>
+                <Badge variant="secondary" className={cn('clip-angled-sm text-[10px] font-bold', activeDivision === div.slug ? 'bg-sky-50 text-astro-cyan' : 'bg-white/40 text-muted-foreground')}>
                   {div.staffCount}
                 </Badge>
               </ToggleGroupItem>

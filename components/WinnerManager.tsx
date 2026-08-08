@@ -141,7 +141,9 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
     const reg = registrations.find((r) => r.id === regId);
     if (!reg) return;
     const eff = getEffective(reg);
-    if (eff.isWinner === '1' && eff.winnerRank === rank) {
+    // rank === '' berarti ToggleGroup dideaktivasi (klik tombol juara yang sama
+    // untuk membatalkan) → batalkan status juara
+    if (!rank || (eff.isWinner === '1' && eff.winnerRank === rank)) {
       setDraftChanges((prev) => ({ ...prev, [regId]: { isWinner: '0', winnerRank: null } }));
       return;
     }
@@ -257,7 +259,7 @@ export default function WinnerManager({ competitionId }: WinnerManagerProps) {
 
                   <div className="flex flex-shrink-0 items-center gap-1.5">
                     {/* Winner Buttons */}
-                    <ToggleGroup type="single" value={isWinner && eff.winnerRank ? eff.winnerRank : ''} onValueChange={(v) => v && handleToggleWinner(reg.id, v)} spacing={0} className="border border-border bg-background p-0.5">
+                    <ToggleGroup type="single" value={isWinner && eff.winnerRank ? eff.winnerRank : ''} onValueChange={(v) => handleToggleWinner(reg.id, v)} spacing={0} className="border border-border bg-background p-0.5">
                       {['1', '2', '3'].map((rank) => {
                         const active = isWinner && eff.winnerRank === rank;
                         return (

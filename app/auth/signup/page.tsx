@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authClient } from '@/src/lib/auth-client';
+import { apiHelpers } from '@/src/lib/api';
 import { motion } from 'motion/react';
 import { ArrowLeft, Mail, KeyRound, CheckCircle2, Clock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -15,6 +16,18 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { Spinner } from '@/components/ui/spinner';
 
 type Step = 'form' | 'otp' | 'success';
+
+const EMAIL_ALREADY_EXISTS_CODES = [
+  'USER_ALREADY_EXISTS',
+  'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL',
+];
+
+function isEmailAlreadyRegistered(error?: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  if (error.code && EMAIL_ALREADY_EXISTS_CODES.includes(error.code)) return true;
+  if (error.message?.toLowerCase().includes('already exists')) return true;
+  return false;
+}
 
 export default function SignupPage() {
   const [step, setStep] = useState<Step>('form');
@@ -34,6 +47,23 @@ export default function SignupPage() {
     setError('');
 
     try {
+      // Pre-check: Better Auth returns a synthetic success response for an
+      // existing email when requireEmailVerification is on (anti-enumeration),
+      // so we detect the duplicate here before calling signUp.email.
+      try {
+        const res = await apiHelpers.auth.checkEmail(email);
+        if (!res.available) {
+          setError(
+            'Email sudah terdaftar. Silakan masuk dengan akun tersebut, atau gunakan email lain.',
+          );
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // If the pre-check endpoint fails, fall through to Better Auth below
+        // so signup is never blocked by an availability probe outage.
+      }
+
       // Better Auth: signUp.email with sendVerificationOnSignUp sends the OTP email
       const { error: signUpError } = await authClient.signUp.email({
         email,
@@ -42,7 +72,11 @@ export default function SignupPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message || 'Gagal mengirim OTP');
+        setError(
+          isEmailAlreadyRegistered(signUpError)
+            ? 'Email sudah terdaftar. Silakan masuk dengan akun tersebut, atau gunakan email lain.'
+            : signUpError.message || 'Gagal mengirim OTP',
+        );
         setLoading(false);
         return;
       }

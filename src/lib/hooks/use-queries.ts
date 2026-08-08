@@ -28,6 +28,10 @@ export const queryKeys = {
   },
   galleryCategories: { all: ['gallery-categories'] as const },
   journeys: { all: ['journeys'] as const },
+  journeyPhotos: {
+    all: ['journey-photos'] as const,
+    list: (journeyId: string) => ['journey-photos', journeyId] as const,
+  },
   sponsors: { all: ['sponsors'] as const },
   mediaPartners: { all: ['media-partners'] as const },
   users: { all: ['users'] as const },
@@ -194,6 +198,13 @@ export function useGalleryCategories() {
 
 export function useJourneys() {
   return useQuery({ queryKey: queryKeys.journeys.all, queryFn: apiHelpers.journeys.list });
+}
+
+export function useJourneyPhotos(journeyId: string) {
+  return useQuery({
+    queryKey: queryKeys.journeyPhotos.list(journeyId),
+    queryFn: () => apiHelpers.journeyPhotos.list(journeyId),
+  });
 }
 
 export function useSponsors() {

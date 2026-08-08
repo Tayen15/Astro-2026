@@ -30,9 +30,7 @@ export default function SponsorSection() {
   // All sponsors shown equally, no tier grouping
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden text-slate-900 select-none">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-sky-200 to-sky-300 -z-10" />
-
+    <section className="relative py-24 bg-gradient-to-b from-sky-200 via-sky-200 to-sky-300 md:py-32 overflow-hidden text-slate-900 select-none">
       {/* Floating decors */}
       <MotionImage
         src="/assets/awan1.png" alt="" width={160} height={120}
@@ -84,7 +82,7 @@ export default function SponsorSection() {
           <div className="mb-14 md:mb-16">
             <div className="mb-8 flex justify-center">
               <Badge variant="secondary" className="border border-sky-300/60 bg-white/80 px-5 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-sky-800 shadow-sm backdrop-blur-md sm:text-xs">
-                Sponsor Resmi
+                Last Sponsor
               </Badge>
             </div>
             <motion.div
@@ -112,7 +110,7 @@ export default function SponsorSection() {
               </div>
               <div className="relative flex justify-center">
                 <Badge variant="secondary" className="border border-sky-300/70 bg-sky-200/90 px-5 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-700 shadow-sm backdrop-blur-md sm:text-xs">
-                  Media Partner
+                  Last Media Partner
                 </Badge>
               </div>
             </div>
