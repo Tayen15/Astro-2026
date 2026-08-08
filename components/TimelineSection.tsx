@@ -230,8 +230,9 @@ export default function TimelineSection({ timeline }: Props) {
         <Image
           src="/assets/train-subway.png"
           alt="Train Subway ASTRO 2026"
-          width={3606}
-          height={870}
+          width={950}
+          height={229}
+          sizes="(max-width: 640px) 80vw, 950px"
           className="w-full h-auto"
           priority
         />

@@ -11,7 +11,7 @@ export default function MediaPage() {
   return (
     <main className="min-h-screen bg-[#eaf0f8]">
       <Navbar />
-      <SocialMediaSection />
+      <SocialMediaSection priority />
       <Footer />
     </main>
   );

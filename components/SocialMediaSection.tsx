@@ -26,7 +26,7 @@ function InstagramIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
-export default function SocialMediaSection() {
+export default function SocialMediaSection({ priority = false }: { priority?: boolean }) {
   const reduce = useReducedMotion();
 
   // Pure clean neutral sky studio background matching adjacent sections
@@ -111,8 +111,9 @@ export default function SocialMediaSection() {
             <MotionImage
               src="/assets/IG-Tablet.png"
               alt="ASTRO Instagram Hub Showcase"
-              width={1700}
-              height={1200}
+              width={1207}
+              height={1303}
+              sizes="(max-width: 1024px) 90vw, 1200px"
               animate={reduce ? undefined : { y: [0, -8, 0] }}
               transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
               className="hidden sm:block w-full h-auto object-contain select-none z-0"
@@ -120,7 +121,7 @@ export default function SocialMediaSection() {
                 maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 96%)',
                 WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 96%)',
               }}
-              priority
+              priority={priority}
             />
           </motion.div>
         </div>
@@ -145,7 +146,7 @@ export default function SocialMediaSection() {
               maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 92%)',
               WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 92%)',
             }}
-            priority
+            priority={priority}
           />
         </motion.div>
 

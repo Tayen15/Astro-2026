@@ -83,32 +83,38 @@ export default function HeroSection({ eventConfig }: Props) {
       <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
-        width={224}
-        height={224}
+        width={448}
+        height={560}
+        sizes="(min-width: 768px) 28rem, 14rem"
+        priority
         className="absolute -top-12 -right-12 w-56 h-56 md:w-[28rem] md:h-[28rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - bottom left corner */}
       <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
-        width={256}
-        height={256}
+        width={512}
+        height={640}
+        sizes="(min-width: 768px) 32rem, 16rem"
+        priority
         className="absolute -bottom-16 -left-16 w-64 h-64 md:w-[32rem] md:h-[32rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - top left corner */}
       <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
-        width={192}
-        height={192}
+        width={352}
+        height={440}
+        sizes="(min-width: 768px) 22rem, 12rem"
         className="absolute -top-10 -left-10 w-48 h-48 md:w-[22rem] md:h-[22rem] object-contain pointer-events-none select-none z-0"
       />
       {/* Chrome blob - bottom right corner */}
       <Image
         src="/assets/chrome-blob-shape.png"
         alt=""
-        width={224}
-        height={224}
+        width={384}
+        height={480}
+        sizes="(min-width: 768px) 24rem, 14rem"
         className="absolute -bottom-12 -right-12 w-56 h-56 md:w-[24rem] md:h-[24rem] object-contain pointer-events-none select-none z-0"
       />
 
