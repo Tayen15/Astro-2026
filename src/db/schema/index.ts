@@ -7,6 +7,7 @@ import {
   uuid,
   jsonb,
   serial,
+  boolean,
 } from 'drizzle-orm/pg-core';
 
 /* ─── Categories ─── */
@@ -131,7 +132,57 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   name: text('name'),
   role: text('role').notNull().default('participant'), // 'admin' | 'participant'
+  emailVerified: boolean('email_verified').default(false).notNull(),
+  image: text('image'),
+  banned: boolean('banned').default(false).notNull(),
+  banReason: text('ban_reason'),
+  banExpires: timestamp('ban_expires'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+/* ─── Better Auth: Sessions ─── */
+export const authSessions = pgTable('sessions', {
+  id: text('id').primaryKey(),
+  expiresAt: timestamp('expires_at').notNull(),
+  token: text('token').notNull().unique(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  impersonatedBy: text('impersonated_by'),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+/* ─── Better Auth: Accounts (OAuth / linked accounts) ─── */
+export const authAccounts = pgTable('accounts', {
+  id: text('id').primaryKey(),
+  accountId: text('account_id').notNull(),
+  providerId: text('provider_id').notNull(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at'),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+  scope: text('scope'),
+  password: text('password'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+/* ─── Better Auth: Verification tokens / OTP ─── */
+export const authVerifications = pgTable('verifications', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -144,18 +195,6 @@ export const faqs = pgTable('faqs', {
   question: text('question').notNull(),
   answer: text('answer').notNull(),
   sortOrder: integer('sort_order').default(0),
-});
-
-/* ─── OTP Codes ─── */
-export const otpCodes = pgTable('otp_codes', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  email: text('email').notNull(),
-  code: text('code').notNull(),
-  name: text('name'),
-  password: text('password'),
-  expiresAt: timestamp('expires_at').notNull(),
-  usedAt: timestamp('used_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 /* ─── Sponsors ─── */

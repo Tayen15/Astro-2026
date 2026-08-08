@@ -1,6 +1,5 @@
 import postgres from 'postgres';
 import * as dotenv from 'dotenv';
-import { createClient } from '@supabase/supabase-js';
 
 dotenv.config({ path: '.env.local' });
 
@@ -23,6 +22,8 @@ async function seed() {
     const firstPrize = comp.prizes.find((p: any) => p.label === 'Juara 1')?.value || '';
     const secondPrize = comp.prizes.find((p: any) => p.label === 'Juara 2')?.value || '';
     const thirdPrize = comp.prizes.find((p: any) => p.label === 'Juara 3')?.value || '';
+    // Sequential inserts keep the seed deterministic and avoid overwhelming the connection pool
+    // oxlint-disable-next-line no-await-in-loop
     await sql`
       INSERT INTO competitions (
         id, title, category, tagline, description, fee,
@@ -46,6 +47,7 @@ async function seed() {
   // Seed FAQs
   for (let i = 0; i < data.faqs.length; i++) {
     const faq = data.faqs[i];
+    // oxlint-disable-next-line no-await-in-loop
     await sql`
       INSERT INTO faqs (question, answer, sort_order)
       VALUES (${faq.q}, ${faq.a}, ${i})
@@ -55,7 +57,6 @@ async function seed() {
   console.log(`✅ Seeded ${data.faqs.length} FAQs`);
 
   // Seed admin user
-  // Create admin via direct API call to Supabase Auth admin endpoint
   const adminEmail = 'admin@gmail.com';
   const adminPassword = 'password';
 
@@ -65,61 +66,22 @@ async function seed() {
   `;
 
   if (!existingAdmin) {
-    // Try Supabase Auth admin API with service role
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    let userId: string | null = null;
-
-    if (serviceKey) {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/admin/users`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': serviceKey,
-            'Authorization': `Bearer ${serviceKey}`,
-          },
-          body: JSON.stringify({
-            email: adminEmail,
-            password: adminPassword,
-            email_confirm: true,
-          }),
-        });
-        const json = await res.json();
-        if (res.ok && json.id) {
-          userId = json.id;
-          console.log(`✅ Auth user created via admin API`);
-        } else {
-          console.log(`⚠️  Admin API: ${json.msg || json.error || 'unknown error'}`);
-        }
-      } catch (err: any) {
-        console.log(`⚠️  Admin API failed: ${err.message}`);
-      }
-    }
-
-    if (!userId) {
-      // Fallback: create auth user via signup
-      const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-      const { data } = await supabaseAdmin.auth.signUp({
-        email: `astro-admin-${Date.now()}@temp.com`, // bypass email validation
+    // Create admin via Better Auth signUpEmail, then set role to admin
+    const { auth } = await import('@/src/server/auth');
+    const result = await auth.api.signUpEmail({
+      body: {
+        email: adminEmail,
         password: adminPassword,
-      });
-      if (data?.user) {
-        userId = data.user.id;
-        // Update email in auth.users table directly
-        await sql`
-          UPDATE auth.users SET email = ${adminEmail} WHERE id = ${userId}
-        `;
-        console.log(`✅ Auth user created via signUp fallback`);
-      }
-    }
+        name: 'Admin ASTRO',
+      },
+    });
+
+    const userId = (result as any)?.user?.id;
 
     if (userId) {
       await sql`
-        INSERT INTO users (id, email, name, role)
-        VALUES (${userId}, ${adminEmail}, 'Admin ASTRO', 'admin')
+        INSERT INTO users (id, email, name, role, email_verified, updated_at)
+        VALUES (${userId}, ${adminEmail}, 'Admin ASTRO', 'admin', true, now())
         ON CONFLICT (id) DO NOTHING
       `;
       console.log(`✅ Admin user ready:`);
@@ -127,13 +89,11 @@ async function seed() {
       console.log(`   Password: ${adminPassword}`);
     } else {
       console.log('');
-      console.log('⚠️  Could not create auth user automatically.');
-      console.log('📝 Please create manually in Supabase Dashboard:');
-      console.log(`   1. Go to Authentication → Users → Add User`);
-      console.log(`   2. Email: ${adminEmail} / Password: ${adminPassword}`);
-      console.log(`   3. Then run this SQL in Supabase SQL Editor:`);
-      console.log(`      INSERT INTO users (id, email, name, role)`);
-      console.log(`      VALUES ('<uuid-from-auth>', '${adminEmail}', 'Admin ASTRO', 'admin');`);
+      console.log('⚠️  Could not create admin user automatically.');
+      console.log('📝 Please create manually:');
+      console.log(`   1. Register via the site with email: ${adminEmail}`);
+      console.log(`   2. Set role to admin in the users table:`);
+      console.log(`      UPDATE users SET role = 'admin' WHERE email = '${adminEmail}';`);
     }
   } else {
     console.log(`⏭️  Admin user already exists: ${adminEmail}`);
