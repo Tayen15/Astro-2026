@@ -120,6 +120,20 @@
       "when": 1786178386473,
       "tag": "0016_ordinary_talisman",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1786419282737,
+      "tag": "0017_committee_study_program_batch",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786420000000,
+      "tag": "0018_journeys_year",
+      "breakpoints": true
     }
   ]
 }

@@ -6,7 +6,7 @@ import { asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 const journeySchema = z.object({
-  id: z.string().min(1).optional(),
+  year: z.string().min(1),
   theme: z.string().min(1),
   participants: z.number().int().optional().default(0),
   universities: z.number().int().optional().default(0),
@@ -29,12 +29,14 @@ export const journeysModule = new Elysia({ prefix: '/journeys' })
     params: t.Object({ id: t.String() }),
   })
   .post('/', async ({ body }) => {
-    if (!body.id) return status(400, { error: 'id wajib diisi' });
+    // ID otomatis dari tahun — admin tidak perlu mengisi ID
+    const id = `j-${body.year}`;
 
     const [item] = await db
       .insert(journeys)
       .values({
-        id: body.id,
+        id,
+        year: body.year,
         theme: body.theme,
         participants: body.participants,
         universities: body.universities,
@@ -53,6 +55,11 @@ export const journeysModule = new Elysia({ prefix: '/journeys' })
   })
   .put('/:id', async ({ params, body }) => {
     const updates: Record<string, unknown> = {};
+    // Tahun bisa diubah — ID otomatis ikut menyesuaikan
+    if (body.year !== undefined) {
+      updates.year = body.year;
+      updates.id = `j-${body.year}`;
+    }
     if (body.theme !== undefined) updates.theme = body.theme;
     if (body.participants !== undefined) updates.participants = body.participants;
     if (body.universities !== undefined) updates.universities = body.universities;

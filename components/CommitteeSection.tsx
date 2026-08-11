@@ -7,6 +7,7 @@ import { Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
+import { normalizeImageUrl } from '@/components/ImportCommittee';
 import { useCommitteeMembers, useCommitteeDivisions } from '@/src/lib/hooks/use-queries';
 
 const MotionImage = motion.create(Image);
@@ -179,7 +180,7 @@ export default function CommitteeSection() {
               >
                 <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-slate-100 shadow-sm hover:shadow-md transition-all duration-300 ring-1 ring-white/80 cursor-pointer">
                   <Image
-                    src={member.image}
+                    src={normalizeImageUrl(member.image) || '/assets/users.png'}
                     alt={member.name}
                     fill
                     className="object-cover transition-all duration-700 group-hover:scale-105"
@@ -210,6 +211,12 @@ export default function CommitteeSection() {
                           <p className="text-xs text-white/80 mt-0.5 font-medium drop-shadow-sm">
                             {member.role}
                           </p>
+
+                          {(member.studyProgram || member.batch) && (
+                            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-200/90 drop-shadow-sm">
+                              {[member.studyProgram, member.batch].filter(Boolean).join(' ')}
+                            </p>
+                          )}
 
                           {member.quote && (
                             <p className="text-xs text-white/60 italic mt-2 leading-relaxed line-clamp-2 drop-shadow-sm">

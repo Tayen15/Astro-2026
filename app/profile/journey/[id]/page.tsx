@@ -28,14 +28,14 @@ export default function JourneyDetailPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
 
   const { data: journeysData, isLoading: loadingJourneys } = useJourneys();
-  const { data: photosData } = useJourneyPhotos(id);
 
-  const row = (journeysData || []).find((j: { id: string }) => j.id === id);
+  const row = (journeysData || []).find((j: { id: string; year?: string | null }) => j.id === id || j.year === id);
+  const { data: photosData } = useJourneyPhotos(row?.id ?? '');
 
   const data = useMemo(() => {
     if (!row) return null;
     return {
-      year: row.id,
+      year: row.year || row.id,
       theme: row.theme,
       participants: row.participants || 0,
       universities: row.universities || 0,
@@ -43,7 +43,7 @@ export default function JourneyDetailPage() {
       achievement: row.achievement || '',
       description: row.description || '',
       highlights: row.highlights || [],
-      color: yearColors[row.id] || 'from-cyan-500 to-sky-500',
+      color: yearColors[row.year || row.id] || 'from-cyan-500 to-sky-500',
     };
   }, [row]);
 

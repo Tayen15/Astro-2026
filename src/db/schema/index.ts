@@ -294,7 +294,8 @@ export const committeeDivisions = pgTable("committee_divisions", {
 
 /* ─── Journeys ─── */
 export const journeys = pgTable("journeys", {
-  id: text("id").primaryKey(), // e.g. '2023', '2024'
+  id: text("id").primaryKey(), // auto-generated, tidak diinput admin (e.g. 'j-2023')
+  year: text("year"), // tahun penyelenggaraan (diinput admin, e.g. '2024')
   theme: text("theme").notNull(),
   participants: integer("participants").default(0),
   universities: integer("universities").default(0),
@@ -338,7 +339,10 @@ export const galleryPhotos = pgTable(
     title: text("title").notNull(),
     category: text("category")
       .notNull()
-      .references(() => galleryCategories.slug, { onDelete: "restrict" }),
+      .references(() => galleryCategories.slug, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
     imageUrl: text("image_url").notNull(),
     year: text("year").notNull(),
     likesCount: integer("likes_count").default(0),
@@ -357,10 +361,15 @@ export const committeeMembers = pgTable(
     role: text("role").notNull(), // jabatan (e.g. 'Ketua Pelaksana', 'Staf')
     division: text("division")
       .notNull()
-      .references(() => committeeDivisions.slug, { onDelete: "restrict" }),
+      .references(() => committeeDivisions.slug, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     divisionName: text("division_name").notNull(),
     image: text("image").notNull(),
     isLeader: text("is_leader").default("0"), // '0' | '1' — controls tipe (Koordinator/Staf)
+    studyProgram: text("study_program"),
+    batch: text("batch"),
     quote: text("quote"),
     instagram: text("instagram"),
     linkedin: text("linkedin"),

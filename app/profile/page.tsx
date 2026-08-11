@@ -41,7 +41,7 @@ export default function ProfilePage() {
   const journey = useMemo(
     () =>
       (journeysData || []).map((j: any) => ({
-        year: j.id,
+        year: j.year || j.id,
         theme: j.theme,
         participants: j.participants || 0,
         universities: j.universities || 0,

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
+import { normalizeImageUrl } from '@/components/ImportCommittee';
 import { useGalleryPhotos, useGalleryCategories } from '@/src/lib/hooks/use-queries';
 
 const MotionImage = motion.create(Image);
@@ -37,13 +38,16 @@ export default function EventGallerySection() {
   const [isMarqueeHovered, setIsMarqueeHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const { data: gData } = useGalleryPhotos({ page: 1, pageSize: 100 });
+  const { data: gData } = useGalleryPhotos({ page: 1, pageSize: 1000 });
   const { data: categories = [] } = useGalleryCategories() as { data: GalleryCategory[] };
   const photos: GalleryPhoto[] = Array.isArray(gData) ? gData : (gData as any)?.data ?? [];
 
   const filteredPhotos = activeCategory === 'ALL'
     ? photos
     : photos.filter((p) => p.category === activeCategory);
+
+  // Lebih cepat saat filter kategori tertentu (non-ALL), biar tidak terasa lambat/berat.
+  const marqueeDuration = activeCategory === 'ALL' ? 90 : 32;
 
   // Duplicated arrays for seamless continuous infinite marquee sliding
   const marqueeRow1 = [...filteredPhotos, ...filteredPhotos, ...filteredPhotos];
@@ -156,7 +160,7 @@ export default function EventGallerySection() {
                 <motion.div
                   animate={isMarqueeHovered ? false : { x: rowIdx === 0 ? ['0%', '-50%'] : ['-50%', '0%'] }}
                   transition={{
-                    x: { repeat: Infinity, repeatType: 'loop', duration: rowIdx === 0 ? 90 : 100, ease: 'linear' },
+                    x: { repeat: Infinity, repeatType: 'loop', duration: rowIdx === 0 ? marqueeDuration : marqueeDuration + 10, ease: 'linear' },
                   }}
                   className="flex shrink-0 items-center gap-6"
                 >
@@ -175,7 +179,7 @@ export default function EventGallerySection() {
                         style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
                       >
                         <Image
-                          src={photoItem.imageUrl}
+                          src={normalizeImageUrl(photoItem.imageUrl)}
                           alt={photoItem.title}
                           fill
                           className="object-cover transition-all duration-700 ease-out group-hover:scale-115 group-hover:rotate-1 group-hover:brightness-105"
@@ -253,7 +257,7 @@ export default function EventGallerySection() {
               {!imageLoaded && <Skeleton className="absolute inset-0 z-10" />}
               <Image
                 key={photo.imageUrl}
-                src={photo.imageUrl}
+                src={normalizeImageUrl(photo.imageUrl)}
                 alt={photo.title}
                 fill
                 className="relative z-20 object-cover"

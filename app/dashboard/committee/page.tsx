@@ -10,9 +10,12 @@ import {
   Check,
   Trash2,
   Building2,
+  UploadCloud,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import DeleteModal from "@/components/DeleteModal";
+import ImportCommittee, { normalizeImageUrl } from "@/components/ImportCommittee";
 import Pagination from "@/components/Pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +24,6 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   useCommitteeMembers,
   useCommitteeDivisions,
@@ -37,6 +39,8 @@ interface CommitteeMember {
   divisionName: string;
   image: string;
   isLeader: string | null;
+  studyProgram: string | null;
+  batch: string | null;
   quote: string | null;
   instagram: string | null;
   linkedin: string | null;
@@ -53,6 +57,9 @@ interface Division {
 
 const PAGE_SIZE = 10;
 
+/** Jabatan yang tersedia — diambil dari data panitia (Google Forms). */
+const JABATAN_OPTIONS = ['SC', 'PO', 'PI', 'Staff'];
+
 export default function CommitteePage() {
   const qc = useQueryClient();
   const { data: itemsData, isLoading: loading } = useCommitteeMembers();
@@ -60,6 +67,10 @@ export default function CommitteePage() {
   const items = itemsData ?? [];
   const divisions = divisionsData ?? [];
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [filterRole, setFilterRole] = useState("");
+  const [filterDivision, setFilterDivision] = useState("");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -68,6 +79,7 @@ export default function CommitteePage() {
     message: string;
     onConfirm: () => void;
   } | null>(null);
+  const [showImport, setShowImport] = useState(false);
   const [showDivManager, setShowDivManager] = useState(false);
   const [divForm, setDivForm] = useState({ name: "", shortName: "", slug: "" });
   const [divEditingId, setDivEditingId] = useState<number | null>(null);
@@ -80,6 +92,8 @@ export default function CommitteePage() {
     divisionName: "",
     image: "",
     isLeader: "0",
+    studyProgram: "",
+    batch: "",
     quote: "",
     instagram: "",
     linkedin: "",
@@ -103,6 +117,8 @@ export default function CommitteePage() {
         divisionName: divisions[0]?.name || "",
         image: "",
         isLeader: "0",
+        studyProgram: "",
+        batch: "",
         quote: "",
         instagram: "",
         linkedin: "",
@@ -164,6 +180,8 @@ export default function CommitteePage() {
       divisionName: item.divisionName,
       image: item.image,
       isLeader: item.isLeader || "0",
+      studyProgram: item.studyProgram || "",
+      batch: item.batch || "",
       quote: item.quote || "",
       instagram: item.instagram || "",
       linkedin: item.linkedin || "",
@@ -171,6 +189,9 @@ export default function CommitteePage() {
     setEditingId(item.id);
     setShowAdd(true);
   };
+
+  /** Siapkan URL foto: terima link Google Drive lalu ubah jadi URL gambar yang bisa tampil. */
+  const prepareImage = (raw: string) => normalizeImageUrl(raw);
 
   const handleSave = async () => {
     if (!form.name || !form.role || !form.division || !form.image) {
@@ -181,6 +202,7 @@ export default function CommitteePage() {
     try {
       const body = {
         ...form,
+        image: prepareImage(form.image),
         divisionName: form.divisionName || form.division,
         isLeader: form.isLeader === "1",
       };
@@ -198,6 +220,15 @@ export default function CommitteePage() {
       onConfirm: async () => {
         await deleteMutation.mutateAsync(id);
       },
+    });
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
   };
 
@@ -228,7 +259,51 @@ export default function CommitteePage() {
     await divDeleteMutation.mutateAsync(id);
   };
 
-  const paginated = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const filtered = items.filter((item) => {
+    const q = search.trim().toLowerCase();
+    if (q && !`${item.name} ${item.role} ${item.divisionName} ${item.studyProgram || ''} ${item.batch || ''}`.toLowerCase().includes(q)) {
+      return false;
+    }
+    if (filterRole && filterRole !== "all" && item.role !== filterRole) return false;
+    if (filterDivision && filterDivision !== "all" && item.division !== filterDivision) return false;
+    return true;
+  });
+
+  const roles = Array.from(new Set(items.map((i) => i.role).filter(Boolean)));
+  const divSlugs = Array.from(new Set(items.map((i) => i.division).filter(Boolean)));
+
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const toggleSelectAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const pageIds = paginated.map((p) => p.id);
+      const allSelected = pageIds.length > 0 && pageIds.every((id) => next.has(id));
+      pageIds.forEach((id) => {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      });
+      return next;
+    });
+  };
+
+  const isPageSelected = paginated.length > 0 && paginated.every((p) => selected.has(p.id));
+
+  const handleBulkDelete = () => {
+    if (selected.size === 0) return;
+    const ids = Array.from(selected);
+    setDeleteModal({
+      title: "Hapus Anggota Terpilih",
+      message:
+        "Yakin ingin menghapus " +
+        ids.length +
+        ' anggota terpilih sekaligus? Tindakan ini tidak bisa dibatalkan.',
+      onConfirm: async () => {
+        await Promise.all(ids.map((id) => deleteMutation.mutateAsync(id)));
+        setSelected(new Set());
+      },
+    });
+  };
 
   if (loading)
     return (
@@ -252,8 +327,20 @@ export default function CommitteePage() {
           <Button
             variant="outline"
             onClick={() => {
+              setShowImport(!showImport);
+              setShowDivManager(false);
+              setShowAdd(false);
+            }}
+            className="clip-angled text-xs font-bold uppercase tracking-wider"
+          >
+            <UploadCloud data-icon="inline-start" /> Import
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
               setShowDivManager(!showDivManager);
               setShowAdd(false);
+              setShowImport(false);
             }}
             className="clip-angled text-xs font-bold uppercase tracking-wider"
           >
@@ -263,6 +350,7 @@ export default function CommitteePage() {
             onClick={() => {
               setShowAdd(!showAdd);
               setShowDivManager(false);
+              setShowImport(false);
               setEditingId(null);
               setForm({
                 name: "",
@@ -271,6 +359,8 @@ export default function CommitteePage() {
                 divisionName: divisions[0]?.name || "",
                 image: "",
                 isLeader: "0",
+                studyProgram: "",
+                batch: "",
                 quote: "",
                 instagram: "",
                 linkedin: "",
@@ -282,6 +372,100 @@ export default function CommitteePage() {
           </Button>
         </div>
       </div>
+
+      {/* Search + Filter */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Cari nama, jabatan, divisi, prodi..."
+            className="pl-9"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Select value={filterRole} onValueChange={(v) => { setFilterRole(v); setPage(1); }}>
+            <SelectTrigger className="w-full sm:w-36">
+              <SelectValue placeholder="Jabatan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">Semua Jabatan</SelectItem>
+                {roles.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select value={filterDivision} onValueChange={(v) => { setFilterDivision(v); setPage(1); }}>
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Divisi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">Semua Divisi</SelectItem>
+                {divSlugs.map((s) => {
+                  const div = divisions.find((d) => d.slug === s);
+                  return <SelectItem key={s} value={s}>{div?.name || s}</SelectItem>;
+                })}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {(search || filterRole || filterDivision) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setSearch(""); setFilterRole(""); setFilterDivision(""); setPage(1); }}
+              className="clip-angled-sm gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+            >
+              <X className="size-3" /> Reset
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {filtered.length !== items.length && (
+        <p className="text-[11px] text-muted-foreground">
+          Menampilkan {filtered.length} dari {items.length} anggota
+        </p>
+      )}
+
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2.5">
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-foreground">
+            <input
+              type="checkbox"
+              checked={isPageSelected}
+              onChange={toggleSelectAll}
+              className="size-4 accent-destructive"
+            />
+            Pilih {paginated.length} di halaman ini
+          </label>
+          <span className="text-xs text-muted-foreground">{selected.size} anggota terpilih</span>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleBulkDelete}
+            className="clip-angled-sm ml-auto gap-1 text-[10px] font-bold uppercase tracking-wider"
+          >
+            <Trash2 className="size-3.5" /> Hapus Terpilih
+          </Button>
+        </div>
+      )}
+
+      {/* Import CSV/Excel */}
+      {showImport && (
+        <Card className="clip-angled relative border-border">
+          <div className="absolute -top-px -left-px size-8 bg-primary" style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }} />
+          <CardContent className="space-y-4 p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black uppercase tracking-tight text-foreground">Import Anggota</h2>
+              <Button variant="ghost" size="icon-sm" onClick={() => setShowImport(false)} aria-label="Tutup"><X /></Button>
+            </div>
+            <ImportCommittee onImported={invalidate} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Division Manager */}
       {showDivManager && (
@@ -299,18 +483,17 @@ export default function CommitteePage() {
                 <FieldLabel>Nama Divisi</FieldLabel>
                 <Input
                   value={divForm.name}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const nameVal = e.target.value;
                     setDivForm({
                       ...divForm,
-                      name: e.target.value,
-                      slug: divEditingId
-                        ? divForm.slug
-                        : e.target.value
-                            .toLowerCase()
-                            .replace(/\s+/g, "-")
-                            .replace(/[^a-z0-9-]/g, ""),
-                    })
-                  }
+                      name: nameVal,
+                      slug: nameVal
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")
+                        .replace(/[^a-z0-9-]/g, ""),
+                    });
+                  }}
                   placeholder="Badan Pengurus Harian"
                 />
               </Field>
@@ -371,14 +554,18 @@ export default function CommitteePage() {
               </Field>
               <Field>
                 <FieldLabel>Jabatan <span className="text-destructive">*</span></FieldLabel>
-                <Input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Ketua Pelaksana / Staf" />
-              </Field>
-              <Field>
-                <FieldLabel>Tipe</FieldLabel>
-                <ToggleGroup type="single" value={form.isLeader} onValueChange={(v) => v && setForm({ ...form, isLeader: v })} spacing={2} className="mt-1 w-full">
-                  <ToggleGroupItem value="1" className="flex-1 text-xs font-bold uppercase tracking-wider">Koordinator</ToggleGroupItem>
-                  <ToggleGroupItem value="0" className="flex-1 text-xs font-bold uppercase tracking-wider">Staf</ToggleGroupItem>
-                </ToggleGroup>
+                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih jabatan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {JABATAN_OPTIONS.map((j) => (
+                        <SelectItem key={j} value={j}>{j}</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </Field>
               <Field>
                 <FieldLabel>Divisi <span className="text-destructive">*</span></FieldLabel>
@@ -412,41 +599,57 @@ export default function CommitteePage() {
             </FieldGroup>
             <FieldGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field>
+                <FieldLabel>Prodi</FieldLabel>
+                <Input value={form.studyProgram} onChange={(e) => setForm({ ...form, studyProgram: e.target.value })} placeholder="Teknik Informatika" />
+              </Field>
+              <Field>
+                <FieldLabel>Angkatan</FieldLabel>
+                <Input value={form.batch} onChange={(e) => setForm({ ...form, batch: e.target.value })} placeholder="2024" />
+              </Field>
+              <Field>
                 <FieldLabel>LinkedIn</FieldLabel>
                 <Input value={form.linkedin} onChange={(e) => setForm({ ...form, linkedin: e.target.value })} placeholder="URL LinkedIn" />
               </Field>
               <Field>
                 <FieldLabel>Foto <span className="text-destructive">*</span></FieldLabel>
-                <div className="flex items-center gap-3">
-                  <label className="cursor-pointer">
-                    <span className="clip-angled-sm inline-block border border-border bg-muted px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent">
-                      Upload File
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        try {
-                          const uploadRes = await apiHelpers.upload(file);
-                          const url = (uploadRes as any)?.url;
-                          if (url) setForm({ ...form, image: url });
-                        } catch {
-                          console.error("Upload failed");
-                        }
-                      }}
-                    />
-                  </label>
-                  <span className="text-[10px] text-muted-foreground">atau</span>
-                  <Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="Atau URL gambar..." className="flex-1" />
+                <div className="space-y-2">
+                  <Input
+                    value={form.image}
+                    onChange={(e) => setForm({ ...form, image: e.target.value })}
+                    placeholder="URL Google Drive / link gambar langsung..."
+                    className="flex-1"
+                  />
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <span>atau</span>
+                    <label className="cursor-pointer">
+                      <span className="clip-angled-sm inline-block border border-border bg-muted px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent">
+                        Upload File
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const uploadRes = await apiHelpers.upload(file);
+                            const url = (uploadRes as any)?.url;
+                            if (url) setForm({ ...form, image: url });
+                          } catch {
+                            console.error("Upload failed");
+                          }
+                        }}
+                      />
+                    </label>
+                    <span className="ml-auto">Paste link Drive: <code className="rounded bg-muted px-1 py-0.5">drive.google.com/file/d/…</code></span>
+                  </div>
                 </div>
               </Field>
             </FieldGroup>
             {form.image && (
               <div className="clip-angled-sm flex items-center gap-3 border border-border bg-muted/50 p-3">
-                <Image src={form.image} alt="Preview" width={48} height={48} unoptimized className="size-12 rounded-full object-cover" />
+                <Image src={prepareImage(form.image)} alt="Preview" width={48} height={48} unoptimized className="size-12 rounded-full object-cover" />
                 <span className="text-xs text-muted-foreground">Preview</span>
                 <Button variant="ghost" size="sm" onClick={() => setForm({ ...form, image: "" })} className="ml-auto text-xs text-destructive hover:text-destructive">Hapus</Button>
               </div>
@@ -466,6 +669,8 @@ export default function CommitteePage() {
                     divisionName: divisions[0]?.name || "",
                     image: "",
                     isLeader: "0",
+                    studyProgram: "",
+                    batch: "",
                     quote: "",
                     instagram: "",
                     linkedin: "",
@@ -483,8 +688,19 @@ export default function CommitteePage() {
           <Card key={item.id} className="clip-angled group relative border-border p-4">
             <CardContent className="flex items-center justify-between gap-4 p-0">
               <div className="flex items-center gap-3">
-                {item.image && (
-                  <Image src={item.image} alt="" width={40} height={40} unoptimized className="size-10 rounded-full object-cover" />
+                <input
+                  type="checkbox"
+                  checked={selected.has(item.id)}
+                  onChange={() => toggleSelect(item.id)}
+                  aria-label={`Pilih ${item.name}`}
+                  className="size-4 shrink-0 accent-primary"
+                />
+                {item.image ? (
+                  <Image src={normalizeImageUrl(item.image)} alt="" width={40} height={40} unoptimized className="size-10 rounded-full object-cover" />
+                ) : (
+                  <div className="flex size-10 items-center justify-center rounded-full bg-muted text-[10px] font-bold uppercase text-muted-foreground">
+                    {item.name.charAt(0)}
+                  </div>
                 )}
                 <div>
                   <span className="text-sm font-bold text-foreground">{item.name}</span>
@@ -497,6 +713,11 @@ export default function CommitteePage() {
                     )}
                     <span className="text-[10px] text-muted-foreground/60">|</span>
                     <span className="text-[10px] text-muted-foreground">{item.divisionName || item.division}</span>
+                    {(item.studyProgram || item.batch) && (
+                      <span className="text-[10px] text-muted-foreground/60">
+                        · {[item.studyProgram, item.batch].filter(Boolean).join(' ')}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -507,9 +728,9 @@ export default function CommitteePage() {
             </CardContent>
           </Card>
         ))}
-        {items.length === 0 && (
+        {paginated.length === 0 && (
           <p className="py-4 text-center text-sm italic text-muted-foreground">
-            Belum ada anggota committee.
+            {items.length === 0 ? "Belum ada anggota committee." : "Tidak ada anggota yang cocok dengan pencarian/filter."}
           </p>
         )}
       </div>

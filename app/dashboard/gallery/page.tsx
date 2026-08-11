@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Spinner } from '@/components/ui/spinner';
 import { useGalleryPhotos, useGalleryCategories, queryKeys } from '@/src/lib/hooks/use-queries';
 import { apiHelpers } from '@/src/lib/api';
+import { normalizeImageUrl } from '@/components/ImportCommittee';
 
 interface GalleryItem {
   id: number;
@@ -115,7 +116,11 @@ export default function GalleryPage() {
     if (!form.category) { toast.error('Kategori wajib dipilih'); return; }
     setSaving(true);
     try {
-      const body = { ...form, likesCount: Number(form.likesCount), sortOrder: Number(form.sortOrder) };
+      const body = {
+        ...form,
+        imageUrl: normalizeImageUrl(form.imageUrl),
+        likesCount: Number(form.likesCount), sortOrder: Number(form.sortOrder),
+      };
       await saveMutation.mutateAsync(body);
     } catch { toast.error('Gagal menyimpan'); }
     setSaving(false);
@@ -181,9 +186,21 @@ export default function GalleryPage() {
             <FieldGroup className="flex items-end gap-3">
               <Field className="flex-1">
                 <FieldLabel>Nama</FieldLabel>
-                <Input value={catForm.name}
-                  onChange={(e) => setCatForm({ ...catForm, name: e.target.value, slug: catEditingId ? catForm.slug : e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                  placeholder="Nama kategori" />
+                <Input
+                  value={catForm.name}
+                  onChange={(e) => {
+                    const nameVal = e.target.value;
+                    setCatForm({
+                      ...catForm,
+                      name: nameVal,
+                      slug: nameVal
+                        .toLowerCase()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^a-z0-9-]/g, ''),
+                    });
+                  }}
+                  placeholder="Nama kategori"
+                />
               </Field>
               <Field className="flex-1">
                 <FieldLabel>Slug</FieldLabel>
@@ -268,12 +285,12 @@ export default function GalleryPage() {
                     }} />
                 </label>
                 <span className="text-[10px] text-muted-foreground">atau</span>
-                <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="Atau masukkan URL gambar..." className="flex-1" />
+                <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="URL Google Drive / link gambar langsung..." className="flex-1" />
               </div>
             </Field>
             {form.imageUrl && (
               <div className="clip-angled-sm flex items-center gap-3 border border-border bg-muted/50 p-3">
-                <Image src={form.imageUrl} alt="Preview" width={64} height={48} unoptimized className="size-16 object-cover" />
+                <Image src={normalizeImageUrl(form.imageUrl)} alt="Preview" width={64} height={48} unoptimized className="size-16 object-cover" />
                 <span className="text-xs text-muted-foreground">Preview</span>
                 <Button variant="ghost" size="sm" onClick={() => setForm({ ...form, imageUrl: '' })} className="ml-auto text-xs text-destructive hover:text-destructive">Hapus</Button>
               </div>
@@ -296,7 +313,7 @@ export default function GalleryPage() {
           <Card key={item.id} className="clip-angled group relative border-border p-4">
             <CardContent className="flex items-center justify-between gap-4 p-0">
               <div className="flex items-center gap-3">
-                {item.imageUrl && <Image src={item.imageUrl} alt="" width={48} height={36} unoptimized className="size-12 rounded object-cover" />}
+                {item.imageUrl && <Image src={normalizeImageUrl(item.imageUrl)} alt="" width={48} height={36} unoptimized className="size-12 rounded object-cover" />}
                 <div>
                   <span className="text-sm font-bold text-foreground">{item.title}</span>
                   <div className="mt-0.5 flex gap-2">

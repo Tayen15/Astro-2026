@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, X, Check, Trash2, ImagePlus, Loader2 } from 'lucide-react';
+import { Plus, Pencil, X, Check, Trash2, ImagePlus, Link2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteModal from '@/components/DeleteModal';
 import Pagination from '@/components/Pagination';
@@ -15,9 +15,11 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { useJourneys, useJourneyPhotos, queryKeys } from '@/src/lib/hooks/use-queries';
 import { apiHelpers } from '@/src/lib/api';
+import { normalizeImageUrl } from '@/components/ImportCommittee';
 
 interface Journey {
   id: string;
+  year: string | null;
   theme: string;
   participants: number | null;
   universities: number | null;
@@ -52,7 +54,7 @@ export default function JourneyPage() {
   const [deleteModal, setDeleteModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
   const [form, setForm] = useState({
-    id: '', theme: '', participants: 0, universities: 0,
+    year: '', theme: '', participants: 0, universities: 0,
     competitionsCount: 0, achievement: '', description: '', highlights: '',
     sortOrder: 0,
   });
@@ -65,7 +67,7 @@ export default function JourneyPage() {
         ? apiHelpers.journeys.update(editingId, body)
         : apiHelpers.journeys.create(body),
     onSuccess: () => {
-      setForm({ id: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 });
+      setForm({ year: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 });
       setEditingId(null); setShowAdd(false);
       toast.success(editingId ? 'Journey diperbarui' : 'Journey ditambahkan');
       invalidate();
@@ -81,7 +83,7 @@ export default function JourneyPage() {
 
   const handleEdit = (item: Journey) => {
     setForm({
-      id: item.id,
+      year: item.year || item.id,
       theme: item.theme,
       participants: item.participants || 0,
       universities: item.universities || 0,
@@ -96,11 +98,12 @@ export default function JourneyPage() {
   };
 
   const handleSave = async () => {
-    if (!form.id || !form.theme) { toast.error('ID dan theme wajib diisi'); return; }
+    if (!form.year || !form.theme) { toast.error('Tahun dan tema wajib diisi'); return; }
     setSaving(true);
     try {
       const body = {
-        ...form,
+        year: form.year,
+        theme: form.theme,
         participants: Number(form.participants),
         universities: Number(form.universities),
         competitionsCount: Number(form.competitionsCount),
@@ -132,7 +135,7 @@ export default function JourneyPage() {
           <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Journey</h1>
           <p className="mt-1 text-sm font-light text-muted-foreground">{items.length} perjalanan</p>
         </div>
-        <Button onClick={() => { setShowAdd(!showAdd); setEditingId(null); setForm({ id: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 }); }}
+        <Button onClick={() => { setShowAdd(!showAdd); setEditingId(null); setForm({ year: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 }); }}
           className="clip-angled text-xs font-bold uppercase tracking-wider">
           <Plus data-icon="inline-start" /> Tambah Journey
         </Button>
@@ -145,12 +148,8 @@ export default function JourneyPage() {
             <h2 className="text-sm font-black uppercase tracking-tight text-foreground">{editingId ? 'Edit' : 'Tambah'} Journey</h2>
             <FieldGroup className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field>
-                <FieldLabel>ID <span className="text-destructive">*</span></FieldLabel>
-                <Input value={form.id}
-                  readOnly={!!editingId}
-                  onChange={(e) => setForm({ ...form, id: editingId ? form.id : e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                  placeholder="2023"
-                  className={editingId ? 'cursor-not-allowed bg-muted text-muted-foreground' : ''} />
+                <FieldLabel>Tahun <span className="text-destructive">*</span></FieldLabel>
+                <Input value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="2024" />
               </Field>
               <Field>
                 <FieldLabel>Tema <span className="text-destructive">*</span></FieldLabel>
@@ -190,7 +189,7 @@ export default function JourneyPage() {
                 {saving ? <Spinner data-icon="inline-start" /> : <Check data-icon="inline-start" />} Simpan
               </Button>
               <Button variant="outline" className="clip-angled-sm gap-1 text-xs font-bold uppercase tracking-wider"
-                onClick={() => { setShowAdd(false); setEditingId(null); setForm({ id: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 }); }}>
+                onClick={() => { setShowAdd(false); setEditingId(null); setForm({ year: '', theme: '', participants: 0, universities: 0, competitionsCount: 0, achievement: '', description: '', highlights: '', sortOrder: 0 }); }}>
                 <X data-icon="inline-start" /> Batal
               </Button>
             </div>
@@ -203,7 +202,7 @@ export default function JourneyPage() {
           <Card key={item.id} className="clip-angled group relative border-border p-4">
             <CardContent className="flex items-center justify-between gap-4 p-0">
               <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="bg-muted px-2.5 py-1 text-xs font-black text-foreground">{item.id}</Badge>
+                <Badge variant="secondary" className="bg-muted px-2.5 py-1 text-xs font-black text-foreground">{item.year || item.id}</Badge>
                 <span className="text-sm font-bold text-foreground">{item.theme}</span>
                 <span className="text-[11px] text-muted-foreground">{item.participants} peserta</span>
               </div>
@@ -233,6 +232,7 @@ function JourneyPhotoManager({ journey }: { journey: Journey }) {
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [caption, setCaption] = useState('');
+  const [url, setUrl] = useState('');
 
   const invalidate = () =>
     qc.invalidateQueries({ queryKey: queryKeys.journeyPhotos.list(journey.id) });
@@ -278,6 +278,27 @@ function JourneyPhotoManager({ journey }: { journey: Journey }) {
     }
   };
 
+  const handleAddByUrl = async () => {
+    const clean = normalizeImageUrl(url.trim());
+    if (!clean) {
+      toast.error('Masukkan URL gambar atau link Google Drive');
+      return;
+    }
+    try {
+      await apiHelpers.journeyPhotos.create({
+        journeyId: journey.id,
+        url: clean,
+        caption: caption.trim() || null,
+      });
+      setUrl('');
+      setCaption('');
+      toast.success('Foto dokumentasi ditambahkan');
+      invalidate();
+    } catch {
+      toast.error('Gagal menambahkan foto');
+    }
+  };
+
   return (
     <div className="mt-2 border-t border-border pt-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -285,7 +306,14 @@ function JourneyPhotoManager({ journey }: { journey: Journey }) {
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           placeholder="Keterangan foto (opsional)..."
-          className="min-w-0 flex-1 bg-background"
+          className="min-w-0 basis-40 flex-1 bg-background"
+        />
+        <Input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleAddByUrl(); }}
+          placeholder="URL Google Drive / link gambar langsung..."
+          className="min-w-0 basis-64 flex-1 bg-background"
         />
         <label className="flex-shrink-0 cursor-pointer">
           <Button asChild size="sm" variant="outline" disabled={uploading}
@@ -298,6 +326,12 @@ function JourneyPhotoManager({ journey }: { journey: Journey }) {
           <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={handleUpload} />
         </label>
       </div>
+      <button
+        onClick={handleAddByUrl}
+        className="clip-angled-sm mt-2 inline-flex items-center gap-1.5 border border-border bg-muted px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+      >
+        <Link2 className="size-3" /> Tambah dari URL
+      </button>
 
       {loading ? (
         <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
@@ -308,7 +342,7 @@ function JourneyPhotoManager({ journey }: { journey: Journey }) {
           {photos.map((p) => (
             <div key={p.id} className="group relative aspect-[4/3] overflow-hidden border border-border bg-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption || 'Foto dokumentasi'} className="size-full object-cover" />
+              <img src={normalizeImageUrl(p.url)} alt={p.caption || 'Foto dokumentasi'} className="size-full object-cover" />
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                 <Button size="icon-xs" variant="outline" disabled={deletingId === p.id}
                   onClick={() => handleDelete(p.id)} aria-label="Hapus foto"

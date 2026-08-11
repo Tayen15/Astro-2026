@@ -76,6 +76,8 @@ export const apiHelpers = {
     update: (id: string, body: unknown) =>
       unwrap(api['committee-members']({ id }).put(body as never)),
     remove: (id: string) => unwrap(api['committee-members']({ id }).delete()),
+    importRows: (rows: unknown[]) =>
+      unwrap(api['committee-members']['import'].post({ rows } as never)),
   },
   committeeDivisions: {
     list: () => unwrap(api['committee-divisions'].get()),

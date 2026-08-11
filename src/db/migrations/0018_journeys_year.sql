@@ -1,0 +1,1 @@
+ALTER TABLE "journeys" ADD COLUMN "year" text;
