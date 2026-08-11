@@ -199,10 +199,11 @@ export default function JourneyPage() {
 
       <div className="grid grid-cols-1 gap-3">
         {paginated.map((item) => (
-          <Card key={item.id} className="clip-angled group relative border-border p-4">
+          <Card key={item.id} className="clip-angled group relative overflow-hidden border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md">
+            <div className="absolute -top-px -left-px size-6 bg-primary/20 transition-colors group-hover:bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
             <CardContent className="flex items-center justify-between gap-4 p-0">
               <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="bg-muted px-2.5 py-1 text-xs font-black text-foreground">{item.year || item.id}</Badge>
+                <Badge variant="secondary" className="clip-angled-sm bg-muted px-2.5 py-1 text-xs font-black text-foreground">{item.year || item.id}</Badge>
                 <span className="text-sm font-bold text-foreground">{item.theme}</span>
                 <span className="text-[11px] text-muted-foreground">{item.participants} peserta</span>
               </div>
@@ -340,7 +341,7 @@ function JourneyPhotoManager({ journey }: { journey: Journey }) {
       ) : photos.length > 0 ? (
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
           {photos.map((p) => (
-            <div key={p.id} className="group relative aspect-[4/3] overflow-hidden border border-border bg-muted">
+            <div key={p.id} className="clip-angled-sm group relative aspect-[4/3] overflow-hidden border border-border bg-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={normalizeImageUrl(p.url)} alt={p.caption || 'Foto dokumentasi'} className="size-full object-cover" />
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">

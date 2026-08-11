@@ -258,7 +258,8 @@ export default function SponsorPage() {
 
           <div className="grid grid-cols-1 gap-3">
             {spPaginated.map((s) => (
-              <Card key={s.id} className="clip-angled group relative border-border p-4">
+              <Card key={s.id} className="clip-angled group relative overflow-hidden border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md">
+                <div className="absolute -top-px -left-px size-6 bg-primary/20 transition-colors group-hover:bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
                 <CardContent className="flex items-center justify-between gap-4 p-0">
                   <div className="flex items-center gap-3">
                     {s.logo ? (
@@ -358,7 +359,8 @@ export default function SponsorPage() {
 
           <div className="grid grid-cols-1 gap-3">
             {mpPaginated.map((m) => (
-              <Card key={m.id} className="clip-angled group relative border-border p-4">
+              <Card key={m.id} className="clip-angled group relative overflow-hidden border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md">
+                <div className="absolute -top-px -left-px size-6 bg-primary/20 transition-colors group-hover:bg-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
                 <CardContent className="flex items-center justify-between gap-4 p-0">
                   <div className="flex items-center gap-3">
                     {m.logo ? (
